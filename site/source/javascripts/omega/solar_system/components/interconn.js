@@ -34,9 +34,14 @@ Omega.SolarSystemInterconns.prototype = {
     return new THREE.Line(this._line_geo(endpoint), this._line_material());
   },
 
-  _particle_group : function(event_cb){
+  _texture : function(event_cb){
+    if(this.__texture) return this.__texture;
+    return Omega.UI.Particles.load('solar_system', event_cb);
+  },
+
+  _particle_group : function(){
     return new SPE.Group({
-      texture  : Omega.UI.Particles.load('solar_system', event_cb),
+      texture  : this._texture(),
       blending : THREE.AdditiveBlending,
       maxAge   : this.age
     });
@@ -71,8 +76,12 @@ Omega.SolarSystemInterconns.prototype = {
     return emitter;
   },
 
-  init_gfx : function(event_cb){
-    this.particles = this._particle_group(event_cb);
+  load_gfx : function(event_cb){
+    this._texture(event_cb);
+  },
+
+  init_gfx : function(){
+    this.particles = this._particle_group();
     this.clock = new THREE.Clock();
   },
 

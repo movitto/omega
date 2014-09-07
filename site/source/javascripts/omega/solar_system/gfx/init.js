@@ -32,7 +32,7 @@ Omega.SolarSystemGfxInitializer = {
   },
 
   _init_interconns : function(){
-    this.interconns.init_gfx(event_cb);
+    this.interconns.init_gfx();
   },
 
   _init_components : function(){
@@ -53,7 +53,7 @@ Omega.SolarSystemGfxInitializer = {
     this._init_text();
     this._init_audio();
     this._init_particles();
-    this._init_interconns(event_cb);
+    this._init_interconns();
     this._init_components();
 
     this._gfx_initialized = true;

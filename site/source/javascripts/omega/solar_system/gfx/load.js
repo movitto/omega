@@ -29,6 +29,10 @@ Omega.SolarSystemGfxLoader = {
     this._store_resource('particles',  new Omega.SolarSystemParticles({event_cb : event_cb}));
   },
 
+  _load_interconns : function(event_cb){
+    this.interconns.load_gfx(event_cb);
+  },
+
   /// Load shared graphics resources
   load_gfx : function(event_cb){
     if(this.gfx_loaded()) return;
@@ -37,6 +41,7 @@ Omega.SolarSystemGfxLoader = {
     this._load_text();
     this._load_audio();
     this._load_particles(event_cb);
+    this._load_interconns(event_cb);
     this._loaded_gfx();
   }
 };
