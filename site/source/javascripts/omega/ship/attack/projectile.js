@@ -24,6 +24,7 @@ Omega.ShipProjectile = {
     this.source = source;
     this.location.set(source.scene_location());
     this.location.set_orientation(this.launch_dir());
+    this.location.update_ms_dir(this.location.orientation());
   },
 
   set_target : function(target){
