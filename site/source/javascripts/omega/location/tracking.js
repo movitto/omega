@@ -10,10 +10,11 @@ Omega.LocationTracking = {
     this.tracking = location;
   },
 
-  /// Boolean indicating if location is on target
-  on_target : function(){
+  /// Boolean indicating if location is near target
+  near_target : function(dist){
     if(!this.tracking) return true;
-    return this.distance_from(this.tracking) <= this.movement_strategy.distance;
+    if(typeof(dist) === "undefined") dist = this.movement_strategy.distance;
+    return this.distance_from(this.tracking) <= dist;
   },
 
   /// Return unit direction vector from this location's coords to specified coords
@@ -23,19 +24,22 @@ Omega.LocationTracking = {
                              this.tracking.z);
   },
 
+  /// Return axis-angle rotation to target
+  rotation_to_target : function(){
+    return this.rotation_to(this.tracking.x,
+                            this.tracking.y,
+                            this.tracking.z);
+  },
+
   /// Boolean indicating if location is facing target
   facing_target : function(tolerance){
-    var diff = this.orientation_difference(this.tracking.x,
-                                           this.tracking.y,
-                                           this.tracking.z);
+    var diff = this.rotation_to_target();
     return Math.abs(diff[0]) <= tolerance;
   },
 
   /// Bool indicating if location is facing target tangent
   facing_target_tangent : function(tolerance){
-    var diff = this.orientation_difference(this.tracking.x,
-                                           this.tracking.y,
-                                           this.tracking.z);
+    var diff = this.rotation_to_target();
     return Math.abs(Math.abs(diff[0]) - Math.PI / 2) <= tolerance;
   }
 };

@@ -106,7 +106,7 @@ module MovementStrategies
 
     # Move location along linear path
     def move_linear(loc, elapsed_seconds)
-      accelerate if acceleration
+      accelerate unless acceleration.nil?
 
       distance     = speed * elapsed_seconds
 

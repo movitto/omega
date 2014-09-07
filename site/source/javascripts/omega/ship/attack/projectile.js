@@ -31,7 +31,7 @@ Omega.ShipProjectile = {
   },
 
   near_target : function(){
-    return this.location.on_target();
+    return this.location.near_target();
   },
 
   launching : function(){

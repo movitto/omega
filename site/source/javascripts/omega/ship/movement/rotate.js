@@ -6,17 +6,12 @@
 
 Omega.ShipRotationMovement = {
   _rotate : function(elapsed, invert){
-    var rot_theta = invert ? (this.location.movement_strategy.rot_theta * -1) :
-                              this.location.movement_strategy.rot_theta
+    var rot_theta = this.location.movement_strategy.rot_theta;
     if(!rot_theta) return;
-
-    var stop_angle = this.location.movement_strategy.stop_angle;
-    if(this.location.angle_rotated + rot_theta > stop_angle)
-      rot_theta = stop_angle - this.location.angle_rotated;
+    if(invert) rot_theta *= -1;
 
     var dist = rot_theta * elapsed / 1000;
     this.location.rotate_orientation(dist);
-    this.location.angle_rotated += rot_theta;
   },
 
   _run_rotation_movement : function(page, elapsed, invert){

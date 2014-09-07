@@ -53,9 +53,10 @@ Omega.LocationMovement = {
   /// Rotate orientation by parameters in movement strategy
   rotate_orientation : function(angle){
     var stop      = this.movement_strategy.stop_angle;
-    var projected = this.angle_rotated + angle;
-    if(stop && projected > stop) return;
-    this.angle_rotated += angle;
+    var projected = this.angle_rotated + Math.abs(angle);
+    var nangle    = angle < 0;
+    if(stop && projected > stop) angle = (stop - this.angle_rotated) * (nangle ? -1 : 1);
+    this.angle_rotated += Math.abs(angle);
 
     var new_or = Omega.Math.rot(this.orientation_x,
                                 this.orientation_y,
@@ -70,40 +71,45 @@ Omega.LocationMovement = {
     this.orientation_z = new_or[2];
   },
 
+  /// Return rotation direction
+  rot_dir : function(x, y, z){
+    if((typeof(x) === "array" || typeof(x) === "object") &&
+       x.length == 3 && !y && !z){
+      y = x[1];
+      z = x[2];
+      x = x[0];
+    }
+
+    if(typeof(x) !== "undefined"){
+      this.movement_strategy.rot_x = x;
+      this.movement_strategy.rot_y = y;
+      this.movement_strategy.rot_z = z;
+    }
+
+    return [this.movement_strategy.rot_x,
+            this.movement_strategy.rot_y,
+            this.movement_strategy.rot_z];
+  },
+
   /// Update movement strategy so as to rotate towards target
   face_target : function(){
-    var diff = this.orientation_difference(this.tracking.x,
-                                           this.tracking.y,
-                                           this.tracking.z);
+    var rot  = this.rotation_to_target();
 
-    if(isNaN(diff[0]) || isNaN(diff[1])){
-      this.movement_strategy.rot_x = 0;
-      this.movement_strategy.rot_y = 0;
-      this.movement_strategy.rot_z = 1;
-
-    }else{
-      this.movement_strategy.stop_angle = diff[0];
-      this.movement_strategy.rot_x      = diff[1];
-      this.movement_strategy.rot_y      = diff[2];
-      this.movement_strategy.rot_z      = diff[3];
-    }
+    this.angle_rotated = 0;
+    this.movement_strategy.stop_angle = Math.abs(rot[0]);
+    this.rot_dir(rot[1], rot[2], rot[3]);
   },
 
   face_away_from_target : function(){
-    var diff = this.orientation_difference(this.tracking.x,
-                                           this.tracking.y,
-                                           this.tracking.z);
+    var rot       = this.rotation_to_target();
+    var angle     = rot[0];
+    var max_angle = Math.PI/4;
 
-    if(isNaN(diff[0]) || isNaN(diff[1])){
-      this.movement_strategy.rot_x = 0;
-      this.movement_strategy.rot_y = 0;
-      this.movement_strategy.rot_z = 1;
+    if(angle > max_angle) angle = angle - max_angle;
+    else angle = max_angle - angle;
 
-    }else{
-      this.movement_strategy.stop_angle = Math.PI - diff[0];
-      this.movement_strategy.rot_x      = diff[1];
-      this.movement_strategy.rot_y      = diff[2];
-      this.movement_strategy.rot_z      = diff[3];
-    }
+    this.angle_rotated = 0;
+    this.movement_strategy.stop_angle = Math.abs(angle);
+    this.rot_dir(rot[1], rot[2], rot[3]);
   }
 };

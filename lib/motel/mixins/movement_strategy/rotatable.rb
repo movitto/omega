@@ -47,9 +47,10 @@ module MovementStrategies
       angle_rotated = @rot_theta * elapsed_seconds
 
       # stop at stop angle
-      total_rotated = loc.angle_rotated + angle_rotated
+      total_rotated = loc.angle_rotated + angle_rotated.abs
       exceeds_stop  = !stop_angle.nil? && (total_rotated > stop_angle)
-      angle_rotated = (stop_angle - loc.angle_rotated) if exceeds_stop
+      nangle        = angle_rotated < 0
+      angle_rotated = (stop_angle - loc.angle_rotated) * (nangle ? -1 : 1 ) if exceeds_stop
 
       # update location's orientation
       nor =
@@ -59,7 +60,7 @@ module MovementStrategies
       loc.orx = nor[0]
       loc.ory = nor[1]
       loc.orz = nor[2]
-      loc.angle_rotated += angle_rotated
+      loc.angle_rotated += angle_rotated.abs
       loc.orientation
     end
 

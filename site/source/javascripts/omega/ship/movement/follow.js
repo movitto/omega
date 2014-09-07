@@ -13,7 +13,7 @@ Omega.ShipFollowMovement = {
     var tracked = page.entity(loc.movement_strategy.tracked_location_id);
     loc.set_tracking(tracked.location);
 
-    var within_distance = loc.on_target();
+    var within_distance = loc.near_target();
     var target_moving   = !!(tracked.location.movement_strategy.speed);
     var slower_target   = target_moving && (tracked.location.movement_strategy.speed < loc.movement_strategy.speed);
     var adjust_speed    = within_distance && slower_target;

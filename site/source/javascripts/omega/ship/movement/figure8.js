@@ -13,33 +13,32 @@ Omega.ShipFigure8Movement = {
     var tracked = page.entity(loc.movement_strategy.tracked_location_id);
     loc.set_tracking(tracked.location);
 
-    var near_target   = loc.on_target();
-    var facing_target = loc.facing_target(Math.PI / 64);
-    if(!near_target && !loc.movement_strategy.rotating){
-      loc.movement_strategy.rotating = true;
-      loc.movement_strategy.inverted = !loc.movement_strategy.inverted;
-    }
+    var within_distance = loc.near_target();
+    var near_target     = loc.near_target(loc.movement_strategy.distance / 5);
+    var facing_target   = loc.facing_target(Math.PI / 64);
 
-    if(loc.movement_strategy.rotating && !facing_target){
-      loc.face_target();
-      this._rotate(elapsed, loc.movement_strategy.inverted);
-
-      if(loc.movement_strategy.inverted)
-        loc.movement_strategy.inverted = false;
-
+    if(!within_distance){
+      if(loc.movement_strategy.evading) loc.face_target();
+      loc.movement_strategy.evading = false;
     }else{
-      loc.movement_strategy.rotating = false;
+      if(near_target){
+        if(!loc.movement_strategy.evading) loc.face_away_from_target();
+        loc.movement_strategy.evading = true;
+      }
+
+      if(!loc.movement_strategy.evading && !facing_target) loc.face_target();
     }
 
+    this._rotate(elapsed);
     loc.update_ms_acceleration();
 
-    var should_scale =    loc.movement_strategy.rotating &&
-                       !!(loc.movement_strategy.acceleration);
-    if(should_scale) loc.scale_ms_acceleration();
+    var pause_acceleration = (!within_distance && !facing_target);
+    var orig_acceleration  = loc.movement_strategy.acceleration;
+    if(pause_acceleration) loc.movement_strategy.acceleration = 0;
 
     this._move_linear(elapsed);
 
-    if(should_scale) loc.unscale_ms_acceleration();
+    if(pause_acceleration) loc.movement_strategy.acceleration = orig_acceleration;
 
     this.update_gfx();
     this.last_moved = now;

@@ -134,6 +134,8 @@ Omega.Gen = {
       opts.location = new Omega.Location(loc);
       opts.location.id = opts.id;
       opts.location.set_orientation(0,0,1);
+      opts.location.distance_moved = 0;
+      opts.location.angle_rotated  = 0;
       opts.location.movement_strategy =
         {json_class : 'Motel::MovementStrategies::Stopped'}
     }

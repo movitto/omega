@@ -60,7 +60,6 @@ module Manufactured::RJR
                         :speed => 1,
                     :max_speed => entity.movement_speed,
                  :acceleration => entity.acceleration,
-           :acceleration_scale => 3,
           :tracked_location_id => target.location.id,
                     :rot_theta => entity.rotation_speed}
     entity.location.movement_strategy = strategy_class.new strategy_args

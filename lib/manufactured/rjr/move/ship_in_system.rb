@@ -16,8 +16,8 @@ module Manufactured::RJR
     distance = loc - entity.location
     raise OperationError, "#{entity} at location" if distance < 1
 
-    # calculate the orientation difference
-    od = entity.location.orientation_difference(*loc.coordinates)
+    # calculate the new trajectory
+    od = entity.location.rotation_to(*loc.coordinates)
 
     # Create linear movement strategy w/ movement trajectory
     stopped = Motel::MovementStrategies::Stopped.instance

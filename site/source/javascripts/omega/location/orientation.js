@@ -38,29 +38,46 @@ Omega.LocationOrientation = {
     return this;
   },
 
+  /// Return difference between location's orientation
+  /// and specified one as expressed via an axis angle.
+  orientation_difference : function(orx, ory, orz){
+    if((typeof(orx) === "array" || typeof(orx) === "object") &&
+       orx.length == 3 && !ory && !orz){
+      ory = orx[1];
+      orz = orx[2];
+      orx = orx[0];
+    }
+
+    return Omega.Math.axis_angle(this.orientation_x,
+                                 this.orientation_y,
+                                 this.orientation_z,
+                                 orx, ory, orz);
+  },
+
   /// Return axis angle between location's orientation and specified coordinate
-  orientation_difference : function(x, y, z){
+  rotation_to : function(x, y, z){
+    if((typeof(x) === "array" || typeof(x) === "object") &&
+       x.length == 3 && !y && !z){
+      y = x[1];
+      z = x[2];
+      x = x[0];
+    }else if(x.json_class == 'Motel::Location' || x.constructor == THREE.Vector3){
+      z = x.z;
+      y = x.y;
+      x = x.x;
+    }
+
     var dx = x - this.x;
     var dy = y - this.y;
     var dz = z - this.z;
     if(dx == 0 && dy == 0 && dz == 0) return [NaN, NaN, NaN, NaN];
 
-    var nrml  = Omega.Math.nrml(dx, dy, dz);
-    var angle = Omega.Math.abwn(this.orientation_x,
-                                this.orientation_y,
-                                this.orientation_z,
-                                nrml[0], nrml[1], nrml[2]);
-    var axis  = Omega.Math.cp(this.orientation_x,
-                              this.orientation_y,
-                              this.orientation_z,
-                              nrml[0], nrml[1], nrml[2]);
-        axis  = Omega.Math.nrml(axis[0], axis[1], axis[2]);
-    return [angle].concat(axis);
+    return this.orientation_difference(Omega.Math.nrml(dx, dy, dz));
   },
 
   /// Boolean indicating if location is facing specified location
   facing : function(location, tolerance){
-    var diff = this.orientation_difference(location.x, location.y, location.z);
+    var diff = this.rotation_to(location.x, location.y, location.z);
     return Math.abs(diff[0]) <= tolerance;
   },
 

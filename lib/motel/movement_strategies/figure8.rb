@@ -16,23 +16,15 @@ class Figure8 < MovementStrategy
   include Rotatable
   include TracksLocation
 
-  # Scale which linear acceleration should be increased/reduced while location is rotating
-  attr_accessor :acceleration_scale
-
-  # Indicates if entity is rotating, used internally
-  attr_accessor :rotating
-
-  # Indicates direction of rotation, used internally
-  attr_accessor :inverted
+  # Indicates if entity is evading, movng away for target to plot another route
+  attr_accessor :evading
 
   # Motel::MovementStrategies::Figure8 initializer
   #
   # @param [Hash] args hash of options to initialize the movement strategy with
   def initialize(args = {})
     default_args = {:orientation_tolerance => Math::PI/64}.merge(args)
-    attr_from_args args, :acceleration_scale => 1,
-                         :rotating    => false,
-                         :inverted    => true
+    attr_from_args args, :evading  => false
 
     linear_attrs_from_args(default_args)
     trackable_attrs_from_args(default_args)
@@ -60,41 +52,58 @@ class Figure8 < MovementStrategy
 
     ::RJR::Logger.debug "moving location #{loc.id} via figure8 strategy"
 
-    if !near_target?(loc) && !@rotating
-      @rotating = true
-      @inverted = !@inverted
-    end
+    within_distance = near_target?(loc)
+    near_target     = near_target?(loc, distance / 5)
+    facing_target   = facing_target?(loc)
 
-    if @rotating && !facing_target?(loc)
-      if @inverted
-        rotate_away_from_target(loc, elapsed_seconds)
-        @inverted = false
-      else
-        rotate_towards_target(loc, elapsed_seconds)
+    if !within_distance
+      # pick initial trajectory to begin approach
+      if @evading
+        ::RJR::Logger.debug "location #{loc.id} approaching target via figure8 strategy"
+        face_target(loc)
       end
 
+      # evading phase is over
+      @evading = false
+
     else
-      @rotating = false
+      if near_target
+        # pick initial trajectory to begin evasion
+        unless @evading
+          ::RJR::Logger.debug "location #{loc.id} evading target via figure8 strategy"
+          face_away_from_target(loc)
+        end
+
+        # evading phase has begun
+        @evading = true
+      end
+
+      # when within tracking distance and not evading, always face target
+      face_target(loc) if(!@evading && !facing_target)
     end
 
-    # update and scale acceleration
+    # rotate location according to movement strategy
+    rotate loc, elapsed_seconds if valid_rotation?
+
+    # update acceleration direction from location trajectory
     update_acceleration_from(loc)
 
-    self.acceleration /= @acceleration_scale if @rotating && acceleration
+    # pause acceleration if we're reseting approach trajectory
+    pause_acceleration = !within_distance && !facing_target
+    orig_acceleration  = @acceleration
+    @acceleration = nil if pause_acceleration
 
     move_linear(loc, elapsed_seconds)
 
-    self.acceleration *= @acceleration_scale if @rotating && acceleration
+    @acceleration = orig_acceleration if pause_acceleration
   end
 
   def to_json(*a)
     { 'json_class' => self.class.name,
-      'data'       => { :step_delay         => step_delay,
-                        :rotating           => rotating,
-                        :inverted           => inverted,
-                        :acceleration_scale => acceleration_scale}.merge(trackable_json)
-                                                                  .merge(rotation_json)
-                                                                  .merge(linear_json)
+      'data'       => { :step_delay => step_delay,
+                        :evading    => evading}.merge(trackable_json)
+                                               .merge(rotation_json)
+                                               .merge(linear_json)
     }.to_json(*a)
   end
 end # class Figure8

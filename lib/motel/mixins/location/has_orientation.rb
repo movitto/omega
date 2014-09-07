@@ -57,17 +57,16 @@ module HasOrientation
     @orientation_x, @orientation_y, @orientation_z = *o
   end
 
-  # Return boolean indicating if location is oriented towards the specified coordinate
-  def oriented_towards?(x, y, z)
-    orientation_difference(x, y, z).first == 0
+  # Return axis angle between location's orientation and the specified one.
+  def orientation_difference(corx, cory, corz)
+    Motel.axis_angle(orx, ory, orz, corx, cory, corz)
   end
 
-  # Return axis angle between location's orientation and the specified coordinate.
-  def orientation_difference(x, y, z)
+  # Return axis angle between location's orientation and specified coordinate trajectory
+  def rotation_to(x, y, z)
     dx = x - @x ; dy = y - @y ; dz = z - @z
     raise ArgumentError if dx == 0 && dy == 0 && dz == 0
-    #return [0, 0, 0, 1] if dx == 0 && dy == 0 && dz == 0
-    Motel.axis_angle(orx, ory, orz, dx, dy, dz)
+    orientation_difference dx, dy, dz
   end
 
   # Return orientation in json format

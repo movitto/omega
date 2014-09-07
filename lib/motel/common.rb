@@ -93,11 +93,7 @@ end
 def self.angle_between(x1, y1, z1, x2, y2, z2)
   x1, y1, z1 = normalize(x1, y1, z1)
   x2, y2, z2 = normalize(x2, y2, z2)
-  d  = dot_product(x1, y1, z1, x2, y2, z2)
-  s1 = Math.sqrt(x1**2+y1**2+z1**2)
-  s2 = Math.sqrt(x2**2+y2**2+z2**2)
-  mag = s1 * s2
-  projection = d/mag
+  projection = dot_product(x1, y1, z1, x2, y2, z2)
 
   # handle edge cases / out of domain errs
   projection = projection.round_to(0) unless (-1..1).include?(projection)

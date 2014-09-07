@@ -6,7 +6,7 @@
 
 /// Omega JS Entity Class Registry
 Omega.EntityClasses = function(){
-  // initialized on demand
+  /// Initialized on demand
   if(typeof(Omega._EntityClasses) === "undefined"){
     Omega._EntityClasses = 
       [Omega.Galaxy,   Omega.SolarSystem, Omega.Star, Omega.Planet,
@@ -140,39 +140,56 @@ Omega.Math = {
     return x1 * x2 + y1 * y2 + z1 * z2;
   },
 
-  // return cross product of vectors
+  /// Cross product between vectors
   cp : function(x1, y1, z1, x2, y2, z2){
     var x3 = y1 * z2 - z1 * y2;
     var y3 = z1 * x2 - x1 * z2;
     var z3 = x1 * y2 - y1 * x2;
-    // we're not normalizing vector here, if you need 
-    // normal vector make sure to call nrml on your own!
+    /// Note: we're not normalizing vector here, if you need
+    ///       normal vector make sure to call nrml on your own!
     return [x3, y3, z3];
   },
 
-  // angle between
-  abwn : function(x1, y1, z1, x2, y2, z2){
+  /// Angle between vectors
+  angle_between : function(x1, y1, z1, x2, y2, z2){
     var nrml = Omega.Math.nrml;
     var dp   = Omega.Math.dp;
-    var cp   = Omega.Math.cp;
 
-    var n = nrml(x1, y1, z1);
-    x1 = n[0]; y1 = n[1]; z1 = n[2];
+    var n1 = nrml(x1, y1, z1);
+    x1 = n1[0]; y1 = n1[1]; z1 = n1[2];
   
-    n = nrml(x2, y2, z2);
-    x2 = n[0]; y2 = n[1]; z2 = n[2];
-  
-    var d = dp(x1, y1, z1, x2, y2, z2);
-    var a = Math.acos(d);
-    var na = -1 * a;
-  
-    var x = cp(x1, y1, z1, x2, y2, z2);
-    d = dp(x[0], x[1], x[2], 0, 0, 1)
-    return d < 0 ? na : a;
+    var n2 = nrml(x2, y2, z2);
+    x2 = n2[0]; y2 = n2[1]; z2 = n2[2];
+
+    var projection = dp(x1, y1, z1, x2, y2, z2);
+    return Math.acos(projection);
   },
 
-  // rotate vector around axis angle.
-  // uses rodrigues rotation formula
+  /// Axis-angle between vectors.
+  axis_angle : function(x1, y1, z1, x2, y2, z2){
+    var nrml = Omega.Math.nrml;
+    var cp   = Omega.Math.cp;
+    var abwn = Omega.Math.angle_between;
+
+    var angle = abwn(x1, y1, z1, x2, y2, z2);
+    var axis  = cp(x1, y1, z1, x2, y2, z2);
+    var naxis = nrml(axis[0], axis[1], axis[2]);
+
+    return [angle].concat(naxis);
+  },
+
+  /// Angle between vectors
+  abwn : function(x1, y1, z1, x2, y2, z2){
+    return this.axis_angle(x1, y1, z1, x2, y2, z2)[0];
+  },
+
+  /// Invert the specified axis-angle
+  invert_axis_angle : function(axis_angle){
+    return [-axis_angle[0], -axis_angle[1], -axis_angle[2], -axis_angle[3]];
+  },
+
+  /// Rotate vector around axis angle.
+  /// uses rodrigues rotation formula
   rot : function(x, y, z, angle, ax, ay, az){
     var nrml = Omega.Math.nrml;
     var dp   = Omega.Math.dp;

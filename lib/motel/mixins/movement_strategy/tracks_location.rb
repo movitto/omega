@@ -64,57 +64,64 @@ module MovementStrategies
       loc.distance_from(*tracked_location.coordinates)
     end
 
-    # Near target
+    # Bool indicating if location is within distance of target.
+    # Distance may be specified or will default to movement
+    # strategy distance
     #
     # Assumes class including this module also includes LinearMovement
-    def near_target?(loc)
-      distance_from(loc) <= distance
+    def near_target?(loc, dist = distance)
+      distance_from(loc) <= dist
     end
 
     # Return orientation difference between specified location and tracked location
-    def orientation_difference(loc)
-      loc.orientation_difference(*tracked_location.coordinates)
+    def rotation_to_target(loc)
+      loc.rotation_to(*tracked_location.coordinates)
     end
 
     # Return bool indicating if specified location is facing tracked location
     def facing_target?(loc)
-     orientation_difference(loc).first.abs <= orientation_tolerance
+     rotation_to_target(loc).first.abs <= orientation_tolerance
     end
 
     # Return bool indicating if specified location if facing direction
     # tangential to target
     def facing_target_tangent?(loc)
-      (orientation_difference(loc).first.abs - Math::PI / 2).abs <=  orientation_tolerance
+      (rotation_to_target(loc).first.abs - Math::PI / 2).abs <=  orientation_tolerance
     end
 
-    # Rotate specified location towards target.
+    # Update movement strategy so as to rotate location towards target
     #
     # Assumes class including this module also includes Rotatable.
-    # TODO param toggling stop angle ?
-    def rotate_towards_target(loc, elapsed_seconds)
-       od = orientation_difference(loc)
+    def face_target(loc)
+       rot = rotation_to_target(loc)
        init_rotation :rot_theta  => rot_theta,
-                     :rot_x      => od[1],
-                     :rot_y      => od[2],
-                     :rot_z      => od[3],
-                     :stop_angle => od[0]
+                     :rot_x      => rot[1],
+                     :rot_y      => rot[2],
+                     :rot_z      => rot[3],
+                     :stop_angle => rot[0].abs
        loc.angle_rotated = 0
-       rotate loc, elapsed_seconds if valid_rotation?
     end
 
-    # Rotate specified location away from target
+    # Update movement strategy so as to rotate location away from target
     #
-    # Same assumtion as w/ rotate_towards_target above
-    def rotate_away_from_target(loc, elapsed_seconds)
-       od = orientation_difference(loc)
+    # Assumes class including this module also includes Rotatable.
+    def face_away_from_target(loc)
+       rot = rotation_to_target(loc)
+
+       angle = rot[0]
+       max_angle = Math::PI/4
+       if(angle > max_angle)
+         angle = angle - max_angle
+       else
+         angle = max_angle - angle
+       end
+
+       loc.angle_rotated = 0
        init_rotation :rot_theta  => rot_theta,
-                     :rot_x      => od[1],
-                     :rot_y      => od[2],
-                     :rot_z      => od[3],
-                     :stop_angle => Math::PI - od[0]
-       self.rot_theta *= -1
-       rotate loc, elapsed_seconds if valid_rotation?
-       self.rot_theta *= -1
+                     :rot_x      => rot[1],
+                     :rot_y      => rot[2],
+                     :rot_z      => rot[3],
+                     :stop_angle => angle.abs
     end
   end # module TracksLocation
 end # module MovementStrategies
