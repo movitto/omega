@@ -102,6 +102,14 @@ def refresh_locations(config)
       config.min[2] = location.z if location.z < config.min[2]
     end
   end
+
+  # if min == max, create range around it
+  config.min[0], config.max[0] = config.min[0] - config.min[0] / 5,
+                                 config.min[0] + config.min[0] / 5 if config.min[0] == config.max[0]
+  config.min[1], config.max[1] = config.min[1] - config.min[1] / 5,
+                                 config.min[1] + config.min[1] / 5 if config.min[1] == config.max[1]
+  config.min[2], config.max[2] = config.min[2] - config.min[2] / 5,
+                                 config.min[2] + config.min[2] / 5 if config.min[2] == config.max[2]
 end
 
 def plot_locations(config)
