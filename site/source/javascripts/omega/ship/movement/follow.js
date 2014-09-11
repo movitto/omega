@@ -5,6 +5,29 @@
  */
 
 Omega.ShipFollowMovement = {
+  _orbit_set : function(){
+    return this.__orbit_initialized;
+  },
+
+  _init_orbit : function(){
+    this.__orbit_initialized = true;
+    var ms = this.location.movement_strategy;
+
+    ms.e = 0;
+    ms.p = ms.distance;
+
+    var primary   = Omega.Math.CARTESIAN_MAJOR;
+    var secondary = Omega.Math.CARTESIAN_NORMAL;
+    ms.dmajx      =  primary[0];
+    ms.dmajy      =  primary[1];
+    ms.dmajz      =  primary[2];
+    ms.dminx      =  secondary[0];
+    ms.dminy      =  secondary[1];
+    ms.dminz      = -secondary[2];
+
+    this._calc_orbit();
+  },
+
   _run_follow_movement : function(page){
     var now     = new Date();
     var elapsed = now - this.last_moved;
@@ -15,34 +38,54 @@ Omega.ShipFollowMovement = {
 
     var within_distance = loc.near_target();
     var target_moving   = !!(tracked.location.movement_strategy.speed);
-    var slower_target   = target_moving && (tracked.location.movement_strategy.speed < loc.movement_strategy.speed);
-    var adjust_speed    = within_distance && slower_target;
-    var facing_target   = loc.facing_target(Math.PI / 32);
-    var facing_tangent  = loc.facing_target_tangent(Math.PI / 32);
 
-    if(!within_distance || target_moving){
-      if(!facing_target){
+    if(!this._orbit_set()) this._init_orbit();
+
+    if(target_moving){
+      var slower_target = (tracked.location.movement_strategy.speed < loc.movement_strategy.speed);
+      var reduce_speed  = within_distance && slower_target;
+      var orig_speed    = loc.movement_strategy.speed;
+
+      if(!loc.facing_target(Math.PI / 32)){
         loc.face_target();
         this._rotate(elapsed);
+        loc.update_ms_acceleration();
       }
-      loc.update_ms_acceleration();
 
-      var speed = adjust_speed ? tracked.location.movement_strategy.speed :
-                                 loc.movement_strategy.speed;
-      var dist  = speed * elapsed / 1000;
-      loc.move_linear(dist);
+      if(reduce_speed) loc.movement_strategy.speed = tracked.location.movement_strategy.speed;
 
-    }else if(!target_moving){
-      if(!facing_tangent){
-        loc.face_away_from_target();
-        this._rotate(elapsed, true);
-      }
-      loc.update_ms_acceleration();
       this._move_linear(elapsed);
+
+      if(reduce_speed) loc.movement_strategy.speed = orig_speed;
+
+    }else{
+      var proximity = loc.movement_strategy.distance / 10;
+      var nxt       = Math.PI/6;
+
+      if(!loc.movement_strategy.target){
+        var current = this._orbit_angle_from_coords(loc.coordinates());
+        var coords  = this._coords_from_orbit_angle(current + nxt);
+        loc.movement_strategy.target = coords;
+
+      }else if(loc.distance_from(loc.movement_strategy.target) < proximity){
+        loc.movement_strategy.target = null;
+
+      }else{
+        loc.face(loc.movement_strategy.target);
+        this._rotate(elapsed);
+        loc.update_ms_acceleration();
+        this._move_linear(elapsed);
+      }
     }
 
     this.update_gfx();
     this.last_moved = now;
     this.dispatchEvent({type : 'movement', data : this});
   }
+};
+
+$.extend(Omega.ShipFollowMovement, Omega.OrbitHelpers);
+
+Omega.ShipFollowMovement._orbit_center = function(){
+  return this.location.tracking.coordinates();
 };

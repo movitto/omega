@@ -1,11 +1,12 @@
 # The Follow MovementStrategy model definition
 #
-# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2012-2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 require 'motel/common'
 require 'motel/movement_strategy'
 require 'motel/mixins/movement_strategy'
+require 'motel/mixins/elliptical'
 
 require 'rjr/common'
 
@@ -15,16 +16,39 @@ module MovementStrategies
 # The Follow MovementStrategy follows another location
 # at a specified distance.
 #
-# If location is at this distance, it will idle in the same location.
-# If nearer / further away this will continously calculate the direction
-# vector to the nearest point the specified distance away from the tracked
-# location and move in a linear fashion to it.
-#
-# To be valid, specify tracked_location_id, distance, and speed
+# Location will move to vicinity of tracked location, if tracked location
+# is within specified distance, location will orbit it. If tracked location
+# is moving, location will follow, adjusting speed if necessary.
 class Follow < MovementStrategy
   include LinearMovement
   include Rotatable
   include TracksLocation
+
+  include EllipticalAxis
+  include EllipticalPath
+  include EllipticalMovement
+
+  # Current movement target coordinates, used internally
+  attr_accessor :target
+
+  # Initialize the ellptical orbit from the specified movement
+  # strategy properties
+  def init_orbit
+    axis_from_args :dmajx =>  MAJOR_CARTESIAN_AXIS[0],
+                   :dmajy =>  MAJOR_CARTESIAN_AXIS[1],
+                   :dmajz =>  MAJOR_CARTESIAN_AXIS[2],
+                   :dminx =>  CARTESIAN_NORMAL_VECTOR[0],
+                   :dminy =>  CARTESIAN_NORMAL_VECTOR[1],
+                   :dminz => -CARTESIAN_NORMAL_VECTOR[2]
+
+    # circular orbit at specified distance (since e = 0 ; a == p)
+    path_from_args :e => 0, :p => @distance
+  end
+
+  # Override Elliptical Path Center to orbit tracked location
+  def center
+    @tracked_location ? @tracked_location.coordinates : [0, 0, 0]
+  end
 
   # Motel::MovementStrategies::Follow initializer
   #
@@ -32,9 +56,13 @@ class Follow < MovementStrategy
   #   movement strategy with, accepts key/value pairs corresponding
   #   to all mutable attributes
   def initialize(args = {})
+    attr_from_args args, :target => nil
+
     linear_attrs_from_args(args)
     trackable_attrs_from_args(args)
     init_rotation(args)
+    init_orbit
+
     super(args)
   end
 
@@ -66,45 +94,55 @@ class Follow < MovementStrategy
      ::RJR::Logger.debug "moving location #{loc.id} via follow strategy " +
                   "#{speed} #{tracked_location_id } at #{distance}"
 
-     distance_to_cover = distance_from(loc)
-     within_distance   = distance_to_cover <= @distance
-     target_moving     = tracked_location.ms.class.ancestors.include?(Motel::MovementStrategies::LinearMovement)
-     slower_target     = tracked_location.ms.speed < speed if target_moving
-     adjust_speed      = within_distance && slower_target
+     within_distance   = distance_from(loc) <= @distance
+     target_moving     = tracked_location.ms.class.ancestors.include?(LinearMovement)
 
-     if !within_distance || target_moving
+     if target_moving
+       slower_target   = tracked_location.ms.speed < speed
+       reduce_speed    = within_distance && slower_target
+
+       # TODO if slower_target pick target at distance away from loc we're tracking
        if !facing_target?(loc)
          face_target(loc)
          rotate(loc, elapsed_seconds)
+         update_acceleration_from(loc)
        end
 
-       update_acceleration_from(loc)
-
-       orig_speed   = self.speed
-       self.speed   = tracked_location.ms.speed if adjust_speed
+       orig_speed = @speed
+       @speed = tracked_location.ms.speed if reduce_speed
 
        move_linear(loc, elapsed_seconds)
 
-       self.speed   = orig_speed if adjust_speed
+       @speed = orig_speed if reduce_speed
 
-     elsif !target_moving # @move_while_in_vicinity
-       unless facing_target_tangent?(loc)
-         # TODO replace w/ rotate_towards_target_tangent ?
-         face_away_from_target(loc)
+     else
+       proximity = @distance / 10
+       nxt       = Math::PI   /  6
+
+       if !@target
+         @target = coordinates_from_theta(theta(loc) + nxt)
+
+       elsif distance_from(loc, @target) < proximity
+         @target = nil
+
+       else
+         face_target(loc, @target)
          rotate(loc, elapsed_seconds)
+         update_acceleration_from(loc)
+         move_linear(loc, elapsed_seconds)
        end
-
-       update_acceleration_from(loc)
-       move_linear(loc, elapsed_seconds)
      end
    end
 
    # Convert movement strategy to json representation and return it
    def to_json(*a)
      { 'json_class' => self.class.name,
-       'data'       => { :step_delay => step_delay}.merge(trackable_json)
+       'data'       => { :step_delay => step_delay,
+                         :target     => target    }.merge(trackable_json)
                                                    .merge(rotation_json)
                                                    .merge(linear_json)
+                                                   .merge(path_json)
+                                                   .merge(axis_json)
      }.to_json(*a)
    end
 

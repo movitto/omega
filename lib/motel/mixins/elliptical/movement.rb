@@ -88,7 +88,10 @@ module EllipticalMovement
 
     # calculate theta
     a,b = intercepts
-    t = Math.acos(nx/a) # should also == Math.asin(ny/b)
+    projection = nx/a
+    projection =  1 if projection >  1
+    projection = -1 if projection < -1
+    t = Math.acos(projection) # should also == Math.asin(ny/b)
 
     # determine if current point is in negative quadrants of coordinate system
     below = ny < 0

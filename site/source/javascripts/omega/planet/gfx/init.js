@@ -26,7 +26,7 @@ Omega.PlanetGfxInitializer = {
 
   _init_orbit : function(){
     this._calc_orbit();
-    this._orbit_angle = this._current_orbit_angle();
+    this._orbit_angle = this._orbit_angle_from_coords(this.location.coordinates());
     this.orbit_line = new Omega.OrbitLine({orbit: this.orbit});
   },
 

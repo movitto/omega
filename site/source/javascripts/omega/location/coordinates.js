@@ -81,7 +81,12 @@ Omega.LocationCoordinates = {
    * coordinates
    */
   distance_from : function(x,y,z){
-    if(x.json_class == 'Motel::Location'){
+    if((typeof(x) === "array" || typeof(x) === "object") &&
+       x.length == 3 && !y && !z){
+      y = x[1];
+      z = x[2];
+      x = x[0];
+    }else if(x.json_class == 'Motel::Location'){
       z = x.z;
       y = x.y;
       x = x.x;

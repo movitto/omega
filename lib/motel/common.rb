@@ -10,10 +10,10 @@ module Motel
 LOCATION_EVENTS = [:movement, :rotation, :proximity,
                    :stopped, :changed_strategy]
 
-CLOSE_ENOUGH=0.0001
-MAJOR_CARTESIAN_AXIS=[1,0,0]
-MINOR_CARTESIAN_AXIS=[0,1,0]
-CARTESIAN_NORMAL_VECTOR=[0,0,1]
+CLOSE_ENOUGH            =  0.0001
+MAJOR_CARTESIAN_AXIS    = [1, 0, 0]
+MINOR_CARTESIAN_AXIS    = [0, 1, 0]
+CARTESIAN_NORMAL_VECTOR = [0, 0, 1]
 
 # Generate and return a random id
 def self.gen_uuid

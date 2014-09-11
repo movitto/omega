@@ -91,6 +91,21 @@ Omega.LocationMovement = {
             this.movement_strategy.rot_z];
   },
 
+  /// Update movement strategy so as to face the specified coordinate
+  face : function(x, y ,z){
+    if((typeof(x) === "array" || typeof(x) === "object") &&
+       x.length == 3 && !y && !z){
+      y = x[1];
+      z = x[2];
+      x = x[0];
+    }
+
+    var rot = this.rotation_to(x, y, z);
+    this.angle_rotated = 0;
+    this.movement_strategy.stop_angle = Math.abs(rot[0]);
+    this.rot_dir(rot[1], rot[2], rot[3]);
+  },
+
   /// Update movement strategy so as to rotate towards target
   face_target : function(){
     var rot  = this.rotation_to_target();

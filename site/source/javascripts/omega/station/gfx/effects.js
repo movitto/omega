@@ -14,7 +14,7 @@ Omega.StationGfxEffects = {
     var dist = this.location.movement_strategy.speed * elapsed / 1000;
 
     this._orbit_angle += dist;
-    this._set_orbit_angle(this._orbit_angle);
+    this.location.set(this._coords_from_orbit_angle(this._orbit_angle));
     this.last_moved = now;
     this.update_gfx();
   },

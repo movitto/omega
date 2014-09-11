@@ -116,17 +116,26 @@ Omega.OrbitHelpers = {
   },
 
   /// Return current angle on orbit which location resides
-  _current_orbit_angle : function(){
-    var n = Omega.Math.rot(this.location.x-this.cx,
-                           this.location.y-this.cy,
-                           this.location.z-this.cz,
-                             - this.rot_axis.angle,
-                             this.rot_axis.axis[0],
-                             this.rot_axis.axis[1],
-                             this.rot_axis.axis[2])
+  _orbit_angle_from_coords : function(x, y, z){
+    if((typeof(x) === "array" || typeof(x) === "object") &&
+       x.length == 3 && !y && !z){
+      y = x[1];
+      z = x[2];
+      x = x[0];
+    }else if(x.json_class == 'Motel::Location'){
+      z = x.z;
+      y = x.y;
+      x = x.x;
+    }
+
+    var n = Omega.Math.rot(x-this.cx, y-this.cy, z-this.cz,
+                           - this.rot_axis.angle,
+                           this.rot_axis.axis[0],
+                           this.rot_axis.axis[1],
+                           this.rot_axis.axis[2])
 
         n = Omega.Math.rot(n[0], n[1], n[2],
-                        -this.rot_plane.angle,
+                           -this.rot_plane.angle,
                             this.rot_plane.axis[0],
                             this.rot_plane.axis[1],
                             this.rot_plane.axis[2]);
@@ -134,14 +143,17 @@ Omega.OrbitHelpers = {
     var x = n[0] ; var y = n[1]; /// z should == 0
 
     // calc current angle (x = a*Math.cos(i))
-    var angle = Math.acos(x/this.a)
+    var projection = x/this.a;
+    if(projection > 1) projection = 1;
+    else if(projection < -1) projection = -1;
+    var angle = Math.acos(projection)
     if(y < 0) angle = 2 * Math.PI - angle;
 
     return angle;
   },
 
   /// Set the location from the specified angle on the orbit path
-  _set_orbit_angle : function(new_angle){
+  _coords_from_orbit_angle : function(new_angle){
     var x = this.a * Math.cos(new_angle);
     var y = this.b * Math.sin(new_angle);
     var n = Omega.Math.rot(x, y, 0,
@@ -156,9 +168,17 @@ Omega.OrbitHelpers = {
                       this.rot_axis.axis[1],
                       this.rot_axis.axis[2]);
 
-    this.location.x = n[0] + this.cx;
-    this.location.y = n[1] + this.cy;
-    this.location.z = n[2] + this.cz;
+    return [n[0] + this.cx, n[1] + this.cy, n[2] + this.cz];
+  },
+
+  /// Bool indicating if coords are on orbit
+  _coords_on_orbit : function(coords, tolerance){
+    var angle        = this._orbit_angle_from_coords(coords);
+    var orbit_coords = this._coords_from_orbit_angle(angle);
+    var dist         = Math.sqrt(Math.pow(coords[0] - orbit_coords[0], 2) +
+                                 Math.pow(coords[1] - orbit_coords[1], 2) +
+                                 Math.pow(coords[2] - orbit_coords[2], 2));
+    return dist < tolerance;
   },
 
   _has_orbit_line : function(){

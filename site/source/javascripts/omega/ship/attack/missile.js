@@ -64,7 +64,7 @@ Omega.ShipMissile.prototype = {
   launch_dir : function(){
     if(this._launch_dir) return this._launch_dir;
     var rotation     = this.source.location.rotation_matrix();
-    var dir          = Omega.Math.CARTESIAN_NORMAL;
+    var dir          = Omega.Math.CARTESIAN_MINOR;
         dir          = new THREE.Vector3(dir[0], dir[1], dir[2]);
     this._launch_dir = Omega.rotate_position(dir, rotation);
     return this._launch_dir;

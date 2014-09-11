@@ -16,7 +16,7 @@ Omega.StationGfxUpdater = {
     }else{
       if(!this._has_orbit_line()){
         this._calc_orbit();
-        this._orbit_angle = this._current_orbit_angle();
+        this._orbit_angle = this._orbit_angle_from_coords(this.location.coordinates());
         this._add_orbit_line(0x99CCEE);
       }
 

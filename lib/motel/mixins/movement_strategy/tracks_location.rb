@@ -60,8 +60,8 @@ module MovementStrategies
     end
 
     # Return distance between location and tracked location
-    def distance_from(loc)
-      loc.distance_from(*tracked_location.coordinates)
+    def distance_from(loc, target = nil)
+      loc.distance_from(*(target ? target : tracked_location.coordinates))
     end
 
     # Bool indicating if location is within distance of target.
@@ -73,9 +73,14 @@ module MovementStrategies
       distance_from(loc) <= dist
     end
 
-    # Return orientation difference between specified location and tracked location
+    # Return rotation between specified location and tracked location
     def rotation_to_target(loc)
       loc.rotation_to(*tracked_location.coordinates)
+    end
+
+    # Return rotation between specified location and tracked location
+    def rotation_to(loc, target)
+      loc.rotation_to(*target)
     end
 
     # Return bool indicating if specified location is facing tracked location
@@ -92,8 +97,8 @@ module MovementStrategies
     # Update movement strategy so as to rotate location towards target
     #
     # Assumes class including this module also includes Rotatable.
-    def face_target(loc)
-       rot = rotation_to_target(loc)
+    def face_target(loc, target = nil)
+       rot = target.nil? ? rotation_to_target(loc) : rotation_to(loc, target)
        init_rotation :rot_theta  => rot_theta,
                      :rot_x      => rot[1],
                      :rot_y      => rot[2],

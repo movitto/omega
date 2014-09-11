@@ -99,8 +99,9 @@ Omega.get_shader = function(id){
 
 // The Math Module
 Omega.Math = {
-  CARTESIAN_ORIENTATION : [0, 0, 1],
-  CARTESIAN_NORMAL      : [0, 1, 0],
+  CARTESIAN_MAJOR  : [1, 0, 0],
+  CARTESIAN_MINOR  : [0, 1, 0],
+  CARTESIAN_NORMAL : [0, 0, 1],
 
   round_to : function(value, places){
     var s = Math.pow(10, places);
