@@ -43,7 +43,7 @@ Omega.Config = {
 
   //movement
   movement_offset   : {min : 5000000, max: 10000000},
-  follow_distance   : 500000000,
+  follow_distance   : 250000000,
 
   // stats
   stats             : [['num_of', 'users'], ['users_with_most', 'entities', 10]],
