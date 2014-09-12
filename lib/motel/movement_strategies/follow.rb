@@ -56,14 +56,15 @@ class Follow < MovementStrategy
   #   movement strategy with, accepts key/value pairs corresponding
   #   to all mutable attributes
   def initialize(args = {})
+    default_args = {:orientation_tolerance => Math::PI/32}.merge(args)
     attr_from_args args, :target => nil
 
-    linear_attrs_from_args(args)
-    trackable_attrs_from_args(args)
-    init_rotation(args)
+    linear_attrs_from_args(default_args)
+    trackable_attrs_from_args(default_args)
+    init_rotation(default_args)
     init_orbit
 
-    super(args)
+    super(default_args)
   end
 
    # Return boolean indicating if this movement strategy is valid
@@ -116,21 +117,14 @@ class Follow < MovementStrategy
        @speed = orig_speed if reduce_speed
 
      else
-       proximity = @distance / 10
-       nxt       = Math::PI   /  6
+       nxt = Math::PI  /  6
 
-       if !@target
-         @target = coordinates_from_theta(theta(loc) + nxt)
+       target = coordinates_from_theta(theta(loc) + nxt)
+       face_target(loc, target)
+       rotate(loc, elapsed_seconds)
+       update_acceleration_from(loc)
 
-       elsif distance_from(loc, @target) < proximity
-         @target = nil
-
-       else
-         face_target(loc, @target)
-         rotate(loc, elapsed_seconds)
-         update_acceleration_from(loc)
-         move_linear(loc, elapsed_seconds)
-       end
+       move_linear(loc, elapsed_seconds)
      end
    end
 

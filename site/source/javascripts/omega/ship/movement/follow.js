@@ -59,23 +59,16 @@ Omega.ShipFollowMovement = {
       if(reduce_speed) loc.movement_strategy.speed = orig_speed;
 
     }else{
-      var proximity = loc.movement_strategy.distance / 10;
-      var nxt       = Math.PI/6;
+      var nxt = Math.PI/6;
 
-      if(!loc.movement_strategy.target){
-        var current = this._orbit_angle_from_coords(loc.coordinates());
-        var coords  = this._coords_from_orbit_angle(current + nxt);
-        loc.movement_strategy.target = coords;
+      var current = this._orbit_angle_from_coords(loc.coordinates());
+      var target  = this._coords_from_orbit_angle(current + nxt);
 
-      }else if(loc.distance_from(loc.movement_strategy.target) < proximity){
-        loc.movement_strategy.target = null;
+      loc.face(target);
+      this._rotate(elapsed);
+      loc.update_ms_acceleration();
 
-      }else{
-        loc.face(loc.movement_strategy.target);
-        this._rotate(elapsed);
-        loc.update_ms_acceleration();
-        this._move_linear(elapsed);
-      }
+      this._move_linear(elapsed);
     }
 
     this.update_gfx();
