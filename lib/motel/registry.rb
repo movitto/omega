@@ -20,6 +20,7 @@ class Registry
   include Motel::RunsLocations
   include Motel::AdjustsHeirarchy
   include Motel::SanitizesLocations
+  include Motel::RunsLocationEvents
 
   private
 
@@ -58,6 +59,7 @@ class Registry
     exclude_from_backup Omega::Server::Callback
 
     run { run_locations }
+    run { run_location_events }
   end
 end # class Registry
 end # module motel

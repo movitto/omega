@@ -10,31 +10,6 @@ module Motel
 module RunsLocations
   private
 
-  def reset_location_events
-    @location_events = []
-  end
-
-  def register_location_event(loc, *args)
-    @location_events << [loc, args]
-  end
-
-  def run_location_events
-    @location_events.each { |loc_event|
-      loc   = loc_event[0]
-      event = loc_event[1]
-
-      begin
-        loc.raise_event(*event)
-      rescue => e
-        msg = "error running location callbacks for #{loc.id}: #{e.to_s}"
-        ::RJR::Logger.warn msg
-        ::RJR::Logger.warn e.backtrace
-      end
-    }
-
-    reset_location_events
-  end
-
   def run_location(loc)
     ::RJR::Logger.debug "runner moving location #{loc}"
 
@@ -89,15 +64,10 @@ module RunsLocations
 
   def run_locations
     @lock.synchronize {
-      reset_location_events
-
       locations_to_move.each { |loc|
         run_location loc
         register_location_event loc, :proximity
       }
-
-      # TODO invoke location events async so as not to hold up the runner
-      run_location_events
 
       next_cycle_delay
     }
