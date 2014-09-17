@@ -18,7 +18,9 @@ Omega.ShipFigure8Movement = {
     var facing_target   = loc.facing_target(Math.PI / 64);
 
     if(!within_distance){
-      if(loc.movement_strategy.evading) loc.face_target();
+      var initial_run = typeof(loc.movement_strategy.evading) === "undefined";
+      if(initial_run || loc.movement_strategy.evading)
+         loc.face_target();
       loc.movement_strategy.evading = false;
     }else{
       if(near_target){

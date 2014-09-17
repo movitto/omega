@@ -58,7 +58,8 @@ class Figure8 < MovementStrategy
 
     if !within_distance
       # pick initial trajectory to begin approach
-      if @evading
+      initial_run = !defined?(@evading)
+      if initial_run || @evading
         ::RJR::Logger.debug "location #{loc.id} approaching target via figure8 strategy"
         face_target(loc)
       end
