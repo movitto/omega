@@ -17,3 +17,5 @@ $.extend(Omega.ShipMovement, Omega.ShipLinearMovement);
 $.extend(Omega.ShipMovement, Omega.ShipRotationMovement);
 $.extend(Omega.ShipMovement, Omega.ShipFollowMovement);
 $.extend(Omega.ShipMovement, Omega.ShipFigure8Movement);
+
+Omega.ShipMovement._run_movement = Omega.ShipMovement._no_movement;

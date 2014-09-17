@@ -20,5 +20,3 @@ $.extend(Omega.ShipGfx, Omega.ShipGfxLoader);
 $.extend(Omega.ShipGfx, Omega.ShipGfxInitializer);
 $.extend(Omega.ShipGfx, Omega.ShipGfxUpdater);
 $.extend(Omega.ShipGfx, Omega.ShipGfxEffects);
-
-Omega.ShipGfx._run_movement = Omega.ShipGfx._no_movement;
