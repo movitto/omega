@@ -17,8 +17,11 @@ Omega.Pages.TitleInitializer = {
     var tech2 = {id    : 'tech2',
                  text  : 'tech demo2',
                  scene : new Omega.Scenes.Tech2()};
+    var previewer = {id    : 'previewer',
+                     text  : 'Entity Previewer',
+                     scene : new Omega.Scenes.Previewer()};
 
-    this.cutscenes = [intro, tech1, tech2];
+    this.cutscenes = [intro, tech1, tech2, previewer];
   },
 
   cutscene : function(id){
