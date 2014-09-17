@@ -9,6 +9,8 @@
 //= require "omega/ship/gfx"
 //= require "omega/ship/movement"
 
+//= require "omega/ship/attack/target"
+
 ///
 Omega.Ship = function(parameters){
   this.components = [];
@@ -144,6 +146,7 @@ $.extend(Omega.Ship.prototype, Omega.ShipCommands);
 $.extend(Omega.Ship.prototype, Omega.ShipInteraction);
 $.extend(Omega.Ship.prototype, Omega.ShipGfx);
 $.extend(Omega.Ship.prototype, Omega.ShipMovement);
+$.extend(Omega.Ship.prototype, Omega.ShipAttackTarget);
 ///
 
 // Return ship with the specified id

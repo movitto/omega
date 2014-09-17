@@ -15,7 +15,7 @@ Omega.Callbacks.attacked_stop = function(event, event_args){
   var pdefender = $.grep(this.page.all_entities(),
                          function(entity){ return entity.id == defender.id; })[0];
   if(pattacker == null || pdefender == null) return;
-  pattacker.attacking = null;
+  pattacker.clear_attacking();
 
   /// TODO stop movement
   if(this.page.canvas.is_root(pattacker.parent_id)){

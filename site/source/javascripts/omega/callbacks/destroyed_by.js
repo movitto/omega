@@ -16,7 +16,7 @@ Omega.Callbacks.destroyed_by = function(event, event_args){
   var pdefender = $.grep(this.page.all_entities(),
                          function(entity){ return entity.id == defender.id; })[0];
   if(pattacker == null || pdefender == null) return;
-  pattacker.attacking    = null;
+  pattacker.clear_attacking();
   pdefender.hp           = 0;
   pdefender.shield_level = 0;
 

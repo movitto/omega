@@ -49,7 +49,7 @@ Omega.ShipAttackInteractions = {
   _attack_success : function(response, page, target){
     var _this = this;
     this.dialog().hide();
-    this.attacking = target;
+    this.set_attacking(target);
     page.canvas.reload(_this, function(){
       _this.update_gfx();
     });

@@ -8,7 +8,6 @@
 
 Omega.ShipAttackVector = function(){
   this.init_gfx();
-  this.disable_target_update();
 };
 
 Omega.ShipAttackVector.prototype = {
@@ -32,7 +31,7 @@ Omega.ShipAttackVector.prototype = {
     return this.omega_entity.attacking;
   },
 
-  update_target_loc : function(){
+  update : function(){
     var new_loc = this.target().scene_location();
     this.target_loc(new_loc);
 

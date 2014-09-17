@@ -14,7 +14,6 @@ Omega.ShipAttackLauncher = {
     if(template) this.template = template;
 
     this.projectiles = [];
-    this.disable_target_update();
   },
 
   should_launch : function(){
@@ -51,7 +50,7 @@ Omega.ShipAttackLauncher = {
     return this.omega_entity.attacking;
   },
 
-  update_target_loc : function(){
+  update : function(){
     this.target_loc(this.target().scene_location());
     for(var m = 0; m < this.projectiles.length; m++)
       this.projectiles[m].set_target(this.target());

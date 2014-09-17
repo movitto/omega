@@ -15,7 +15,7 @@ Omega.Callbacks.attacked = function(event, event_args){
   var pdefender = $.grep(this.page.all_entities(),
                          function(entity){ return entity.id == defender.id; })[0];
   if(pattacker == null || pdefender == null) return;
-  pattacker.attacking = pdefender;
+  pattacker.set_attacking(pdefender);
 
   if(this.page.canvas.is_root(pattacker.parent_id)){
     this.page.canvas.reload(pattacker, function(){

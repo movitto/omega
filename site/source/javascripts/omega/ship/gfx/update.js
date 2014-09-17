@@ -11,17 +11,13 @@ Omega.ShipGfxUpdater = {
     this.position_tracker().position.set(loc.x, loc.y, loc.z);
     this.location_tracker().rotation.setFromRotationMatrix(this.location.rotation_matrix());
 
-    this.attack_vector.update();
-    this.attack_component().update();
     this.mining_vector.update();
   },
 
   /// Update graphics on attack events
   update_attack_gfx : function(){
     this.attack_vector.update_state();
-    this.attack_vector.update();
     this.attack_component().update_state();
-    this.attack_component().update();
     this.explosions.update_state();
   },
 
