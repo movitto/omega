@@ -15,11 +15,12 @@ Omega.Pages.TitleRunner = {
     return this;
   },
 
-  play : function(scene){
+  play : function(cutscene){
     if(this.current_scene)
-      this.current_scene.stop(this);
-    this.current_scene = scene;
+      this.current_scene.scene.stop(this);
+    this.scene_controls().empty();
+    this.current_scene = cutscene;
     this.canvas.reset_cam();
-    scene.run(this);
+    cutscene.scene.run(this);
   }
 };
