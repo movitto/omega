@@ -72,6 +72,17 @@ Omega.LocationCoordinates = {
   /// Returns the unit direction vector from this location's
   /// coords to the specified coords
   direction_to : function(x, y, z){
+    if((typeof(x) === "array" || typeof(x) === "object") &&
+       x.length == 3 && !y && !z){
+      y = x[1];
+      z = x[2];
+      x = x[0];
+    }else if(x.json_class == 'Motel::Location' || x.constructor == THREE.Vector3){
+      z = x.z;
+      y = x.y;
+      x = x.x;
+    }
+
     var d    = this.distance_from(x, y, z);
     var diff = this.sub(x, y, z);
     return [-diff[0] / d, -diff[1] / d, -diff[2] / d];
@@ -86,7 +97,7 @@ Omega.LocationCoordinates = {
       y = x[1];
       z = x[2];
       x = x[0];
-    }else if(x.json_class == 'Motel::Location'){
+    }else if(x.json_class == 'Motel::Location' || x.constructor == THREE.Vector3){
       z = x.z;
       y = x.y;
       x = x.x;

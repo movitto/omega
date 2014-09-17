@@ -77,7 +77,20 @@ Omega.LocationOrientation = {
 
   /// Boolean indicating if location is facing specified location
   facing : function(location, tolerance){
-    var diff = this.rotation_to(location.x, location.y, location.z);
+    var x,y,z;
+
+    if((typeof(location) === "array" || typeof(location) === "object") && location.length == 3){
+      x = location[0];
+      y = location[1];
+      z = location[2];
+
+    }else if(location.json_class == 'Motel::Location' || location.constructor == THREE.Vector3){
+      x = location.x;
+      y = location.y;
+      z = location.z;
+    }
+
+    var diff = this.rotation_to(x, y, z);
     return Math.abs(diff[0]) <= tolerance;
   },
 
