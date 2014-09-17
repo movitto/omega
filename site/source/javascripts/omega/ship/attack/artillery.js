@@ -10,13 +10,21 @@
 
 Omega.ShipArtillery = function(args){
   this.init_launcher(args);
+  this.load_config(args);
 };
 
 Omega.ShipArtillery.prototype = {
   interval : 0.15,
 
-  /// TODO from config
-  offsets : [[50, 0, 0], [-50, 0, 0]],
+  load_config : function(args){
+    var type = args['type'];
+    this.type = type;
+
+    if(Omega.Config.resources.ships[type].artillery)
+      this.offsets = Omega.Config.resources.ships[type].artillery;
+    else
+      this.offsets = [[0, 0, 0]];
+  },
 
   _next_offset : function(){
     if(typeof(this.current_offset) === "undefined" ||
@@ -30,7 +38,8 @@ Omega.ShipArtillery.prototype = {
   },
 
   clone : function(){
-    return new Omega.ShipArtillery({template : this.template.clone()});
+    return new Omega.ShipArtillery({type : this.type,
+                                    template : this.template.clone()});
   },
 
   should_explode : function(projectile){

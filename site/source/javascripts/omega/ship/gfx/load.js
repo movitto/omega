@@ -19,7 +19,8 @@ Omega.ShipGfxLoader = {
   _load_artillery : function(event_cb){
     var material = new Omega.ShipShellMaterial({event_cb : event_cb}).material;
     var template = Omega.ShipShell.template({material : material});
-    this._store_resource('artillery',         new Omega.ShipArtillery({template : template}));
+    this._store_resource('artillery', new Omega.ShipArtillery({type     : this.type,
+                                                               template : template}));
   },
 
   _load_components : function(event_cb){

@@ -80,15 +80,19 @@ Omega.Config = {
                          'lamps'    : [[5, 0x0000ff, [0,-5,3]],
                                        [3, 0x0000ff, [0,-7,25]],
                                        [3, 0x0000ff, [0,-9,-19]]]},
+
       'corvette'     : { 'material' : '/textures/hull.png',
                          'geometry' : '/meshes/Sickle/sickle.json',
                          'trails'   : [[7,0,-8], [-7,0,-8]],
                          'lamps'    : [[1, 0x0000ff, [0,  2, 41]],
                                        [2, 0x0000ff, [0,  4, 14]],
-                                       [2, 0x0000ff, [0, -2, -9]]]},
+                                       [2, 0x0000ff, [0, -2, -9]]],
+                         'artillery': [[50, 0, 0], [-50, 0, 0]]},
+
       'transport'    : { 'material' : '/textures/AeraHull.png',
                          'geometry' : '/meshes/Agesipolis/agesipolis.json',
                          'trails'   : [[0, 0, -125]]},
+
       'destroyer'    : { 'material' : '/textures/AeraHull.png',
                          'geometry' : '/meshes/Leonidas/yavok.json'}
 
