@@ -11,5 +11,9 @@ Omega.Pages.TitleDOM = {
 
   cutscene_menu : function(){
     return $('#cutscene_menu');
+  },
+
+  scene_controls : function(){
+    return $('#scene_controls');
   }
 };
