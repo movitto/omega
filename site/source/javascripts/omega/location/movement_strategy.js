@@ -30,7 +30,7 @@ Omega.LocationMovementStrategy = {
 
   /// Boolean indicating if location is not moving
   is_stopped : function(){
-    return !!(this.movement_strategy) &&
+    return !this.movement_strategy ||
       (this.movement_strategy.json_class == 'Motel::MovementStrategies::Stopped');
   },
 
