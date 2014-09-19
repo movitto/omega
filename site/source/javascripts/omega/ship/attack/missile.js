@@ -23,8 +23,9 @@ Omega.ShipMissile = function(args){
 
 Omega.ShipMissile.prototype = {
   speed            : 1000000,
+  acceleration     : 1000000,
   rot_theta        : 0.55,
-  theta_tolerance  : Math.PI / 32,
+  theta_tolerance  : Math.PI / 64,
   launch_distance  :  250,
   arrival_distance :   50,
 
