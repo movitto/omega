@@ -22,10 +22,28 @@ Omega.ShipAttackLauncher = {
            (now - this.launched_at) > (this.interval * 1000));
   },
 
+  _next_offset : function(){
+    if(!this.offsets) return new THREE.Vector3(0, 0, 0)
+
+    if(typeof(this.current_offset) === "undefined" ||
+       this.current_offset == this.offsets.length-1)
+      this.current_offset = 0;
+    else
+      this.current_offset += 1;
+
+    var offset  = this.offsets[this.current_offset];
+    return new THREE.Vector3().set(offset[0], offset[1], offset[2]);
+  },
+
   _init_projectile : function(){
     var projectile = this.template.clone();
     projectile.set_target(this.target());
     projectile.set_source(this.omega_entity);
+
+    var offset = this._next_offset();
+    offset.applyMatrix4(this.omega_entity.location.rotation_matrix());
+    projectile.location.add(offset);
+
     return projectile;
   },
 

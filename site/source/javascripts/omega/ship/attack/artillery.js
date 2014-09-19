@@ -22,19 +22,6 @@ Omega.ShipArtillery.prototype = {
 
     if(Omega.Config.resources.ships[type].artillery)
       this.offsets = Omega.Config.resources.ships[type].artillery;
-    else
-      this.offsets = [[0, 0, 0]];
-  },
-
-  _next_offset : function(){
-    if(typeof(this.current_offset) === "undefined" ||
-       this.current_offset == this.offsets.length-1)
-      this.current_offset = 0;
-    else
-      this.current_offset += 1;
-
-    var offset  = this.offsets[this.current_offset];
-    return new THREE.Vector3().set(offset[0], offset[1], offset[2]);
   },
 
   clone : function(){
@@ -62,16 +49,4 @@ Omega.ShipArtillery.prototype.should_launch = function(){
   var facing_target = !!(this.target()) &&
                       this.omega_entity.location.facing(this.target().location, Math.PI / 32);
   return this._should_launch() && facing_target;
-};
-
-Omega.ShipArtillery.prototype.__init_projectile =
-  Omega.ShipArtillery.prototype._init_projectile;
-
-/// Override projectile initialization to set cycled offset
-Omega.ShipArtillery.prototype._init_projectile = function(){
-  var projectile = this.__init_projectile();
-  var offset = this._next_offset();
-  offset.applyMatrix4(this.omega_entity.location.rotation_matrix());
-  projectile.location.add(offset);
-  return projectile;
 };
