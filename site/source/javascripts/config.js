@@ -94,7 +94,8 @@ Omega.Config = {
                          'trails'   : [[0, 0, -125]]},
 
       'destroyer'    : { 'material' : '/textures/AeraHull.png',
-                         'geometry' : '/meshes/Leonidas/yavok.json'},
+                         'geometry' : '/meshes/Leonidas/yavok.json',
+                         'missiles' : [[20, 1, -35], [-20, 1, -45]]},
 
       'escort'       : { 'material' : '/textures/nicander.png',
                          'geometry' : '/meshes/Nicander/Nicander.json' },

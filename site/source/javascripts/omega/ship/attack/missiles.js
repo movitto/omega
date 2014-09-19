@@ -8,13 +8,23 @@
 
 Omega.ShipMissiles = function(args){
   this.init_launcher(args);
+  this.load_config(args);
 }
 
 Omega.ShipMissiles.prototype = {
   interval : 10,
 
+  load_config : function(args){
+    var type = args['type'];
+    this.type = type;
+
+    if(Omega.Config.resources.ships[type].missiles)
+      this.offsets = Omega.Config.resources.ships[type].missiles;
+  },
+
   clone : function(){
-    return new Omega.ShipMissiles({template : this.template.clone()});
+    return new Omega.ShipMissiles({type : this.type,
+                                   template : this.template.clone()});
   },
 
   should_explode : function(projectile){

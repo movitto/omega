@@ -152,7 +152,8 @@ Omega.ShipGfxInitializer = {
       var material = new THREE.MeshBasicMaterial({color : 0x000000});
       var template = new Omega.ShipMissile({geometry: geometry.clone(),
                                             material: material});
-      var missiles = new Omega.ShipMissiles({template: template});
+      var missiles = new Omega.ShipMissiles({type : _this.type,
+                                             template: template});
 
       _this.missiles = missiles;
       _this.missiles.omega_entity = _this;
