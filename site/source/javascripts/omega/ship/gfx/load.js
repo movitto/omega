@@ -4,9 +4,6 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "omega/ship/attack/shell"
-//= require "omega/ship/attack/missile"
-
 Omega.ShipGfxLoader = {
   /// mesh material & geometry, shell material, missile geometry +
   /// particles (explosion, destruction, smoke, trails)
@@ -61,6 +58,10 @@ Omega.ShipGfxLoader = {
     var missile_resource = 'ship.' + this.type + '.missile_geometry';
     var missile_geometry = Omega.ShipMissile.geometry_for(this.type);
     this._load_async_resource(missile_resource, missile_geometry, event_cb);
+
+    var missile_bay_resource = 'ship.' + this.type + '.missile_bay_geometry';
+    var missile_bay_geometry = Omega.ShipMissileBay.geometry_for(this.type);
+    this._load_async_resource(missile_bay_resource, missile_bay_geometry, event_cb);
   },
 
   /// Load shared graphics resources

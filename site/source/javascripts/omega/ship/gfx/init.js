@@ -163,8 +163,41 @@ Omega.ShipGfxInitializer = {
     });
   },
 
+  _init_missile_bays : function(){
+    var _this = this;
+    this.missile_bays = [];
+
+    var missile_bay_geometry = 'ship.' + this.type + '.missile_bay_geometry';
+    this._retrieve_async_resource(missile_bay_geometry, function(geometry){
+      var config_missiles = Omega.Config.resources.ships[_this.type].missiles;
+      if(!config_missiles) return;
+
+      var num             = config_missiles.length;
+
+      for(var m = 0; m < num; m++){
+        var offset = config_missiles[m];
+
+        var material = new THREE.MeshBasicMaterial({color    : 0x343634,
+                                                    side     : THREE.DoubleSide,
+                                                    skinning : true});
+        var bay      = new Omega.ShipMissileBay({material   : material,
+                                                 geometry   : geometry,
+                                                 animations : geometry.animations});
+
+        bay.omega_entity = _this;
+        bay.set_position(offset[0], offset[1], offset[2]);
+
+        _this.missile_bays.push(bay);
+        _this.location_tracker().add(bay.mesh);
+      }
+
+      _this.missile_bays_init = true;
+      _this._finish_init();
+    });
+  },
+
   _finish_init : function(){
-    if(this.mesh_init && this.missiles_init){
+    if(this.mesh_init && this.missiles_init && this.missile_bays_init){
       this._gfx_initializing = false;
       this._gfx_initialized  = true;
     }
@@ -194,6 +227,7 @@ Omega.ShipGfxInitializer = {
 
     this._init_mesh();
     this._init_missiles();
+    this._init_missile_bays();
 
     this.last_moved = new Date();
     this.update_gfx();

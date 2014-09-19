@@ -17,6 +17,9 @@ Omega.ShipGfxEffects = {
     this.explosions.run_effects();
     this.destruction.run_effects();
     this.smoke.run_effects();
+
+    for(var m = 0; m < this.missile_bays.length; m++)
+      this.missile_bays[m].run_effects();
   },
 
   /// Trigger ship destruction sequence

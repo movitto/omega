@@ -16,6 +16,9 @@
 //= require "omega/ship/attack/artillery"
 //= require "omega/ship/attack/missiles"
 //= require "omega/ship/attack/vector"
+//= require "omega/ship/attack/shell"
+//= require "omega/ship/attack/missile"
+//= require "omega/ship/attack/missile_bay"
 
 //= require "omega/ship/effects/destruction"
 //= require "omega/ship/effects/explosion"

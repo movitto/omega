@@ -38,3 +38,13 @@ Omega.ShipMissiles.prototype = {
 }
 
 $.extend(Omega.ShipMissiles.prototype, Omega.ShipAttackLauncher);
+
+/// Override launch, trigger animation on missile bays
+Omega.ShipMissiles.prototype._launch = Omega.ShipMissiles.prototype.launch;
+
+Omega.ShipMissiles.prototype.launch = function(){
+  this._launch();
+
+  var missile_bay = this.omega_entity.missile_bays[this.current_offset];
+  missile_bay.trigger();
+};
