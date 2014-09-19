@@ -73,12 +73,16 @@ Omega.Pages.SceneTracker = {
     if(!Omega.Config.scale_system) return;
 
     var children = system.children;
-    for(var c = 0; c < children.length; c++)
+    for(var c = 0; c < children.length; c++){
       this._scale_entity(children[c]);
+      children[c].update_gfx();
+    }
 
     var manu = this.manu_entities();
-    for(var c = 0; c < manu.length; c++)
+    for(var c = 0; c < manu.length; c++){
       this._scale_entity(manu[c]);
+      manu[c].update_gfx();
+    }
   },
 
   _scale_entity : function(entity){
