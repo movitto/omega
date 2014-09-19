@@ -7,7 +7,11 @@
 Omega.ShipProjectile = {
   init_projectile : function(args){
     this.init_mesh(args);
-    this.location = new Omega.Location({movement_strategy : { distance : this.arrival_distance}});
+
+    var strategy = { distance : this.arrival_distance,
+                     speed : this.speed, max_speed : this.speed,
+                     acceleration : this.acceleration };
+    this.location = new Omega.Location({movement_strategy : strategy});
     this.clock    = new THREE.Clock();
   },
 
@@ -25,6 +29,7 @@ Omega.ShipProjectile = {
     this.location.set(source.scene_location());
     this.location.set_orientation(this.launch_dir());
     this.location.update_ms_dir(this.location.orientation());
+    this.location.update_ms_acceleration(this.location.orientation());
   },
 
   set_target : function(target){
@@ -51,12 +56,15 @@ Omega.ShipProjectile = {
 
   _face_target : function(delta){
     var rot_angle = this.rot_theta * delta;
-    if(!this.location.facing_target(this.theta_tolerance))
+    if(!this.location.facing_target(this.theta_tolerance)){
+      this.location.angle_rotated = 0;
       this.location.rotate_orientation(rot_angle);
+      this.location.update_ms_acceleration();
+    }
   },
 
   _move_linear : function(delta){
-    var distance = this.speed * delta / 1000;
+    var distance = this.location.movement_strategy.speed * delta / 1000;
     this.location.move_linear(distance);
   },
 
