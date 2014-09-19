@@ -48,14 +48,20 @@ Omega.UI.CanvasCameraManager = {
     component.add(this.cam);
   },
 
-  // high level helper to follow an entity assuming
-  // it has a 'position_tracker'
-  follow_entity : function(entity){
+  /// high level helper to follow an entity assuming
+  /// it has a position_tracker or location_tracker
+  follow_entity : function(entity, args){
     if(!this.cam || !this.cam_controls) return;
-    if(this.is_following(entity.position_tracker())) return;
 
-    this.cam.position.set(500, 500, 500);
-    this.follow(entity.position_tracker());
+             args = args || {};
+    var distance  = args['distance'] || [500, 500, 500];
+    var component = args['with_orientation'] ? entity.location_tracker() :
+                                               entity.position_tracker();
+
+    if(this.is_following(component)) return;
+
+    this.cam.position.set(distance[0], distance[1], distance[2]);
+    this.follow(component);
     this.cam_controls.update();
   },
 
