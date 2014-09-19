@@ -74,14 +74,16 @@ Omega.Pages.SceneTracker = {
 
     var children = system.children;
     for(var c = 0; c < children.length; c++){
-      this._scale_entity(children[c]);
-      children[c].update_gfx();
+      var child = children[c];
+      this._scale_entity(child);
+      if(child.gfx_initialized()) child.update_gfx();
     }
 
     var manu = this.manu_entities();
     for(var c = 0; c < manu.length; c++){
-      this._scale_entity(manu[c]);
-      manu[c].update_gfx();
+      var manue = manu[c];
+      this._scale_entity(manue);
+      if(manue.gfx_initialized()) manue.update_gfx();
     }
   },
 
