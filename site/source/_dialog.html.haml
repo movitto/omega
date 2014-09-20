@@ -105,6 +105,22 @@
   #mining_id.dialog_row
   #mining_targets
 
+#set_construction_params_dialog.dialog_content
+  #construction_id.dialog_row
+  .dialog_row
+    ID:
+    %input#construction_entity_id{:type => :text}
+  .dialog_row
+    Class:
+    %select#construction_entity_class
+      %option{:value => "Ship"}Ship
+      %option{:value => "Station"}Station
+  .dialog_row
+    Type:
+    %select#construction_entity_type
+  .dialog_row
+    %input#command_construct{:value => 'construct', :type => :button}
+
 #incorrect_passwords_dialog.dialog_content
   .dialog_row
     Passwords do not match

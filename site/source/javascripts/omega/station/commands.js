@@ -35,7 +35,7 @@ Omega.StationCommands = {
        class : 'station_construct details_command',
        text  : 'construct'})
      construct_cmd.data('station', this);
-     construct_cmd.click(function(){ _this._construct(page); });
+     construct_cmd.click(function(){ _this._set_construction_params(page); });
      return [construct_cmd];
   },
 

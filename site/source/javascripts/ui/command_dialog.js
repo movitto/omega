@@ -27,3 +27,4 @@ $.extend(Omega.UI.CommandDialog.prototype,     Omega.UI.MovementDialog);
 $.extend(Omega.UI.CommandDialog.prototype,     Omega.UI.AttackDialog);
 $.extend(Omega.UI.CommandDialog.prototype,     Omega.UI.DockingDialog);
 $.extend(Omega.UI.CommandDialog.prototype,     Omega.UI.MiningDialog);
+$.extend(Omega.UI.CommandDialog.prototype,     Omega.UI.ConstructionDialog);
