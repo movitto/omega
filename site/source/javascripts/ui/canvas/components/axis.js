@@ -20,9 +20,13 @@ Omega.UI.CanvasAxis.prototype = {
       xy : this._new_axis(this._new_v(-this.size, 0, 0), this._new_v(this.size, 0, 0), 0xFF0000), /// red
       yz : this._new_axis(this._new_v(0, -this.size, 0), this._new_v(0, this.size, 0), 0x00FF00), /// green
       xz : this._new_axis(this._new_v(0, 0, -this.size), this._new_v(0, 0, this.size), 0x0000FF), /// blue
-      distances1 : this._new_marker(3000, 40),
-      distances2 : this._new_marker(2000, 20),
-      distances3 : this._new_marker(1000, 20)
+      distances1 : this._new_marker(20000, 40),
+      distances2 : this._new_marker(15000, 40),
+      distances3 : this._new_marker(10000, 40),
+      distances4 : this._new_marker(5000, 40),
+      distances5 : this._new_marker(3000, 40),
+      distances6 : this._new_marker(2000, 20),
+      distances7 : this._new_marker(1000, 20)
     };
   },
 
