@@ -75,8 +75,9 @@ RSpec.configure do |config|
     registries =
       [Missions::RJR.registry,
        Manufactured::RJR.registry,
-       Motel::RJR.registry]
-     registries.each { |r| r.stop } # .join ?
+       Motel::RJR.registry,
+       Users::RJR.registry]
+     registries.each { |r| r.stop.join }
 
      # reset subsystems
      modules =

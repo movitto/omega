@@ -87,7 +87,7 @@ end
 
 describe "#angle_between" do
   it "returns the angle between vectors" do
-    Motel.angle_between(2,3,4,5,6,7).should == 0.13047716072476873
+    Motel.angle_between(2,3,4,5,6,7).should == 0.1304771607247696
     Motel.angle_between(62,-32,147,-19,-19,3).should == 1.6001227358204873
     Motel.angle_between(0.75,0.11,1.33,-1.3,0.58,0.01).should == 1.995470250041254
   end

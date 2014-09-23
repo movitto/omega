@@ -69,6 +69,12 @@ module HasOrientation
     orientation_difference dx, dy, dz
   end
 
+  # Return bool indicating if location is oriented towards specified coordinates
+  def facing?(x, y, z, args={})
+    args[:tolerance] ||= Math::PI / 32
+    rotation_to(x, y, z).first <= args[:tolerance]
+  end
+
   # Return orientation in json format
   def orientation_json
     {:orientation_x => orientation_x,

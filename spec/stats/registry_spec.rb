@@ -10,7 +10,8 @@ describe Stats do
 
   it "has statistics" do
     Stats::STATISTICS.collect { |s| s.id }.should ==
-      [:universe_id, :num_of, :users_with_most, :users_with_least, :systems_with_most]
+      [:universe_timestamp, :universe_id, :num_of,
+       :users_with_most, :users_with_least, :systems_with_most]
   end
 
   describe "#get_stat" do

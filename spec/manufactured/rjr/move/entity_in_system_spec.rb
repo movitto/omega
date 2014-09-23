@@ -60,13 +60,19 @@ module Manufactured::RJR
         move_entity_in_system(@sh, @l)
         @sh.location.movement_strategy.
            should be_an_instance_of(Motel::MovementStrategies::Linear)
-        @sh.location.movement_strategy.dx.should == -1
-        @sh.location.movement_strategy.dy.should == 0
-        @sh.location.movement_strategy.dz.should == 0
+        @sh.location.movement_strategy.dorientation.should be_true
+        @sh.location.movement_strategy.rot_theta.should == 0
         @sh.location.movement_strategy.speed.should == @sh.movement_speed
         @sh.location.movement_strategy.stop_distance.should == 100
       end
     end
+
+    it "sets next movement strategy to stopped" do
+      move_entity_in_system(@sh, @l)
+      @sh.location.next_movement_strategy.
+        should == Motel::MovementStrategies::Stopped.instance
+    end
+
 
     context "entity is not facing location" do
       before(:each) do
@@ -77,21 +83,16 @@ module Manufactured::RJR
       it "rotates entity to face location" do
         move_entity_in_system(@sh, @l)
         @sh.location.movement_strategy.
-          should be_an_instance_of(Motel::MovementStrategies::Rotate)
+          should be_an_instance_of(Motel::MovementStrategies::Linear)
         @sh.location.movement_strategy.rot_theta.should == Math::PI * @sh.rotation_speed
         @sh.location.movement_strategy.stop_angle.should == Math::PI
-      end
-
-      it "sets next movement strategy to move entity towards destination" do
-        move_entity_in_system(@sh, @l)
-        @sh.location.next_movement_strategy.
-          should be_an_instance_of(Motel::MovementStrategies::Linear)
+        @sh.location.movement_strategy.rot_dir.should == [0, 0, 1]
       end
 
       it "tracks rotation" do
         Manufactured::RJR.node.should_receive(:invoke).
                           with("motel::track_rotation", @sh.id,
-                               Math::PI - 0.01, 0, 0, 1)
+                               Math::PI, 0, 0, 1)
         Manufactured::RJR.node.should_receive(:invoke).
                           with("motel::track_movement", @sh.id, 100)
         Manufactured::RJR.node.should_receive(:invoke).

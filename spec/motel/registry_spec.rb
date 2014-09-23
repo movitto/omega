@@ -47,8 +47,8 @@ describe Registry do
         r << p
         r << l1
 
-        l2.movement_strategy =
-          MovementStrategies::Follow.new :tracked_location_id => l1.id
+        l2.movement_strategy = MovementStrategies::Follow.new :distance => 10,
+                                                              :tracked_location_id => l1.id
         r << l2
 
         r.entity(&matching{|l| l.ms.is_a?(MovementStrategies::Follow) &&
@@ -89,7 +89,8 @@ describe Registry do
 
         l3 = Location.new
         l3.update(l2)
-        l3.movement_strategy = MovementStrategies::Follow.new :tracked_location_id => l1.id
+        l3.movement_strategy = MovementStrategies::Follow.new :distance => 10,
+                                                              :tracked_location_id => l1.id
         r.update(l3, &with_id(l2.id))
 
         r.entity(&matching{ |l| l.ms.is_a?(MovementStrategies::Follow) &&
@@ -170,6 +171,7 @@ describe Registry do
 
       # test the loop method directly
       @run_method = proc { @r.send(:run_locations) }
+      @run_events_method = proc { @r.send(:run_location_events) }
     end
 
     before(:each) do
@@ -239,6 +241,7 @@ describe Registry do
           @l.should_receive(:raise_event).with(:changed_strategy)
           @l.should_receive(:raise_event).at_least(:twice)
           @r.send :run_locations
+          @r.send :run_location_events
         end
 
         context "movement strategy changed to stopped" do
@@ -247,6 +250,7 @@ describe Registry do
             @l.should_receive(:raise_event).with(:stopped)
             @l.should_receive(:raise_event).at_least(:twice)
             @r.send :run_locations
+            @r.send :run_location_events
           end
         end
       end
@@ -255,6 +259,7 @@ describe Registry do
         @l.should_receive(:raise_event).with(:movement, nil, nil, nil)
         @l.should_receive(:raise_event).at_least(:once) # stub out :rotation, any others
         @run_method.call
+        @run_events_method.call
       end
 
       it "raises rotation event" do
@@ -262,6 +267,7 @@ describe Registry do
           .with(:rotation, nil, nil, nil)
         @l.should_receive(:raise_event).at_least(:once) # stub out :movement, other
         @run_method.call
+        @run_events_method.call
       end
     end
 
@@ -303,6 +309,7 @@ describe Registry do
       l1.should_receive(:raise_event).at_least(:once)
       l2.should_receive(:raise_event).at_least(:once)
       @run_method.call
+      @run_events_method.call
     end
   end
 

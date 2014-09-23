@@ -307,9 +307,9 @@ describe Location do
       it "returns true" do
         l = Location.new :coordinates => [0, 0, 0],
                          :orientation => [0.57, 0.57, 0.57]
-        l.oriented_towards?(0.57, 0.57, 0.57).should be_true
-        l.oriented_towards?(1.14, 1.14, 1.14).should be_true
-        l.oriented_towards?(0.285, 0.285, 0.285).should be_true
+        l.facing?(0.57, 0.57, 0.57).should be_true
+        l.facing?(1.14, 1.14, 1.14).should be_true
+        l.facing?(0.285, 0.285, 0.285).should be_true
       end
     end
 
@@ -318,8 +318,8 @@ describe Location do
         l = Location.new :coordinates => [0, 0, 0],
                          :orientation => [0.57, 0.57, 0.57]
 
-        l.oriented_towards?(1, 0, 0).should be_false
-        l.oriented_towards?(-100, 50, 100).should be_false
+        l.facing?(1, 0, 0).should be_false
+        l.facing?(-100, 50, 100).should be_false
       end
     end
   end

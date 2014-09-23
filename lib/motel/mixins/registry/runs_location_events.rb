@@ -41,6 +41,7 @@ module RunsLocationEvents
       }
     }
 
+    nil # TODO custom poll delay
   end
 end # module RunsLocationEvents
 end # module Motel

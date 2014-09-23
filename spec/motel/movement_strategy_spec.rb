@@ -11,7 +11,7 @@ describe MovementStrategy do
   describe "#initialize" do
     it "sets default step delay" do
       m = MovementStrategy.new
-      m.step_delay.should == 1
+      m.step_delay.should == 0.01
     end
 
     it "sets attributes" do

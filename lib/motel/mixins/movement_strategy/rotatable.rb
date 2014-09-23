@@ -16,6 +16,11 @@ module MovementStrategies
     # Stop location rotation automatically after this many degrees, optional
     attr_accessor :stop_angle
 
+    # Rotation direction as an array
+    def rot_dir
+      [rot_x, rot_y, rot_z]
+    end
+
     # Initialize rotation params from args hash
     def init_rotation(args = {})
       attr_from_args args, :rot_theta => 0,

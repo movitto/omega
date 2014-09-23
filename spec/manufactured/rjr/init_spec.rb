@@ -5,8 +5,6 @@
 
 require 'spec_helper'
 require 'manufactured/rjr/init'
-require 'motel/movement_strategies/linear'
-require 'motel/movement_strategies/rotate'
 
 module Manufactured::RJR
   describe "#user" do
@@ -76,84 +74,6 @@ module Manufactured::RJR
     end
   end
 
-  describe "#motel_event", :rjr => true do
-    include Omega::Server::DSL # for with_id below
-
-    before(:each) do
-      setup_manufactured  :CALLBACK_METHODS
-
-      @sh = create(:valid_ship)
-    end
-
-    context "not local node" do
-      it "raises PermissionError" do
-        @n.node_type = 'local-test'
-        lambda {
-          @s.motel_event 'anything'
-        }.should raise_error(PermissionError)
-      end
-    end
-
-    context "entity not found" do
-      it "does not raise error" do
-        lambda {
-          @s.motel_event build(:location)
-        }.should_not raise_error
-      end
-    end
-
-    it "updates use DistanceTravelled attribute" do
-      enable_attributes {
-        ms = Motel::MovementStrategies::Linear.new :speed => 1
-        @sh.distance_moved = 500.1
-        @sh.location.movement_strategy = ms
-        @registry.update @sh, &with_id(@sh.id)
-
-        @s.motel_event @sh.location
-        Users::RJR.registry.entity(&with_id(@sh.user_id)).
-          attribute(Users::Attributes::DistanceTravelled.id).
-          total.should == 500.1
-      }
-    end
-
-    context "movement strategy different" do
-      context "old movement strategy is linear" do
-        it "removes motel movement callbacks" do
-          lin = Motel::MovementStrategies::Linear.new :speed => 1
-          @sh.location.movement_strategy = lin
-          @registry.update @sh, &with_id(@sh.id)
-
-          @s.node.should_receive(:invoke).
-             with('motel::remove_callbacks', @sh.id, :movement)
-          @s.node.should_receive(:invoke)
-          @s.motel_event Motel::Location.new :id => @sh.location.id
-        end
-      end
-
-      context "old movement strategy is rotation" do
-        it "removes motel rotation callbacks" do
-          rot = Motel::MovementStrategies::Rotate.new
-          @sh.location.movement_strategy = rot
-          @registry.update @sh, &with_id(@sh.id)
-
-          @s.node.should_receive(:invoke).
-             with('motel::remove_callbacks', @sh.id, :rotation)
-          @s.motel_event Motel::Location.new :id => @sh.location.id
-        end
-      end
-    end
-
-    it "updates entity with location" do
-      loc = build(:location, :id => @sh.location.id)
-      @s.motel_event loc
-      @registry.entity(&with_id(@sh.id)).location.should == loc
-    end
-
-    it "returns nil" do
-      @s.motel_event(@sh.location)
-    end
-  end
-
   describe "#dispatch_manufactured_rjr_init", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
@@ -183,6 +103,7 @@ module Manufactured::RJR
       @d.should_receive(:add_module).with('manufactured/rjr/mining')
       @d.should_receive(:add_module).with('manufactured/rjr/attack')
       @d.should_receive(:add_module).with('manufactured/rjr/loot')
+      @d.should_receive(:add_module).with('manufactured/rjr/motel_callback')
       dispatch_manufactured_rjr_init(@d)
     end
 

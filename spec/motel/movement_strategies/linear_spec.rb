@@ -97,39 +97,21 @@ describe Linear do
       @loc = Motel::Location.new
     end
 
-    context "change due to rotation" do
-      it "returns true" do
+    context "loc.distance moved < stop distance" do
+      it "returns false" do
         linear = Linear.new
-        linear.should_receive(:change_due_to_rotation?).and_return(true)
-        linear.change?(@loc).should be_true
+        @loc.distance_moved = 5
+        linear.stop_distance = 10
+        linear.change?(@loc).should be_false
       end
     end
 
-    context "no change due to rotation" do
-      context "stop distance is nil" do
-        it "returns false" do
-          linear = Linear.new
-          linear.stop_distance = nil
-          linear.change?(@loc).should be_false
-        end
-      end
-
-      context "loc.distance moved < stop distance" do
-        it "returns false" do
-          linear = Linear.new
-          @loc.distance_moved = 5
-          linear.stop_distance = 10
-          linear.change?(@loc).should be_false
-        end
-      end
-
-      context "loc.distance moved >= stop distance" do
-        it "returns true" do
-          linear = Linear.new
-          @loc.distance_moved = 10
-          linear.stop_distance = 5
-          linear.change?(@loc).should be_true
-        end
+    context "loc.distance moved >= stop distance" do
+      it "returns true" do
+        linear = Linear.new
+        @loc.distance_moved = 10
+        linear.stop_distance = 5
+        linear.change?(@loc).should be_true
       end
     end
   end
@@ -164,7 +146,8 @@ describe Linear do
       x = y = z = 20
       l = Motel::Location.new(:parent => p,
                               :movement_strategy => linear,
-                              :x => x, :y => y, :z => z)
+                              :x => x, :y => y, :z => z,
+                              :orientation => [1,0,0])
 
       # move and validate
       linear.move l, 1
@@ -184,7 +167,8 @@ describe Linear do
 
     it "appends distance moved to loc.distance_moved" do
       linear = Linear.new :step_delay => 5, :speed => 20
-      l = Motel::Location.new :x => 0, :y => 0, :z => 0
+      l = Motel::Location.new :x => 0, :y => 0, :z => 0,
+                              :orientation => [1,0,0]
       linear.move l, 1
       l.distance_moved.should == 20
     end

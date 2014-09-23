@@ -56,7 +56,6 @@ class Linear < MovementStrategy
   # Returns true if we've moved more than specified distance or
   # change_due_to_rotation? returns true
   def change?(loc)
-    #change_due_to_rotation?(loc) || # TODO option to enable changing due to rotation
     stop_distance_exceeded?(loc)
   end
 

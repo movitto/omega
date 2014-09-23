@@ -148,10 +148,11 @@ describe Follow do
       it "sets rotational params from orientation difference axis-angle" do
         @l.should_receive(:orientation_difference).and_return([Math::PI/4, 0, 1, 0])
         @follow.should_receive(:init_rotation)
-               .with(:rot_theta => @follow.rotation_speed,
-                     :rot_x     => 0,
-                     :rot_y     => 1,
-                     :rot_z     => 0)
+               .with(:rot_theta  => @follow.rot_theta,
+                     :rot_x      => 0,
+                     :rot_y      => 1,
+                     :rot_z      => 0,
+                     :stop_angle => Math::PI/4)
         @follow.move @l, 1
       end
 
@@ -191,15 +192,13 @@ describe Follow do
                                :orientation_z => 0)
 
       follow = Follow.new :tracked_location_id => l2.id,
-                          :distance => 10, :speed => 5
+                          :distance => 10, :speed => 5,
+                          :dx => -1, :dy => 0, :dz => 0
       follow.tracked_location = l2
 
       # move and validate
       follow.move l1, 1
       l1.x.should == 15
-
-      follow.move l1, 1
-      l1.x.should == 10
 
       follow.move l1, 1
       l1.x.should == 10
