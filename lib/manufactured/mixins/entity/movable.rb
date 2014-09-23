@@ -12,6 +12,7 @@ module Entity
     include Omega::ConstrainedAttributes
 
     def self.included(base)
+      base.extend(ClassMethods)
       base.inherit_constraints self
     end
 
@@ -43,6 +44,20 @@ module Entity
 
     def movement_json
       {:distance_moved => @distance_moved}
+    end
+
+    module ClassMethods
+      def movement_speed
+        @movement_speed ||= get_constraint 'movement_speed', :intern => true
+      end
+
+      def acceleration
+        @acceleration ||= get_constraint 'acceleration', :intern => true
+      end
+
+      def rotation_speed
+        @rotation_speed ||= get_constraint 'rotation_speed', :intern => true
+      end
     end
   end # module Movable
 end # module Entity

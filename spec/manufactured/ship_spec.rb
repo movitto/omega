@@ -42,6 +42,92 @@ describe Ship do
     end
   end
 
+  describe "#movement_speed" do
+    it "returns movement speed corresponding to ship type" do
+      s = Ship.new :type => :corvette
+      s.movement_speed.should == Ship.movement_speed[:corvette]
+    end
+
+    it "returns default movement speed" do
+      s = Ship.new :type => :bomber
+      s.movement_speed.should == Ship.movement_speed[:default]
+    end
+  end
+
+  describe "#acceleration" do
+    it "returns acceleration corresponding to ship type" do
+      s = Ship.new :type => :corvette
+      s.acceleration.should == Ship.acceleration[:corvette]
+    end
+
+    it "returns default acceleration" do
+      s = Ship.new :type => :bomber
+      s.acceleration.should == Ship.acceleration[:default]
+    end
+  end
+
+  describe "#rotation_speed" do
+    it "returns rotation_speed corresponding to ship type" do
+      s = Ship.new :type => :corvette
+      s.rotation_speed.should == Ship.rotation_speed[:corvette]
+    end
+
+    it "returns default rotation_speed" do
+      s = Ship.new :type => :bomber
+      s.rotation_speed.should == Ship.rotation_speed[:default]
+    end
+  end
+
+  describe "#weapons_class" do
+    it "returns weapons class corresponding to ship type" do
+      s = Ship.new :type => :corvette
+      s.weapons_class.should == Ship.weapons_classes[:corvette].intern
+    end
+
+    context "ship type does not have weapons class" do
+      it "returns nil" do
+        s = Ship.new :type => :frigate
+        s.weapons_class.should be_nil
+      end
+    end
+  end
+
+  describe "#attack_distance" do
+    it "returns attack distance corresponding to ship weapons class" do
+      s = Ship.new :type => :corvette
+      s.attack_distance.should == Ship.attack_distances[s.weapons_class]
+    end
+
+    it "returns default attack distance" do
+      s = Ship.new :type => :frigate
+      s.attack_distance.should == Ship.attack_distances[:default]
+    end
+  end
+
+  describe "#attack_rate" do
+    it "returns attack rate corresponding to ship weapons class" do
+      s = Ship.new :type => :corvette
+      s.attack_rate.should == Ship.attack_rates[s.weapons_class]
+    end
+
+    it "returns default attack distance" do
+      s = Ship.new :type => :frigate
+      s.attack_rate.should == Ship.attack_rates[:default]
+    end
+  end
+
+  describe "#damage_dealt" do
+    it "returns damage deault corresponding to ship weapons class" do
+      s = Ship.new :type => :corvette
+      s.damage_dealt.should == Ship.damage_dealt[s.weapons_class]
+    end
+
+    it "returns default damage dealt" do
+      s = Ship.new :type => :frigate
+      s.damage_dealt.should == Ship.damage_dealt[:default]
+    end
+  end
+
   describe "#hp=" do
     it "sets hp" do
       s = Ship.new

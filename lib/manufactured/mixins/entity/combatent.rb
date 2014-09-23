@@ -138,6 +138,22 @@ module Entity
       def attack_types
         @attack_types ||= get_constraint 'attack_types', :intern => true
       end
+
+      def weapons_classes
+        @weapons_classes ||= get_constraint 'weapons_classes', :intern => true
+      end
+
+      def attack_distances
+        @attack_distances ||= get_constraint 'attack_distances', :intern => true
+      end
+
+      def attack_rates
+        @attack_rates ||= get_constraint 'attack_rates', :intern => true
+      end
+
+      def damage_dealt
+        @damage_dealt ||= get_constraint 'damage_dealt', :intern => true
+      end
     end
   end # module Combatent
 end # module Entity
