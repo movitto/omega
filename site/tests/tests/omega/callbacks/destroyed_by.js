@@ -30,7 +30,7 @@ describe("Omega.CallbackHandler", function(){
 
       it("clears entity attacking target", function(){
         tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
-        assert(ship.attacking).isNull();
+        assert(ship.attacking).isUndefined();
       });
 
       it("sets entity hp and shield level to 0", function(){

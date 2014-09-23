@@ -27,75 +27,66 @@ describe("Omega.ShipFollowMovement", function(){
       page.entity(tracked.id, tracked);
     });
 
-    describe("ship is orienting itself towards target", function(){
-      it("_runs_rotation_movement", function(){
-        ship.location.movement_strategy.point_to_target = true;
-        sinon.spy(ship, '_run_rotation_movement');
-        ship.last_moved = new Date(new Date() - 1000); // last moved 1s ago
-        ship._run_follow_movement(page);
-        sinon.assert.calledWith(ship._run_rotation_movement, page, 1000);
+    describe("target is moving", function(){
+      before(function(){
+        tracked.location.movement_strategy.speed = 42;
       });
-    });
 
-    describe("ship is not facing target", function(){
-      it("faces target / runs rotation movement", function(){
-        ship.location.movement_strategy.point_to_target = false;
-        ship.location.set_orientation(1, 0, 0);
-
+      it("faces target", function(){
+        sinon.stub(ship.location, 'facing_target').returns(false);
         sinon.spy(ship.location, 'face_target');
-        sinon.spy(ship, '_run_rotation_movement');
+        sinon.spy(ship, '_rotate');
 
         ship.last_moved = new Date(new Date() - 1000);
         ship._run_follow_movement(page);
         sinon.assert.called(ship.location.face_target);
-        sinon.assert.calledWith(ship._run_rotation_movement, page, 1000)
+        sinon.assert.calledWith(ship._rotate, 1000)
       });
-    });
 
-    describe("ship is not on target", function(){
-      it("moves ship towards target", function(){
-        var coordinates = ship.location.coordinates();
-        ship.location.set_orientation(-1, 0, 0);
-
-        var dist = ship.location.distance_from(tracked.location);
-        var dx   = (tracked.location.x - ship.location.x) / dist;
-        var dy   = (tracked.location.y - ship.location.y) / dist;
-        var dz   = (tracked.location.z - ship.location.z) / dist;
-
-        ship.location.movement_strategy.speed = 1;
+      it("moves towards target", function(){
         ship.last_moved = new Date(new Date() - 1000); // last moved 1s ago
+        sinon.spy(ship, '_move_linear')
         ship._run_follow_movement(page);
-        assert(ship.location.x).equals(coordinates[0] + dx);
-        assert(ship.location.y).equals(coordinates[1] + dy);
-        assert(ship.location.z).equals(coordinates[2] + dz);
+        sinon.assert.calledWith(ship._move_linear, 1000);
       });
-    });
 
-    describe("ship is on target and target is moving", function(){
       it("matches target speed", function(){
         ship.location.movement_strategy.speed = 100;
-        tracked.location.movement_strategy.speed = 10;
         tracked.location.set(ship.location.coordinates());
         ship.last_moved = new Date(new Date() - 1000); // last moved 1s ago
 
         sinon.spy(ship.location, 'move_linear')
         ship._run_follow_movement(page);
-        sinon.assert.calledWith(ship.location.move_linear, 10);
+        sinon.assert.calledWith(ship.location.move_linear, 42);
       });
     });
 
-    describe("ship is on target and target not moving", function(){
+    describe("target not moving", function(){
+      before(function(){
+        tracked.location.movement_strategy.speed = 0;
+      });
+
       it("orbits target", function(){
+        var coords = ship.location.coordinates();
         ship.last_moved = new Date(new Date() - 1000); // last moved 1s ago
-        tracked.location.set(ship.location.coordinates());
+        tracked.location.set(coords);
         ship.location.movement_strategy.speed = 10;
 
-        sinon.spy(ship, '_run_rotation_movement');
-        sinon.spy(ship.location, 'move_linear');
+        sinon.stub(ship, '_orbit_angle_from_coords').returns(0.42);
+        sinon.stub(ship, '_coords_from_orbit_angle').returns([0, 4, 2]);
+
+        sinon.spy(ship.location, 'face');
+        sinon.spy(ship, '_rotate');
+        sinon.spy(ship.location, 'update_ms_acceleration');
+        sinon.spy(ship, '_move_linear');
 
         ship._run_follow_movement(page);
-        sinon.assert.calledWith(ship._run_rotation_movement, page, 1000, true);
-        sinon.assert.calledWith(ship.location.move_linear, 10);
+        sinon.assert.calledWith(ship._orbit_angle_from_coords, coords);
+        sinon.assert.calledWith(ship._coords_from_orbit_angle, 0.42 + Math.PI / 6);
+        sinon.assert.calledWith(ship.location.face, [0, 4, 2]);
+        sinon.assert.calledWith(ship._rotate, 1000);
+        sinon.assert.calledWith(ship.location.update_ms_acceleration);
+        sinon.assert.calledWith(ship._move_linear, 1000);
       });
     });
 

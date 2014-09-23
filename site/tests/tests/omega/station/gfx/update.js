@@ -53,9 +53,10 @@ describe("Omega.StationGfxUpdater", function(){
       });
 
       it("calculates current orbit angle", function(){
-        sinon.spy(station, '_current_orbit_angle');
+        sinon.stub(station, '_orbit_angle_from_coords').returns(1.11);
         station.update_gfx();
-        sinon.assert.called(station._current_orbit_angle);
+        assert(station._orbit_angle).equals(1.11);
+        sinon.assert.calledWith(station._orbit_angle_from_coords, station.location.coordinates());
       });
 
       it("Adds orbit line", function(){

@@ -63,44 +63,4 @@ describe("Omega.ShipGfxEffects", function(){
       sinon.assert.called(ship.smoke.run_effects);
     });
   });
-
-  describe("#update_gfx", function(){
-    var ship;
-
-    before(function(){
-      ship = new Omega.Ship({type : 'corvette', location : new Omega.Location()});
-      ship.init_gfx();
-    });
-
-    it("sets position tracker position from scene location", function(){
-      sinon.spy(ship.position_tracker().position, 'set');
-      ship.update_gfx();
-      sinon.assert.calledWith(ship.position_tracker().position.set,
-                              ship.location.x,
-                              ship.location.y,
-                              ship.location.z);
-    });
-
-    it("sets location tracker rotation from location rotation", function(){
-      var matrix = new THREE.Matrix4();
-      sinon.stub(ship.location, 'rotation_matrix').returns(matrix);
-      sinon.spy(ship.location_tracker().rotation, 'setFromRotationMatrix');
-      ship.update_gfx();
-      sinon.assert.calledWith(ship.location_tracker().rotation.setFromRotationMatrix, matrix);
-    });
-
-    it("updates attack component", function(){
-      sinon.stub(ship.attack_component(), 'update');
-      ship.update_gfx();
-      sinon.assert.called(ship.attack_component().update);
-    });
-
-    it("updates attack & mining vectors", function(){
-      var update_attack = sinon.spy(ship.attack_vector, 'update');
-      var update_mining = sinon.spy(ship.mining_vector, 'update');
-      ship.update_gfx();
-      sinon.assert.called(update_attack);
-      sinon.assert.called(update_mining);
-    });
-  });
 });});

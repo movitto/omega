@@ -13,7 +13,7 @@ describe("Omega.StationInteraction", function(){
     });
 
     it("invokes manufactured::construct_entity", function(){
-      station._construct(page);
+      station._construct(page, ['entity_type', 'Ship', 'type', 'mining', 'id']);
       sinon.assert.calledWith(page.node.http_invoke, 'manufactured::construct_entity',
                   station.id, 'entity_type', 'Ship', 'type', 'mining', 'id');
       /// TODO match uuid

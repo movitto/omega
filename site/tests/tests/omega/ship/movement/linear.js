@@ -14,8 +14,7 @@ describe("Omega.ShipLinearMovement", function(){
 
     it("moves ship along linear path", function(){
       ship.location.set(0, 0, 0);
-      ship.location.set_orientation(1, 0, 0);
-      ship.location.movement_strategy = {speed : 10};
+      ship.location.movement_strategy = {speed : 10, dx : 1, dy : 0, dz: 0};
       ship.last_moved = new Date(new Date() - 1000); // last moved 1s ago
       ship._run_linear_movement();
       assert(ship.location.coordinates()).isSameAs([10, 0, 0]);

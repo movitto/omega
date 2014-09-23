@@ -7,6 +7,36 @@ describe("Omega.ShipGfxUpdater", function(){
     ship = Omega.Gen.ship();
   });
 
+  describe("#update_gfx", function(){
+    before(function(){
+      ship = new Omega.Ship({type : 'corvette', location : new Omega.Location()});
+      ship.init_gfx();
+    });
+
+    it("sets position tracker position from scene location", function(){
+      sinon.spy(ship.position_tracker().position, 'set');
+      ship.update_gfx();
+      sinon.assert.calledWith(ship.position_tracker().position.set,
+                              ship.location.x,
+                              ship.location.y,
+                              ship.location.z);
+    });
+
+    it("sets location tracker rotation from location rotation", function(){
+      var matrix = new THREE.Matrix4();
+      sinon.stub(ship.location, 'rotation_matrix').returns(matrix);
+      sinon.spy(ship.location_tracker().rotation, 'setFromRotationMatrix');
+      ship.update_gfx();
+      sinon.assert.calledWith(ship.location_tracker().rotation.setFromRotationMatrix, matrix);
+    });
+
+    it("updates mining vector", function(){
+      sinon.spy(ship.mining_vector, 'update');
+      ship.update_gfx();
+      sinon.assert.called(ship.mining_vector.update);
+    });
+  });
+
   describe("#update_attack_gfx", function(){
     it("updates attack vector state", function(){
       ship.init_gfx();
@@ -15,11 +45,11 @@ describe("Omega.ShipGfxUpdater", function(){
       sinon.assert.called(ship.attack_vector.update_state);
     });
 
-    it("updates attack vector", function(){
+    it("updates attack component state", function(){
       ship.init_gfx();
-      sinon.spy(ship.attack_vector, 'update');
+      sinon.spy(ship.attack_component(), 'update_state');
       ship.update_attack_gfx();
-      sinon.assert.called(ship.attack_vector.update);
+      sinon.assert.called(ship.attack_component().update_state);
     });
 
     it("updates explosions state", function(){

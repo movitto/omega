@@ -27,7 +27,7 @@ describe("Omega.CallbackHandler", function(){
 
       it("clears entity attacking target", function(){
         tracker._callbacks_attacked_stop("manufactured::event_occurred", eargs);
-        assert(ship.attacking).isNull();
+        assert(ship.attacking).isUndefined();
       });
 
       describe("entity not in scene", function(){

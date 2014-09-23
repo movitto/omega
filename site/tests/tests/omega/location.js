@@ -211,34 +211,6 @@ describe("Omega.Location", function(){
     });
   });
 
-  describe("#on_target", function(){
-    describe("not tracking anything", function(){
-      it("returns true", function(){
-        var loc = new Omega.Location();
-        assert(loc.on_target()).isTrue();
-      });
-    });
-
-    describe("location is less than min distance from target", function(){
-      it("returns true", function(){
-        var loc1 = new Omega.Location({x : 0, y : 0, z : 0});
-            loc1.movement_strategy = {distance : 10};
-        var loc2 = new Omega.Location({x : 9, y : 0, z : 0});
-        loc1.tracking = loc2;
-        assert(loc1.on_target()).isTrue();
-      });
-    });
-    describe("location is greater than min distance from target", function(){
-      it("returns false", function(){
-        var loc1 = new Omega.Location({x : 0, y : 0, z : 0});
-            loc1.movement_strategy = {distance : 10};
-        var loc2 = new Omega.Location({x : 20, y : 0, z : 0});
-        loc1.tracking = loc2;
-        assert(loc1.on_target()).isFalse();
-      });
-    });
-  });
-
   describe("#is_stopped", function(){
     describe("location movement strategy is stopped", function(){
       it("returns true", function(){
