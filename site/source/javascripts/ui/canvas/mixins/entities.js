@@ -29,8 +29,20 @@ Omega.UI.CanvasEntitiesManager = {
 
     var _this = this;
     entity.init_gfx(function(evnt){ _this._init_gfx(); });
-    for(var cc = 0; cc < entity.components.length; cc++)
-      scene.add(entity.components[cc]);
+    for(var ec = 0; ec < entity.components.length; ec++){
+      var component = entity.components[ec];
+      scene.add(component);
+
+      if(component.omega_obj && component.omega_obj.rendered_in)
+        this.rendered_in.push(component);
+
+      var children = component.getDescendants();
+      for(var cc = 0; cc < children.length; cc++){
+        var child = children[cc];
+        if(child.omega_obj && child.omega_obj.rendered_in)
+          this.rendered_in.push(child);
+      }
+    }
 
     if(this.page && this.page.effects_player && entity.has_effects())
       this.page.effects_player.add(entity);
@@ -43,8 +55,20 @@ Omega.UI.CanvasEntitiesManager = {
   remove : function(entity, scene){
     if(typeof(scene) === "undefined") scene = this.scene;
 
-    for(var cc = 0; cc < entity.components.length; cc++)
-      scene.remove(entity.components[cc]);
+    for(var ec = 0; ec < entity.components.length; ec++){
+      var component = entity.components[ec];
+      scene.remove(component);
+
+      var index = this.rendered_in.indexOf(component);
+      if(index != -1) this.rendered_in.splice(index, 1);
+
+      var children = component.getDescendants();
+      for(var cc = 0; cc < children.length; cc++){
+        var child = children[cc];
+        var index = this.rendered_in.indexOf(child);
+        if(index != -1) this.rendered_in.splice(index, 1);
+      }
+    }
 
     if(this.page.effects_player && entity.has_effects())
       this.page.effects_player.remove(entity.id);
@@ -75,6 +99,7 @@ Omega.UI.CanvasEntitiesManager = {
 
     this.root = null;
     this.entities = [];
+    this.rendered_in = [];
     this.following_loc = null;
     var scene_components = scene ? scene.getDescendants() : [];
     for(var c = 0; c < scene_components.length; c++)

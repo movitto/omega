@@ -26,6 +26,7 @@ Omega.UI.Canvas = function(parameters){
   this.canvas           = $('#omega_canvas');
   this.root             = null;
   this.entities         = [];
+  this.rendered_in      = [];
 
   /// need handle to page the canvas is on to
   /// - lookup missions

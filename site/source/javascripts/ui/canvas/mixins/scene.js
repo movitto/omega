@@ -131,11 +131,9 @@ Omega.UI.CanvasSceneManager = {
       this.skyCam.rotation.order);
 
     /// invoke 'rendered_in' callbacks on scene descendants
-    var children = this.scene.getDescendants();
-    for(var c = 0; c < children.length; c++){
-      var child = children[c];
-      if(child.omega_obj && child.omega_obj.rendered_in)
-        child.omega_obj.rendered_in(this, child);
+    for(var c = 0; c < this.rendered_in.length; c++){
+      var child = this.rendered_in[c];
+      child.omega_obj.rendered_in(this, child);
     }
 
     /// render actual scenes
