@@ -19,6 +19,16 @@ Omega.Asteroid.prototype = {
   constructor: Omega.Asteroid,
   json_class : 'Cosmos::Entities::Asteroid',
 
+  /// Return bool indicating if asteroid has the specified resource
+  has_resource : function(id){
+    return !!(this.resource(id));
+  },
+
+  /// Return resource for the specified id
+  resource : function(id){
+    return $.grep(this.resources, function(r){ return r.id == id; })[0];
+  },
+
   /// Return Asteroid in JSON format
   toJSON : function(){
     return {json_class : this.json_class,

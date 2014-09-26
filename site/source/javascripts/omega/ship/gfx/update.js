@@ -10,7 +10,6 @@ Omega.ShipGfxUpdater = {
     var loc = this.scene_location();
     this.position_tracker().position.set(loc.x, loc.y, loc.z);
     this.location_tracker().rotation.setFromRotationMatrix(this.location.rotation_matrix());
-    this.mining_vector.update();
   },
 
   /// Update graphics on attack events
@@ -28,8 +27,8 @@ Omega.ShipGfxUpdater = {
 
   /// Update graphics on mining events
   update_mining_gfx : function(){
-    this.mining_vector.update();
     this.mining_vector.update_state();
+    this.mining_vector.update();
   },
 
   /// Update Movement Effects

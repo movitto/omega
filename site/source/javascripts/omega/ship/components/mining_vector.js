@@ -17,7 +17,7 @@ Omega.ShipMiningVector = function(args){
 Omega.ShipMiningVector.prototype = {
   num_emitters         :   4,
   particle_age         :   2,
-  particles_per_second :   1,
+  particle_count       :   2,
   particle_size        :  50,
 
   _particle_group : function(event_cb){
@@ -38,7 +38,7 @@ Omega.ShipMiningVector.prototype = {
       opacityStart  : 1,
       opacityEnd    : 1,
       velocity      : new THREE.Vector3(0, 0, 1),
-      particlesPerSecond : this.particles_per_second,
+      particleCount : this.particle_count,
       alive         : 0
     });
   },

@@ -10,6 +10,7 @@
 //= require "omega/ship/movement"
 
 //= require "omega/ship/attack/target"
+//= require "omega/ship/components/mining_target"
 
 ///
 Omega.Ship = function(parameters){
@@ -129,6 +130,7 @@ $.extend(Omega.Ship.prototype, Omega.ShipInteraction);
 $.extend(Omega.Ship.prototype, Omega.ShipGfx);
 $.extend(Omega.Ship.prototype, Omega.ShipMovement);
 $.extend(Omega.Ship.prototype, Omega.ShipAttackTarget);
+$.extend(Omega.Ship.prototype, Omega.ShipMiningTarget);
 ///
 
 // Return ship with the specified id

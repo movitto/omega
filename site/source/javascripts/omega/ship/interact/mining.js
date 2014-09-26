@@ -27,14 +27,18 @@ Omega.ShipMiningInteractions = {
     var _this = this;
     page.node.http_invoke('cosmos::get_resources', asteroid.id,
       function(response){
-        if(!response.error){
-          for(var r = 0; r < response.result.length; r++){
-            var resource = response.result[r];
-            _this.dialog().append_mining_cmd(page, _this, resource, asteroid);
-          }
-        }
         /// FIXME shouldn't silently hide error
+        if(!response.error)
+          _this._refresh_mining_success(response, page, asteroid);
       });
+  },
+
+  _refresh_mining_success : function(response, page, asteroid){
+    asteroid.resources = response.result;
+    for(var r = 0; r < asteroid.resources.length; r++){
+      var resource = asteroid.resources[r];
+      this.dialog().append_mining_cmd(page, this, resource, asteroid);
+    }
   },
 
   /// Launch ship mining operation
@@ -61,11 +65,8 @@ Omega.ShipMiningInteractions = {
   _mining_success : function(response, page, resource, asteroid){
     var _this = this;
     this.dialog().hide();
-    this.mining = resource;
-    this.mining_asteroid = asteroid;
-    page.canvas.reload(this, function(){
-      _this.update_gfx();
-    });
+    this.set_mining(resource, asteroid);
+    this.update_mining_gfx();
     page.audio_controls.play(this.mining_audio);
   }
 };

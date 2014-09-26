@@ -82,4 +82,19 @@ Omega.Pages.HasRegistry = {
     });
     return entities;
   },
+
+  /// Return asteroid with specified resource
+  asteroid_with_resource : function(id){
+    var systems = this.solar_systems();
+
+    for(var s = 0; s < systems.length; s++){
+      var asteroids = systems[s].asteroids();
+      for(var a = 0; a < asteroids.length; a++){
+        if(asteroids[a].has_resource(id))
+          return asteroids[a];
+      }
+    }
+
+    return null;
+  }
 };

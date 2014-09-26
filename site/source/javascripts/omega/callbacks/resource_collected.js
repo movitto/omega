@@ -14,17 +14,15 @@ Omega.Callbacks.resource_collected = function(event, event_args){
   var entity = $.grep(this.page.all_entities(),
                       function(entity){ return entity.id == ship.id; })[0];
   if(entity == null) return;
-  entity.mining    = ship.mining;
-  /// FIXME also need to lookup & set entity.mining_asteroid
-  /// incase entity is already mining on being loaded
-  entity.resources = ship.resources;
-  entity._update_resources();
 
-  if(this.page.canvas.is_root(entity.parent_id)){
-    this.page.canvas.reload(entity, function(){
-      entity.update_mining_gfx();
-    });
+  if(!entity.is_mining()){
+    var ast = this.page.asteroid_with_resource(ship.mining.id);
+    var resource = ast.resource(ship.mining.id);
+    entity.set_mining(resource, ast);
   }
 
+  entity.resources = ship.resources;
+  entity._update_resources();
+  entity.update_mining_gfx();
   this.page.canvas.entity_container.refresh_details();
 };
