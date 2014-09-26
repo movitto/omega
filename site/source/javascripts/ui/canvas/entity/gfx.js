@@ -120,6 +120,40 @@ Omega.UI.CanvasEntityGfx = {
   /// True / false if entity has effects
   has_effects : function(){
     return !!(this.run_effects);
+  },
+
+  /// Default callback invoked by canvas when entity is added to scene
+  added_to : function(canvas, scene){
+    /// XXX store canvas / scene for later usage
+    this.canvas = canvas;
+    this.scene  = scene;
+  },
+
+  /// Trigger a canvas reload
+  reload_in_scene : function(cb){
+    this.canvas.reload(this, this.scene, cb);
+  },
+
+  /// Default callback invoked by canvas when entity is removed from scene
+  removed_from : function(canvas, scene){
+    this.canvas = null;
+    this.scene  = null;
+  },
+
+  /// Return boolean indicating if entity is in scene
+  in_scene : function(){
+    return !!(this.canvas) && !!(this.scene);
+  },
+
+  /// Takes callback which updates components, invokes it via a scene
+  /// reload if entity is in scene else just invokes
+  update_components : function(cb){
+    /// TODO more targeted update, just detect changes in entity components array
+    /// and add / remove those scene components accordingly
+    if(this.in_scene())
+      this.reload_in_scene(cb);
+    else
+      cb();
   }
 }; // Omega.EntityGfx
 
