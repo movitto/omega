@@ -100,6 +100,8 @@ Omega.Pages.SceneTracker = {
       };
     }
 
+    entity.scene_scale = scale;
+
     /// scale orbit components
     if(entity.orbit)
       entity.orbit_line.line.scale.set(1/scale, 1/scale, 1/scale);
@@ -121,6 +123,8 @@ Omega.Pages.SceneTracker = {
       entity.scene_location  = entity._scene_location;
       entity._scene_location = null;
     }
+
+    entity.scene_scale = null;
 
     if(entity.orbit) entity.orbit_line.line.scale.set(1, 1, 1);
   }

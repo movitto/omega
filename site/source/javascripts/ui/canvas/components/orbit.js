@@ -187,6 +187,10 @@ Omega.OrbitHelpers = {
 
   _add_orbit_line : function(color){
     this.orbit_line = new Omega.OrbitLine({orbit: this.orbit, color: color});
+    /// XXX need to set scale incase starting to orbit after entity was added to scene
+    if(this.scene_scale) this.orbit_line.line.scale.set(1/this.scene_scale,
+                                                        1/this.scene_scale,
+                                                        1/this.scene_scale);
     this.components.push(this.orbit_line.line);
   },
 
