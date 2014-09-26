@@ -170,7 +170,11 @@ Omega.ShipGfxInitializer = {
     var missile_bay_geometry = 'ship.' + this.type + '.missile_bay_geometry';
     this._retrieve_async_resource(missile_bay_geometry, function(geometry){
       var config_missiles = Omega.Config.resources.ships[_this.type].missiles;
-      if(!config_missiles) return;
+      if(!config_missiles){
+        _this.missile_bays_init = true;
+        _this._finish_init();
+        return;
+      }
 
       var num             = config_missiles.length;
 
