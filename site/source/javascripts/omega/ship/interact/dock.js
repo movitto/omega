@@ -50,9 +50,6 @@ Omega.ShipDockingInteractions = {
     this.dialog().hide();
     this.docked_at = station;
     this.docked_at_id = station.id;
-    page.canvas.reload(this, function(){
-      _this.update_gfx();
-    });
     this.refresh_cmds(page);
     page.audio_controls.play(this.docking_audio);
   },
@@ -82,9 +79,6 @@ Omega.ShipDockingInteractions = {
     var _this = this;
     this.docked_at = null;
     this.docked_at_id = null;
-    page.canvas.reload(_this, function(){
-      _this.update_gfx();
-    });
     this.refresh_cmds(page);
   }
 };
