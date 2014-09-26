@@ -19,6 +19,7 @@ Omega.ShipDockingInteractions = {
   /// Launch dialog to selection docking targets
   _select_docking_station : function(page){
     var stations = this._docking_targets(page);
+    this.dialog().clear_docking_commands();
     this.dialog().show_docking_dialog(page, this, stations);
   },
 

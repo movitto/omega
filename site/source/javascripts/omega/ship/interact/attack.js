@@ -21,6 +21,7 @@ Omega.ShipAttackInteractions = {
   _select_attack_target : function(page){
     var _this = this;
     var targets = this._attack_targets(page);
+    this.dialog().clear_attack_commands();
     this.dialog().show_attack_dialog(page, this, targets);
   },
 

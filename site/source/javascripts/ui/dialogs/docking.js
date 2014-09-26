@@ -13,9 +13,9 @@ Omega.UI.DockingDialog = {
     var dock_cmds = [];
     for(var s = 0; s < stations.length; s++){
       var station = stations[s];
-      var cmd = $("<span/>",
+      var cmd = $("<div/>",
         {id    : "dock_" + station.id,
-         class : 'cmd_dock dialog_cmd',
+         class : 'cmd_dock dialog_cmd dialog_row',
          text  : station.id});
       cmd.data("entity", entity);
       cmd.data("station", station);
@@ -29,5 +29,9 @@ Omega.UI.DockingDialog = {
 
     $('#dock_stations').append(dock_cmds);
     this.show();
+  },
+
+  clear_docking_commands : function(){
+    $('#dock_stations').empty();
   }
 };

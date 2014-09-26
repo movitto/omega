@@ -13,9 +13,9 @@ Omega.UI.AttackDialog = {
     var attack_cmds = [];
     for(var t = 0; t < targets.length; t++){
       var target = targets[t];
-      var cmd = $("<span/>",
+      var cmd = $("<div/>",
         {id    : 'attack_' + target.id,
-         class : 'cmd_attack dialog_cmd',
+         class : 'cmd_attack dialog_cmd dialog_row',
          text  : target.id });
       cmd.data("entity", entity);
       cmd.data("target", target);
@@ -30,5 +30,9 @@ Omega.UI.AttackDialog = {
     $('#attack_targets').html('');
     $('#attack_targets').append(attack_cmds);
     this.show();
+  },
+
+  clear_attack_commands : function(){
+    $('#attack_targets').empty();
   }
 };

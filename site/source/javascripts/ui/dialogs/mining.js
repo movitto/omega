@@ -12,10 +12,14 @@ Omega.UI.MiningDialog = {
     this.show();
   },
 
+  clear_mining_commands : function(){
+    $('#mining_targets').empty();
+  },
+
   append_mining_cmd : function(page, entity, resource, asteroid){
-    var cmd = $("<span/>",
+    var cmd = $("<div/>",
       {id    : "mine_" + resource.id,
-       class : 'cmd_mine dialog_cmd',
+       class : 'cmd_mine dialog_cmd dialog_row',
        text  : resource.material_id + ' (' + resource.quantity + ')'});
     cmd.data("entity", entity);
     cmd.data("resource", resource);

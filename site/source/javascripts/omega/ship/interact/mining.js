@@ -14,7 +14,7 @@ Omega.ShipMiningInteractions = {
 
   /// Launch dialog to select ship mining target
   _select_mining_target : function(page){
-    /// FIXME clear existing dialog entries (also for docking / attack)
+    this.dialog().clear_mining_commands();
     this.dialog().show_mining_dialog(page, this);
 
     var asteroids = this._mining_targets();
