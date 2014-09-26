@@ -51,7 +51,7 @@ Omega.ShipAttackLauncher = {
     this.projectiles.push(projectile);
 
     var _this = this;
-    this.omega_entity.reload_in_scene(function(){
+    this.omega_entity.update_components(function(){
       var projectile_components = projectile.components();
       for(var c = 0; c < projectile_components.length; c++)
         _this.omega_entity.components.push(projectile_components[c]);
@@ -84,7 +84,7 @@ Omega.ShipAttackLauncher = {
 
   remove : function(projectile){
     var _this = this;
-    this.omega_entity.reload_in_scene(function(){
+    this.omega_entity.update_components(function(){
       var projectile_components = projectile.components();
       for(var c = 0; c < projectile_components.length; c++){
         var index = _this.omega_entity.components.indexOf(projectile_components[c]);

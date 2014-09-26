@@ -6,18 +6,24 @@
 
 Omega.StationGfxUpdater = {
   update_gfx : function(){
+    var _this = this;
     var loc = this.scene_location();
     this.position_tracker().position.set(loc.x, loc.y, loc.z);
 
     if(this.location.is_stopped()){
-      if(this._has_orbit_line()) this._rm_orbit_line();
+      if(this._has_orbit_line())
+        this.update_components(function(){
+          _this._rm_orbit_line();
+        });
       this._run_movement_effects = this._run_movement;
 
     }else{
       if(!this._has_orbit_line()){
         this._calc_orbit();
         this._orbit_angle = this._orbit_angle_from_coords(this.location.coordinates());
-        this._add_orbit_line(0x99CCEE);
+        this.update_components(function(){
+          _this._add_orbit_line(0x99CCEE);
+        });
       }
 
       if(this.mesh)

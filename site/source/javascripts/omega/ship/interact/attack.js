@@ -50,9 +50,6 @@ Omega.ShipAttackInteractions = {
     var _this = this;
     this.dialog().hide();
     this.set_attacking(target);
-    page.canvas.reload(_this, function(){
-      _this.update_gfx();
-    });
     page.audio_controls.play(this.combat_audio, 'start_attack');
   },
 
