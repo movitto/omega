@@ -50,6 +50,16 @@ describe("Omega.StationCommands", function(){
       var construct = details_cb.getCall(0).args[0][3].children()[0];
       assert($(construct)).handles('click');
     });
+
+    describe('construction command click', function(){
+      it('invokes set_construction_params', function(){
+        sinon.stub(station, '_set_construction_params');
+        station.retrieve_details(page, details_cb);
+        var construct = details_cb.getCall(0).args[0][3].children()[0];
+        $(construct).click();
+        sinon.assert.called(station._set_construction_params);
+      });
+    });
   });
 
   describe("#refresh_details", function(){

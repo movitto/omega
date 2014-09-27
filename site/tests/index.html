@@ -79,6 +79,7 @@
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/dialogs/attack.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/dialogs/docking.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/dialogs/mining.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/dialogs/construction.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/command_dialog.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/status_indicator.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/dialog.js"></script>
@@ -353,7 +354,7 @@
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/station/gfx/update.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/station/gfx/effects.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/station/commands.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/tests/omega/station/interact.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/tests/omega/station/interact/construction.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/station.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/stat.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/ui/dialog.js"></script>
@@ -384,6 +385,7 @@
   <script type="text/javascript" src="http://localhost/omega-test/tests/ui/dialogs/attack.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/ui/dialogs/docking.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/ui/dialogs/mining.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/tests/ui/dialogs/construction.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/ui/command_dialog.js"></script>
 
   <script type="text/javascript" src="http://localhost/omega-test/tests/ui/canvas/controls.js"></script>
@@ -578,6 +580,18 @@
    <div id="select_mining_target_dialog">
      <div id="mining_id"></div>
      <div id="mining_targets"></div>
+   </div>
+
+   <div id="set_construction_params_dialog">
+     <div id='construction_id'></div>
+     <input id="construction_entity_id" type="text"/>
+     <select id="construction_entity_class">
+       <option value="Ship">Ship</option>
+       <option value="Station">Station</option>
+     </select>
+     <select id="construction_entity_type">
+     </select>
+     <input id="command_construct" value='construct' type='button' />
    </div>
 
    <div id="incorrect_passwords_dialog">

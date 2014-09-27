@@ -1,13 +1,23 @@
 // Test mixin usage through ship
-pavlov.specify("Omega.StationInteraction", function(){
-describe("Omega.StationInteraction", function(){
+pavlov.specify("Omega.StationConstructionInteractions", function(){
+describe("Omega.StationConstructionInteractions", function(){
+  var station, page;
+
+  before(function(){
+    station = Omega.Gen.station();
+    page = new Omega.Pages.Test();
+  });
+
+  describe("#_set_construction_params", function(){
+    it("shows construction dialog", function(){
+      sinon.stub(station.dialog(), 'show_construction_dialog');
+      station._set_construction_params(page);
+      sinon.assert.calledWith(station.dialog().show_construction_dialog, page, station);
+    });
+  });
+
   describe("#construct", function(){
-    var station, page;
-
     before(function(){
-      station = Omega.Gen.station();
-
-      page = new Omega.Pages.Test();
       sinon.stub(page.node, 'http_invoke');
       sinon.stub(page.audio_controls, 'play');
     });
