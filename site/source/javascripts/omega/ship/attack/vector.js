@@ -19,10 +19,6 @@ Omega.ShipAttackVector.prototype = {
     this.line = new THREE.Line(geo, mat);
   },
 
-  set_position : function(position){
-    this.line.position = position;
-  },
-
   clone : function(){
     return new Omega.ShipAttackVector();
   },
@@ -42,14 +38,17 @@ Omega.ShipAttackVector.prototype = {
     this.line.geometry.verticesNeedUpdate = true;
   },
 
+  enabled : function(){
+    var descendants = this.omega_entity.position_tracker().getDescendants();
+    return descendants.indexOf(this.line) != -1;
+  },
+
   enable : function(){
-    var index = this.omega_entity.components.indexOf(this.line);
-    if(index == -1) this.omega_entity.components.push(this.line);
+    if(!this.enabled()) this.omega_entity.position_tracker().add(this.line);
   },
 
   disable : function(){
-    var index = this.omega_entity.components.indexOf(this.line);
-    if(index != -1) this.omega_entity.components.splice(index, 1);
+    if(this.enabled()) this.omega_entity.position_tracker().remove(this.line);
   }
 };
 

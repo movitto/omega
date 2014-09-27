@@ -52,7 +52,6 @@ Omega.ShipGfxInitializer = {
   _init_attack_vector : function(){
     this.attack_vector = this._retrieve_resource('attack_vector').clone();
     this.attack_vector.omega_entity = this;
-    this.attack_vector.set_position(this.position_tracker().position);
   },
 
   _init_artillery : function(){

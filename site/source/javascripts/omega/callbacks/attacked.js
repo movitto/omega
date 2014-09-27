@@ -16,10 +16,5 @@ Omega.Callbacks.attacked = function(event, event_args){
                          function(entity){ return entity.id == defender.id; })[0];
   if(pattacker == null || pdefender == null) return;
   pattacker.set_attacking(pdefender);
-
-  if(this.page.canvas.is_root(pattacker.parent_id)){
-    this.page.canvas.reload(pattacker, function(){
-      pattacker.update_attack_gfx();
-    });
-  }
+  pattacker.update_attack_gfx();
 };

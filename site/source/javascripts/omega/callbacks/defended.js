@@ -17,11 +17,5 @@ Omega.Callbacks.defended = function(event, event_args){
   if(pattacker == null || pdefender == null) return;
   pdefender.hp           = defender.hp;
   pdefender.shield_level = defender.shield_level;
-
-  if(this.page.canvas.is_root(pdefender.parent_id) &&
-     this.page.canvas.has(pdefender.id)){
-    this.page.canvas.reload(pdefender, function(){
-      pdefender.update_defense_gfx();
-    });
-  }
+  pdefender.update_defense_gfx();
 }
