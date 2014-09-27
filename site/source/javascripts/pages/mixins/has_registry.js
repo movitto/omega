@@ -85,7 +85,7 @@ Omega.Pages.HasRegistry = {
 
   /// Return asteroid with specified resource
   asteroid_with_resource : function(id){
-    var systems = this.solar_systems();
+    var systems = this.systems();
 
     for(var s = 0; s < systems.length; s++){
       var asteroids = systems[s].asteroids();

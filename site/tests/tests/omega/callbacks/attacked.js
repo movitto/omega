@@ -7,7 +7,6 @@ describe("Omega.CallbackHandler", function(){
 
       before(function(){
         page = new Omega.Pages.Test();
-        sinon.stub(page.canvas, 'reload');
 
         var system = new Omega.SolarSystem({id : 'system1'});
         page.canvas.set_scene_root(system);
@@ -30,23 +29,9 @@ describe("Omega.CallbackHandler", function(){
         assert(ship.attacking).equals(tgt);
       });
 
-      describe("entity not in scene", function(){
-        it("does not reload entity", function(){
-          ship.parent_id = 'system2';
-          tracker._callbacks_attacked("manufactured::event_occurred", eargs);
-          sinon.assert.notCalled(page.canvas.reload);
-        });
-      });
-
-      it("reloads entity in scene", function(){
-        tracker._callbacks_attacked("manufactured::event_occurred", eargs);
-        sinon.assert.calledWith(page.canvas.reload, ship, sinon.match.func);
-      });
-
       it("updates entity attack gfx", function(){
         sinon.stub(ship, 'update_attack_gfx');
         tracker._callbacks_attacked("manufactured::event_occurred", eargs);
-        page.canvas.reload.omega_callback()();
         sinon.assert.called(ship.update_attack_gfx);
       });
     });

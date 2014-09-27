@@ -7,7 +7,6 @@ describe("Omega.CallbackHandler", function(){
 
       before(function(){
         page = new Omega.Pages.Test();
-        sinon.stub(page.canvas, 'reload');
         sinon.stub(page.canvas.entity_container, 'refresh_details');
 
         var system = new Omega.SolarSystem({id : 'system1'});
@@ -38,23 +37,9 @@ describe("Omega.CallbackHandler", function(){
         assert(ship.mining_asteroid).isNull();
       });
 
-      describe("entity not in scene", function(){
-        it("does not reload entity", function(){
-          ship.parent_id = 'system2';
-          tracker._callbacks_mining_stopped("manufactured::event_occurred", eargs);
-          sinon.assert.notCalled(page.canvas.reload);
-        });
-      });
-
-      it("reloads entity in scene", function(){
-        tracker._callbacks_mining_stopped("manufactured::event_occurred", eargs);
-        sinon.assert.calledWith(page.canvas.reload, ship, sinon.match.func);
-      });
-
       it("updates entity gfx", function(){
         tracker._callbacks_mining_stopped("manufactured::event_occurred", eargs);
-        sinon.stub(ship, 'update_gfx');
-        page.canvas.reload.omega_callback()();
+        sinon.stub(ship, 'update_mining_gfx');
         sinon.assert.called(ship.update_gfx);
       });
 

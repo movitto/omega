@@ -7,7 +7,6 @@ describe("Omega.CallbackHandler", function(){
 
       before(function(){
         page = new Omega.Pages.Test();
-        sinon.stub(page.canvas, 'reload');
         sinon.stub(page.audio_controls, 'play');
         sinon.stub(page.audio_controls, 'stop');
 
@@ -47,23 +46,9 @@ describe("Omega.CallbackHandler", function(){
         sinon.assert.calledWith(ship.update_movement_effects);
       });
 
-      describe("entity not in scene", function(){
-        it("does not reload entity", function(){
-          ship.parent_id = 'system2';
-          tracker._callbacks_motel_event('motel::on_movement', eargs);
-          sinon.assert.notCalled(page.canvas.reload);
-        });
-      })
-
-      it("reloads entity in scene", function(){
-        tracker._callbacks_motel_event('motel::on_movement', eargs);
-        sinon.assert.calledWith(page.canvas.reload, ship, sinon.match.func);
-      });
-
       it("updates entity gfx", function(){
-        tracker._callbacks_motel_event('motel::on_movement', eargs);
         sinon.stub(ship, 'update_gfx');
-        page.canvas.reload.omega_callback()();
+        tracker._callbacks_motel_event('motel::on_movement', eargs);
         sinon.assert.called(ship.update_gfx);
       });
 
@@ -76,14 +61,12 @@ describe("Omega.CallbackHandler", function(){
 
         it("plays 'epic' audio effect", function(){
           tracker._callbacks_motel_event('motel::on_movement', eargs);
-          page.canvas.reload.omega_callback()();
           sinon.assert.calledWith(page.audio_controls.play,
                                   page.audio_controls.effects.epic);
         });
 
         it("stops playing entity movement audio", function(){
           tracker._callbacks_motel_event('motel::on_movement', eargs);
-          page.canvas.reload.omega_callback()();
           sinon.assert.calledWith(page.audio_controls.stop,
                                   ship.movement_audio);
         });

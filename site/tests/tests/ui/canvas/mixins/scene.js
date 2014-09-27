@@ -76,6 +76,7 @@ describe("Omega.UI.Canvas", function(){
       canvas.renderer.render.restore();
       canvas.stats.update.restore();
       canvas.scene.getDescendants.restore();
+      canvas.clear();
     });
 
     it("clears renderer", function(){
@@ -86,13 +87,12 @@ describe("Omega.UI.Canvas", function(){
     //it("sets sky scene camera rotation from scene camera rotation"); // NIY
 
     it("invokes 'rendered_in' callbacks in scene children omega objects", function(){
-      var entity = new Omega.UI.CanvasProgressBar();
-      sinon.stub(entity, 'rendered_in');
+      var entity    = {rendered_in : sinon.spy()};
+      var component = {omega_obj : entity};
 
-      canvas.scene.getDescendants()[0].omega_obj = entity;
+      canvas.rendered_in = [component];
       canvas.render();
-      sinon.assert.calledWith(entity.rendered_in, canvas,
-                              canvas.scene.getDescendants()[0]);
+      sinon.assert.calledWith(entity.rendered_in, canvas, component);
     });
 
     it("renders sky scene", function(){

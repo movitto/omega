@@ -117,6 +117,7 @@ describe("Omega.Ship", function(){
     describe("ship is mining", function(){
       it("returns true", function(){
         ship.mining = {};
+        ship.mining_asteroid = {};
         assert(ship.is_mining()).isTrue();
       });
     });

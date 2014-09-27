@@ -62,7 +62,6 @@ describe("Omega.ShipDockInteractions", function(){
       evnt.currentTarget = $('<span/>');
       evnt.currentTarget.data('station', station);
 
-      sinon.stub(page.canvas, 'reload'); // stub out canvas reload
       sinon.stub(page.node, 'http_invoke');
     });
 
@@ -136,13 +135,11 @@ describe("Omega.ShipDockInteractions", function(){
       station = Omega.Gen.station();
       response = {result : Omega.Gen.ship({docked_at : station})};
 
-      sinon.stub(page.canvas, 'reload');
       sinon.stub(page.audio_controls, 'play');
       sinon.stub(ship.dialog(), 'hide');
     });
 
     after(function(){
-      page.canvas.reload.restore();
       page.audio_controls.play.restore();
       ship.dialog().hide.restore();
     });
@@ -160,18 +157,6 @@ describe("Omega.ShipDockInteractions", function(){
     it("updates ship docked at id", function(){
       ship._dock_success(response, page, station);
       assert(ship.docked_at_id).equals(station.id);
-    });
-
-    it("reloads ship in canvas scene", function(){
-      ship._dock_success(response, page, station);
-      sinon.assert.calledWith(page.canvas.reload, ship);
-    });
-
-    it("updates ship graphics", function(){
-      ship._dock_success(response, page, station);
-      sinon.spy(ship, 'update_gfx');
-      page.canvas.reload.omega_callback()();
-      sinon.assert.called(ship.update_gfx);
     });
 
     it("refreshes ship commands", function(){
@@ -203,8 +188,6 @@ describe("Omega.ShipDockInteractions", function(){
       before(function(){
         ship._undock(page);
         response_cb = page.node.http_invoke.omega_callback();
-
-        sinon.stub(page.canvas, 'reload'); // stub out canvas reload
       });
 
       describe("on failure", function(){
@@ -261,8 +244,6 @@ describe("Omega.ShipDockInteractions", function(){
 
     before(function(){
       response = {result : Omega.Gen.ship({})};
-
-      sinon.stub(page.canvas, 'reload');
     });
 
     it("clears ship docked_at entity", function(){
@@ -273,18 +254,6 @@ describe("Omega.ShipDockInteractions", function(){
     it("clears ship docked_at_id", function(){
       ship._undock_success(response, page);
       assert(ship.docked_at_id).isNull();
-    });
-
-    it("reloads ship in canvas scene", function(){
-      ship._undock_success(response, page);
-      sinon.assert.calledWith(page.canvas.reload, ship);
-    });
-
-    it("updates ship graphics", function(){
-      ship._undock_success(response, page);
-      sinon.spy(ship, 'update_gfx');
-      page.canvas.reload.omega_callback()();
-      sinon.assert.called(ship.update_gfx);
     });
 
     it("refreshes ship commands", function(){

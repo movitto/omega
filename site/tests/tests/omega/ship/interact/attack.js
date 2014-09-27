@@ -127,7 +127,6 @@ describe("Omega.ShipAttackInteractions", function(){
 
     before(function(){
       sinon.stub(ship.dialog(), 'hide');
-      sinon.stub(page.canvas, 'reload');
       sinon.stub(page.audio_controls, 'play');
 
       tgt      = Omega.Gen.ship();
@@ -149,16 +148,10 @@ describe("Omega.ShipAttackInteractions", function(){
       assert(ship.attacking).equals(tgt);
     });
 
-    it("reloads ship in canvas scene", function(){
+    it("updates ship attack graphics", function(){
+      sinon.spy(ship, 'update_attack_gfx');
       ship._attack_success(response, page, tgt);
-      sinon.assert.calledWith(page.canvas.reload, ship);
-    });
-
-    it("updates ship graphics", function(){
-      ship._attack_success(response, page, tgt);
-      sinon.spy(ship, 'update_gfx');
-      page.canvas.reload.omega_callback()();
-      sinon.assert.called(ship.update_gfx);
+      sinon.assert.called(ship.update_attack_gfx);
     });
 
     it("plays start_attack ship combat audio", function(){

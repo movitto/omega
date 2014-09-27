@@ -117,8 +117,6 @@ describe("Omega.ShipTransferInteractions", function(){
       nship    = new Omega.Ship({docked_at : nstation,
                                  resources : [resource2]});
       response = {result : [nship, nstation]};
-
-      sinon.stub(page.canvas, 'reload');
     });
 
     it("updates ship resources", function(){
@@ -130,18 +128,6 @@ describe("Omega.ShipTransferInteractions", function(){
       ship._transfer_success(response, page);
       assert(station.resources.length).equals(1);
       assert(station.resources[0].material_id).equals('silver');
-    });
-
-    it("reloads ship in canvas scene", function(){
-      ship._transfer_success(response, page);
-      sinon.assert.calledWith(page.canvas.reload, ship);
-    });
-
-    it("updates ship graphics", function(){
-      ship._transfer_success(response, page);
-      sinon.spy(ship, 'update_gfx');
-      page.canvas.reload.omega_callback()();
-      sinon.assert.called(ship.update_gfx);
     });
 
     it("refreshes ship details", function(){

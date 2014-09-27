@@ -7,7 +7,6 @@ describe("Omega.CallbackHandler", function(){
 
       before(function(){
         page = new Omega.Pages.Test();
-        sinon.stub(page.canvas, 'reload');
         sinon.stub(page.canvas, 'remove');
 
         tracker = new Omega.CallbackHandler({page : page});
@@ -39,16 +38,16 @@ describe("Omega.CallbackHandler", function(){
         assert(tgt.shield_level).equals(0);
       });
 
-      it("reloads attacker in scene", function(){
-        tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
-        sinon.assert.calledWith(page.canvas.reload, ship, sinon.match.func);
-      });
-
       it("updates attacker attack gfx", function(){
         sinon.stub(ship, 'update_attack_gfx');
         tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
-        page.canvas.reload.omega_callback()();
         sinon.assert.called(ship.update_attack_gfx);
+      });
+
+      it("updates defender defense gfx", function(){
+        sinon.stub(tgt, 'update_defense_gfx');
+        tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
+        sinon.assert.called(tgt.update_defense_gfx);
       });
 
       it("triggers defender destruction", function(){
@@ -64,12 +63,6 @@ describe("Omega.CallbackHandler", function(){
           sinon.stub(tgt, 'trigger_destruction');
           tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
           trigger_cb = tgt.trigger_destruction.omega_callback();
-        });
-
-        it("updates defender defense gfx", function(){
-          sinon.stub(tgt, 'update_defense_gfx');
-          trigger_cb();
-          sinon.assert.called(tgt.update_defense_gfx);
         });
 
         it("removes defender from scene", function(){

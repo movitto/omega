@@ -29,12 +29,6 @@ describe("Omega.ShipGfxUpdater", function(){
       ship.update_gfx();
       sinon.assert.calledWith(ship.location_tracker().rotation.setFromRotationMatrix, matrix);
     });
-
-    it("updates mining vector", function(){
-      sinon.spy(ship.mining_vector, 'update');
-      ship.update_gfx();
-      sinon.assert.called(ship.mining_vector.update);
-    });
   });
 
   describe("#update_attack_gfx", function(){

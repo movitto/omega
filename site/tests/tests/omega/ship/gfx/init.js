@@ -159,12 +159,6 @@ describe("Omega.ShipGfxInitializer", function(){
       assert(ship.attack_vector.omega_entity).equals(ship);
     });
 
-    it("sets attack vector position", function(){
-      sinon.spy(attack_vector, 'set_position');
-      ship.init_gfx();
-      sinon.assert.calledWith(attack_vector.set_position, ship.position_tracker().position);
-    });
-
     it("clones Ship mining vector", function(){
       ship.init_gfx();
       assert(ship.mining_vector).equals(mining_vector);

@@ -200,13 +200,11 @@ describe("Omega.ShipMovementInteractions", function(){
       nship = Omega.Gen.ship();
       response = {result : nship};
       sinon.stub(ship.dialog(), 'hide');
-      sinon.stub(page.canvas, 'reload');
       sinon.stub(page.audio_controls, 'play');
     })
 
     after(function(){
       ship.dialog().hide.restore();
-      page.canvas.reload.restore();
     });
 
     it("hides the dialog", function(){
@@ -217,18 +215,6 @@ describe("Omega.ShipMovementInteractions", function(){
     it("updates ship movement strategy", function(){
       ship._move_success(response, page);
       assert(ship.location.movement_strategy).equals(nship.location.movement_strategy);
-    });
-
-    it("reloads ship in canvas scene", function(){
-      ship._move_success(response, page);
-      sinon.assert.calledWith(page.canvas.reload, ship);
-    });
-
-    it("updates ship graphics", function(){
-      sinon.spy(ship, 'update_gfx');
-      ship._move_success(response, page);
-      page.canvas.reload.omega_callback()();
-      sinon.assert.called(ship.update_gfx);
     });
 
     it("plays confirmation audio", function(){
@@ -327,7 +313,6 @@ describe("Omega.ShipMovementInteractions", function(){
       nship = Omega.Gen.ship();
       response = {result : nship};
       sinon.stub(ship.dialog(), 'hide');
-      sinon.stub(page.canvas, 'reload');
     })
 
     after(function(){
@@ -342,18 +327,6 @@ describe("Omega.ShipMovementInteractions", function(){
     it("updates ship movement strategy", function(){
       ship._follow_success(response, page);
       assert(ship.location.movement_strategy).equals(nship.location.movement_strategy);
-    });
-
-    it("reloads ship in canvas scene", function(){
-      ship._follow_success(response, page);
-      sinon.assert.calledWith(page.canvas.reload, ship);
-    });
-
-    it("updates ship graphics", function(){
-      sinon.spy(ship, 'update_gfx');
-      ship._follow_success(response, page);
-      page.canvas.reload.omega_callback()();
-      sinon.assert.called(ship.update_gfx);
     });
   });
 });});

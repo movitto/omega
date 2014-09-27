@@ -10,9 +10,7 @@ describe("Omega.CallbackHandler", function(){
 
         page = new Omega.Pages.Test();
         sinon.stub(page, 'process_entity');
-        sinon.stub(page.canvas, 'reload');
         sinon.stub(page.canvas.entity_container, 'refresh_details');
-        sinon.stub(page.canvas, 'animate');
 
         page.audio_controls = new Omega.UI.AudioControls({page: page});
         page.audio_controls.disabled = true;
@@ -29,6 +27,8 @@ describe("Omega.CallbackHandler", function(){
         estation    = Omega.Gen.station({id  : 'station1', 
                                          system_id : 'sys1',
                                          resources : [{'material_id' : 'gold'}]});
+
+        station.init_gfx();
 
         page.entities = [station, constructed];
         eargs         = ['construction_complete', estation, constructed];
@@ -55,26 +55,10 @@ describe("Omega.CallbackHandler", function(){
         assert(estation.resources).isSameAs(estation.resources)
       });
 
-      describe("station system is scene root", function(){
-        it("reloads station in scene", function(){
-          tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
-          sinon.assert.calledWith(page.canvas.reload,
-                                  station, sinon.match.func);
-        });
-
-        it("updates construction graphics", function(){
-          sinon.stub(station, 'update_construction_gfx');
-          tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
-          page.canvas.reload.omega_callback()(station);
-          sinon.assert.called(station.update_construction_gfx);
-        });
-
-        it("animates scene", function(){
-          sinon.stub(station, 'update_construction_gfx'); /// stub out update_construction_gfx
-          tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
-          page.canvas.reload.omega_callback()(station);
-          sinon.assert.called(page.canvas.animate);
-        });
+      it("updates construction graphics", function(){
+        sinon.stub(station, 'update_construction_gfx');
+        tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
+        sinon.assert.called(station.update_construction_gfx);
       });
 
       it("retrieves constructed entity", function(){

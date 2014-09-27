@@ -64,11 +64,6 @@ Omega.Ship.prototype = {
     return this.hp / this.max_hp;
   },
 
-  /// Return bool indicating if ship is mining
-  is_mining : function(){
-    return !!(this.mining);
-  },
-
   /// Update this ship's system
   update_system : function(new_system){
     this.solar_system   = new_system;

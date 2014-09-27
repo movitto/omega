@@ -110,8 +110,6 @@ describe("Omega.ShipMiningInteractions", function(){
       before(function(){
         ship._start_mining(page, evnt);
         response_cb = page.node.http_invoke.omega_callback();
-
-        sinon.stub(page.canvas, 'reload'); // stub out canvas reload
       });
 
       describe("on failure", function(){
@@ -174,7 +172,6 @@ describe("Omega.ShipMiningInteractions", function(){
 
       ship.init_gfx();
       sinon.stub(ship.dialog(), 'hide');
-      sinon.stub(page.canvas, 'reload');
       sinon.stub(page.audio_controls, 'play');
     });
 
@@ -192,16 +189,10 @@ describe("Omega.ShipMiningInteractions", function(){
       assert(ship.mining).equals(ship.mining);
     });
 
-    it("reloads ship in canvas scene", function(){
+    it("updates ship mining graphics", function(){
+      sinon.spy(ship, 'update_mining_gfx');
       ship._mining_success(response, page, resource, asteroid);
-      sinon.assert.calledWith(page.canvas.reload, ship);
-    });
-
-    it("updates ship graphics", function(){
-      ship._mining_success(response, page, resource, asteroid);
-      sinon.spy(ship, 'update_gfx');
-      page.canvas.reload.omega_callback()();
-      sinon.assert.called(ship.update_gfx);
+      sinon.assert.called(ship.update_mining_gfx);
     });
 
     it("plays ship mining audio effect", function(){

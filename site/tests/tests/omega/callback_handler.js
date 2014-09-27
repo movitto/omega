@@ -1,6 +1,6 @@
 pavlov.specify("Omega.CallbackHandler", function(){
 describe("Omega.CallbackHandler", function(){
-  var page, tracker, canvas_reload, canvas_add;
+  var page, tracker, canvas_add;
 
   before(function(){
     var node = new Omega.Node();
@@ -12,12 +12,10 @@ describe("Omega.CallbackHandler", function(){
     tracker = new Omega.CallbackHandler({page : page});
 
     /// stub these out so we don't have to load gfx
-    canvas_reload = sinon.stub(page.canvas, 'reload');
     canvas_add = sinon.stub(page.canvas, 'add');
   });
 
   after(function(){
-    page.canvas.reload.restore();
     page.canvas.add.restore();
     if(page.canvas.entity_container.refresh.restore) page.canvas.entity_container.refresh.restore();
   });
