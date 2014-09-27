@@ -98,6 +98,15 @@ module HasCoordinates
     Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
   end
 
+  # Return normalized direction vector from this location's coordinates to specified ones
+  def direction_to(tx, ty, tz)
+    dx = x - tx
+    dy = y - ty
+    dz = z - tz
+    d = Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
+    [dx / d, dy / d, dz / d]
+  end
+
   # Add specified quantities to each coordinate component and return new location
   #
   # @param [Array<Integer,Integer,Integer>,Array<Float,Float,Float>] values values to add to x,y,z coordinates respectively

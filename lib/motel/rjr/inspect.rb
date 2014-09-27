@@ -15,6 +15,8 @@ module Motel::RJR
 get_status = proc {
   by_strategy =
     Motel::MovementStrategies.constants.collect { |s|
+      # FIXME this is pulling in all movement strategy mixins,
+      # need to restrict to just strategies themselves
       ms  = Motel::MovementStrategies.const_get(s)
       num = registry.entities.select { |e|
               e.is_a?(Motel::Location) && e.ms.is_a?(ms)

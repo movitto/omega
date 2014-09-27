@@ -17,6 +17,8 @@ Omega.Callbacks.motel = function(evnt, event_args){
   if(entity == null) return;
   var new_loc = new Omega.Location(event_args[0]);
 
+  /// TODO accomodate for lag, need timestamp from server
+
   // update last moved
   entity.last_moved = new Date();
 

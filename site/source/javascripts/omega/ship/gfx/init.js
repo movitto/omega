@@ -154,6 +154,8 @@ Omega.ShipGfxInitializer = {
       var missiles = new Omega.ShipMissiles({type : _this.type,
                                              template: template});
 
+      /// TODO update missiles from gfx stub missiles before replacing
+      /// (also w/ mesh and missle bays)
       _this.missiles = missiles;
       _this.missiles.omega_entity = _this;
 

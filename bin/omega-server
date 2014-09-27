@@ -94,6 +94,8 @@ def main()
     opts.on("-c", "--constraints", "Enable entity constraints") do
       enforce_constraints = true
     end
+
+    # TODO logging filter option
   end
 
   # parse cmd line

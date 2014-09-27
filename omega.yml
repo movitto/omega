@@ -2,7 +2,7 @@
 omega_url:  'http://localhost/womega/'
 backup_dir: './backups/'
 
-log_level: 'debug'
+log_level: 'info'
 
 # logging filters - specify regexes to exclude from the omega logs
 #log_filters: ['users::login', 'subscribe_to']

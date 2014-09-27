@@ -58,6 +58,7 @@ Omega.UI.CanvasEntitiesManager = {
     for(var ec = 0; ec < entity.components.length; ec++){
       var component = entity.components[ec];
       scene.remove(component);
+      /// TODO renderer.deallocate(component);
 
       var index = this.rendered_in.indexOf(component);
       if(index != -1) this.rendered_in.splice(index, 1);
