@@ -48,11 +48,6 @@ Omega.ShipTransferInteractions = {
     _this._update_resources();
     _this.docked_at.resources = dst.resources;
     _this.docked_at._update_resources();
-
-    /// TODO also update local dst resources
-    page.canvas.reload(_this, function(){
-      _this.update_gfx();
-    });
     this.refresh_details();
   },
 

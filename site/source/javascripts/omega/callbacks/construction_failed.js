@@ -17,13 +17,7 @@ Omega.Callbacks.construction_failed = function(event, evnt_args){
   pstation.construction_percent = 0;
   pstation.resources = station.resources;
   pstation._update_resources();
-
-  if(this.page.canvas.is_root(pstation.parent_id)){
-    this.page.canvas.reload(pstation, function(){
-      pstation.update_construction_gfx();
-    });
-    this.page.canvas.animate();
-  }
+  pstation.update_construction_gfx();
 
   /// TODO should pop up dialog or similar w/ reason for failure
 
