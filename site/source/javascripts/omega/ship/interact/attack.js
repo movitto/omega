@@ -59,7 +59,8 @@ Omega.ShipAttackInteractions = {
   _move_for_attack : function(page, target){
     var _this = this;
     var distance = this.attack_distance / 2;
-    var strategy = this.weapons_class_type() == 'light' ? 'figure8' : 'follow';
+    var strategy = this._attack_movement_strategy();
+
     page.node.http_invoke('manufactured::follow_entity',
                           this.id, target.id, distance, strategy,
       function(response){
@@ -68,6 +69,11 @@ Omega.ShipAttackInteractions = {
         else
           _this._attack_movement_success(response);
       });
+  },
+
+  /// Return attack movement strategy
+  _attack_movement_strategy : function(){
+    return this.weapons_class_type() == 'light' ? 'figure8' : 'follow';
   },
 
   /// TODO

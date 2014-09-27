@@ -91,6 +91,12 @@ describe("Omega.ShipAttackInteractions", function(){
         })
       });
     });
+
+    it("sets attack cycle movement", function(){
+      sinon.spy(ship, '_move_for_attack')
+      ship._start_attacking(page, evnt);
+      sinon.assert.called(ship._move_for_attack);
+    });
   });
 
   describe("#_attack_failed", function(){
@@ -158,6 +164,64 @@ describe("Omega.ShipAttackInteractions", function(){
       ship._attack_success(response, page, tgt);
       sinon.assert.calledWith(page.audio_controls.play,
                               ship.combat_audio, 'start_attack');
+    });
+  });
+
+  describe("#_move_for_attack", function(){
+    var tgt;
+
+    before(function(){
+      tgt = Omega.Gen.ship();
+
+      sinon.stub(page.node, 'http_invoke');
+    });
+
+    it("invokes manufactured::follow_entity with targets, distance, and strategy", function(){
+      ship.attack_distance = 50;
+      sinon.stub(ship, '_attack_movement_strategy').returns('strategy');
+      ship._move_for_attack(page, tgt);
+      sinon.assert.calledWith(page.node.http_invoke,
+        'manufactured::follow_entity', ship.id, tgt.id,
+        ship.attack_distance / 2, 'strategy', sinon.match.func);
+    });
+
+    describe("on manufactured::follow_entity response", function(){
+      var response_cb;
+
+      before(function(){
+        ship._move_for_attack(page, tgt);
+        response_cb = page.node.http_invoke.omega_callback();
+      });
+
+      describe("on failure", function(){
+        it("invokes _attack_movement_failed", function(){
+          var response = {error  : {message : 'movement err'}};
+          sinon.stub(ship, '_attack_movement_failed');
+          response_cb(response);
+          sinon.assert.calledWith(ship._attack_movement_failed, response);
+        });
+      });
+
+      describe("on success", function(){
+        it("invokes _attack_movement_success", function(){
+          var nship = new Omega.Ship({});
+          var response = {result : nship};
+          sinon.stub(ship, '_attack_movement_success');
+          response_cb(response);
+          sinon.assert.calledWith(ship._attack_movement_success, response);
+        });
+      });
+    });
+  });
+
+  describe("#_attack_movement_strategy", function(){
+    it("returns strategy for ship weapons class type", function(){
+      sinon.stub(ship, 'weapons_class_type').returns('light');
+      assert(ship._attack_movement_strategy()).equals('figure8');
+
+      ship = new Omega.Ship();
+      sinon.stub(ship, 'weapons_class_type').returns('heavy');
+      assert(ship._attack_movement_strategy()).equals('follow');
     });
   });
 });});
