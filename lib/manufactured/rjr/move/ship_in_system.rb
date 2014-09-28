@@ -20,6 +20,7 @@ module Manufactured::RJR
     od = entity.location.rotation_to(*loc.coordinates)
 
     # Create linear movement strategy w/ movement trajectory
+    # TODO s/dorientation/dacceleration, set acceleration params
     stopped = Motel::MovementStrategies::Stopped.instance
     linear  = Motel::MovementStrategies::Linear.new :dorientation  => true,
                                                     :stop_distance => distance,
@@ -28,7 +29,7 @@ module Manufactured::RJR
     entity.location.next_movement_strategy = stopped
 
     if od.first.abs > (Math::PI / 32)
-      entity.location.ms.rot_theta  = od[0] * entity.rotation_speed
+      entity.location.ms.rot_theta  = entity.rotation_speed
       entity.location.ms.rot_x      = od[1]
       entity.location.ms.rot_y      = od[2]
       entity.location.ms.rot_z      = od[3]

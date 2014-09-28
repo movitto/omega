@@ -1,6 +1,6 @@
-# registry module tests
+# Motel Registry Tests
 #
-# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2013-2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
@@ -160,9 +160,10 @@ describe Registry do
     end
   end
 
-  it "runs movement loop" do
+  it "runs location movement and event loops" do
     r = Registry.new
     r.instance_variable_get(:@event_loops).should include{ run_locations }
+    r.instance_variable_get(:@event_loops).should include{ run_location_events }
   end
 
   describe "movement loop" do

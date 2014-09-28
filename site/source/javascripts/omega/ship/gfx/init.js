@@ -10,6 +10,7 @@ Omega.ShipGfxInitializer = {
   debug_gfx : false,
   include_highlight : true,
   include_hp_bar    : true,
+  include_visited   : false,
 
   _init_stubs : function(){
     /// stub out asynchronously loaded components until they are available
@@ -46,7 +47,8 @@ Omega.ShipGfxInitializer = {
   _init_visited_route : function(){
     this.visited_route = this._retrieve_resource('visited_route').clone();
     this.visited_route.omega_entity = this;
-    this.components.push(this.visited_route.line);
+    if(this.include_visited)
+      this.components.push(this.visited_route.line);
   },
 
   _init_attack_vector : function(){

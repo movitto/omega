@@ -27,6 +27,11 @@ module MovementStrategies
     # Max speed, speed after which acceleration no longer has an effect
     attr_accessor :max_speed
 
+    # Linear direction as an array
+    def dir
+      [dx, dy, dz]
+    end
+
     # Initialize linear attributes from args.
     #
     # Direction vector will be normalized if not already
