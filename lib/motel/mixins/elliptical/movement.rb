@@ -14,24 +14,29 @@ module EllipticalMovement
   # Distance the location moves per second
   attr_accessor :speed
 
+  # Distance which location can be from its calculated coordinated to be seen as valid
+  attr_accessor :path_tolerance
+
   # Initialize movement from args
   def movement_from_args(args)
-    attr_from_args args, :speed => nil
+    attr_from_args args, :speed => nil,
+                         :path_tolerance => 0
   end
 
   # Return bool indicating if speed is valid
   def speed_valid?
-    @speed.numeric? && @speed > 0
+    @speed.numeric? && @speed > 0 &&
+    @path_tolerance.numeric? && @path_tolerance >= 0
   end
 
   # Return movement attributes
   def movement_attrs
-    [:speed]
+    [:speed, :path_tolerance]
   end
 
   # Return movement attributes in json format
   def movement_json
-    {:speed => speed}
+    {:speed => speed, :path_tolerance => path_tolerance}
   end
 
   # Move location along elliptical path
@@ -141,11 +146,12 @@ module EllipticalMovement
   # Return boolean indicating if the given location is on the ellipse or not
   def location_valid?(location)
      x,y,z = closest_coordinates(location)
-
      return false if x.nil? || y.nil? || z.nil?
-     return (x - location.x).round_to(4) == 0 &&
-            (y - location.y).round_to(4) == 0 &&
-            (z - location.z).round_to(4) == 0
+
+     dist = Math.sqrt((x - location.x).round_to(4) ** 2 +
+                      (y - location.y).round_to(4) ** 2 +
+                      (z - location.z).round_to(4) ** 2)
+     return dist <= path_tolerance
   end
   alias :intersects? :location_valid?
 end # module EllipticalMovement
