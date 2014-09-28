@@ -172,8 +172,9 @@ def self.rotated_angle(x, y, z, ox, oy, oz, ax, ay, az)
 
   # calc the rotation angle
   hsa = nd/ad/2
-  hsa = hsa.round_to(0) if hsa.abs > 1 # compensate for rounding errors
-  ra = Math.asin(hsa)*2
+  hsa =  1 if hsa >  1 # compensate for rounding errors
+  hsa = -1 if hsa < -1
+  ra  = Math.asin(hsa)*2
 
   # determine if 'negative' rotation, adjust domain
   xp = cross_product(x,y,z,ox,oy,oz)
