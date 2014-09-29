@@ -7,10 +7,10 @@
 //= require "pages/mixins/base"
 //= require "pages/mixins/validates_session"
 
-//= require_tree "pages/account/init"
-//= require_tree "pages/account/runner"
-//= require_tree "pages/account/session"
-//= require_tree "pages/account/entity_processor"
+//= require "pages/account/init"
+//= require "pages/account/runner"
+//= require "pages/account/session"
+//= require "pages/account/entity_processor"
 
 /// TODO account option where user can setup
 ///      uri's to stream background audio from

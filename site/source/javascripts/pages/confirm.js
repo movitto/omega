@@ -8,7 +8,7 @@
 
 //= require "pages/mixins/base"
 //= require "pages/mixins/redirect"
-//= require "pages/confirm/registration""
+//= require "pages/confirm/registration"
 
 Omega.Pages.Confirm = function(){
   this.init_page();

@@ -7,7 +7,7 @@
 //= require "pages/mixins/base"
 
 //= require "pages/stats/init"
-//= require "pages/stats/session"
+//= require "pages/stats/login"
 //= require "pages/stats/runner"
 
 Omega.Pages.Stats = function(){
