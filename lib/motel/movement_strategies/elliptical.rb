@@ -55,7 +55,7 @@ class Elliptical < MovementStrategy
 
   # Return boolean indicating if this movement strategy is valid
   def valid?
-    axis_valid? && path_valid? && speed_valid?
+    axis_valid? && path_valid? && elliptical_speed_valid?
   end
 
   # Return attributes by scope

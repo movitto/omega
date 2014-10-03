@@ -24,7 +24,7 @@ module EllipticalMovement
   end
 
   # Return bool indicating if speed is valid
-  def speed_valid?
+  def elliptical_speed_valid?
     @speed.numeric? && @speed > 0 &&
     @path_tolerance.numeric? && @path_tolerance >= 0
   end
