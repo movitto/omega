@@ -50,7 +50,7 @@ Omega.Pages.TitleInitializer = {
     this.cutscene_menu().on('click', '.cutscene_menu_item',
       function(evnt){
         var cutscene = $(evnt.currentTarget).data('cutscene');
-        _this.play(cutscene.scene);
+        _this.play(cutscene);
       });
 
     this.canvas.init_gl().append();
