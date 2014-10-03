@@ -243,10 +243,9 @@ describe("Omega.ShipGfxInitializer", function(){
       assert(ship.position_tracker().children).includes(ship.smoke.particles.mesh);
     });
 
-    it("sets scene components to ship position tracker, visited, mining_vector, destruction, and explosions", function(){
+    it("sets scene components to ship position tracker, mining_vector, destruction, and explosions", function(){
       ship.init_gfx();
       assert(ship.components).includes(ship.position_tracker());
-      assert(ship.components).includes(ship.visited_route.line);
       assert(ship.components).includes(ship.mining_vector.particles.mesh);
       assert(ship.components).includes(ship.destruction.particles.mesh);
       assert(ship.components).includes(ship.explosions.particles.mesh);

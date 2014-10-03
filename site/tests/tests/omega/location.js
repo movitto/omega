@@ -157,6 +157,19 @@ describe("Omega.Location", function(){
     //it("returns axis angle between orientation and specified coordinate"); // NIY
   //});
 
+  //describe("#rotation_to", function(){
+    ///it("returns the orientation difference to orientation facing specified coordinate"); // NIY
+  //});
+
+  //describe("#facing", function(){
+  //describe("rotation_to is less than specified tolerance", function(){
+  //it("returns true"); /// NIY
+  //});
+  //describe("rotation_to is less than specified toleration", function(){
+  //it("returns false"); /// NIY
+  //});
+  //});
+
   describe("#add", function(){
     it("adds/returns coordinates + values", function(){
       var loc = new Omega.Location({x:10,y:9,z:-8});
@@ -167,6 +180,14 @@ describe("Omega.Location", function(){
   });
 
   describe("#sub", function(){
+    it("returns coordinates minus specified values", function(){
+      var loc = new Omega.Location({x:10,y:9,z:-8});
+      assert(loc.sub(10, -5, 3)).isSameAs([0, 14, -11]);
+      assert(loc.coordinates()).isSameAs([10, 9, -8]);
+    });
+  });
+
+  describe("#divide", function(){
     it("divides/returns coordinates by scalar", function(){
       var loc = new Omega.Location({x:10,y:20,z:-30});
       var result = loc.divide(5);
@@ -245,6 +266,50 @@ describe("Omega.Location", function(){
     });
   });
 
+  describe("#ms_dir", function(){
+    it("returns movement strategy velocity", function(){
+      var loc = new Omega.Location({movement_strategy : {dx : -1, dy : 0, dz : 0}});
+      assert(loc.ms_dir()).isSameAs([-1, 0, 0]);
+    });
+  });
+
+  describe("#ms_acceleration", function(){
+    it("returns movement strategy acceleration", function(){
+      var loc = new Omega.Location({movement_strategy : {ax : 1, ay : 0, az : 0}});
+      assert(loc.ms_acceleration()).isSameAs([1, 0, 0]);
+    });
+  });
+
+  describe("#update_ms_dir", function(){
+    it("updates movement strategy velocity with specified direction", function(){
+      var loc = new Omega.Location({movement_strategy : {}});
+      loc.update_ms_dir([0, 1, 0]);
+      assert(loc.ms_dir()).isSameAs([0, 1, 0]);
+    });
+
+    it("updates movement strategy velocity with location orientation", function(){
+      var loc = new Omega.Location({movement_strategy : {}});
+      loc.set_orientation(0, 0, -1);
+      loc.update_ms_dir();
+      assert(loc.ms_dir()).isSameAs([0, 0, -1]);
+    });
+  });
+
+  describe("#update_ms_acceleration", function(){
+    it("updates movement strategy acceleration with specified direction", function(){
+      var loc = new Omega.Location({movement_strategy : {}});
+      loc.update_ms_acceleration([0, 1, 0]);
+      assert(loc.ms_acceleration()).isSameAs([0, 1, 0]);
+    });
+
+    it("updates movement strategy acceleration with location orientation", function(){
+      var loc = new Omega.Location({movement_strategy : {}});
+      loc.set_orientation(0, 0, -1);
+      loc.update_ms_acceleration();
+      assert(loc.ms_acceleration()).isSameAs([0, 0, -1]);
+    });
+  });
+
   describe("#is_within", function(){
     describe("location is within distance of other location", function(){
       it("returns true", function(){
@@ -289,6 +354,138 @@ describe("Omega.Location", function(){
 
       var loc = new Omega.Location({orientation_x: 0, orientation_y : 1, orientation_z : 0});
       assert(loc.rotation_matrix().elements).areCloseTo([1,0,0,0,0,0,-1,0,0,1,0,0,0,0,0,1], 5);
+    });
+  });
+
+  describe("#set_tracking", function(){
+    it("sets tracking location", function(){
+      var loc = new Omega.Location();
+      var tracking = new Omega.Location();
+      loc.set_tracking(tracking);
+      assert(loc.tracking).equals(tracking);
+    });
+  });
+
+  describe("#near_target", function(){
+    var loc, tracking;
+
+    before(function(){
+      loc = new Omega.Location({movement_strategy : {distance : 10}});
+      tracking = new Omega.Location();
+    });
+
+    describe("location is not tracking", function(){
+      it("returns true", function(){
+        assert(loc.near_target()).isTrue();
+      });
+    });
+
+    describe("distance from target is less than specified distance", function(){
+      it("returns true", function(){
+        loc.set_tracking(tracking);
+        loc.set(0, 0, 0);
+        tracking.set(10, 0, 0);
+        assert(loc.near_target(20)).isTrue();
+      });
+    });
+
+    describe("distance from target is less than movement strategy distance", function(){
+      it("returns true", function(){
+        loc.set_tracking(tracking);
+        loc.set(0, 0, 0);
+        tracking.set(5, 0, 0);
+        assert(loc.near_target()).isTrue();
+      });
+    });
+
+    describe("distance from target is greater than specified distance", function(){
+      it("returns false", function(){
+        loc.set_tracking(tracking);
+        loc.set(0, 0, 0);
+        tracking.set(15, 0, 0);
+        assert(loc.near_target(10)).isFalse();
+      });
+    });
+
+    describe("distance from target is greater than movement strategy distance", function(){
+      it("returns false", function(){
+        loc.set_tracking(tracking);
+        loc.set(0, 0, 0);
+        tracking.set(15, 0, 0);
+        assert(loc.near_target()).isFalse();
+      });
+    });
+  });
+
+  describe("#distance_from_target", function(){
+    it("returns distance location is from target", function(){
+      var loc = new Omega.Location();
+      var tracking = new Omega.Location();
+      loc.set_tracking(tracking);
+      loc.set(0, 0, 0);
+      tracking.set(15, 0, 0);
+      assert(loc.distance_from_target()).equals(15);
+    });
+  });
+
+  describe("#direction_to_target", function(){
+    it("returns direction from location to target", function(){
+      var loc = new Omega.Location();
+      var tracking = new Omega.Location();
+      loc.set_tracking(tracking);
+      loc.set(0, 0, 0);
+      tracking.set(-25, 0, 0);
+      assert(loc.direction_to_target()).isSameAs([-1, 0, 0]);
+    });
+  });
+
+  describe("#rotation_to_target", function(){
+    it("returns rotation from location to target", function(){
+      var loc = new Omega.Location();
+      var tracking = new Omega.Location();
+      loc.set_tracking(tracking);
+      loc.set(0, 0, 0);
+      loc.set_orientation(0, 0, 1);
+      tracking.set(10, 0, 0);
+      assert(loc.rotation_to_target()).isSameAs([Math.PI/2, 0, 1, 0]);
+    });
+  });
+
+  describe("#angle_to_target", function(){
+    it("return angle from location to target", function(){
+      var loc = new Omega.Location();
+      var tracking = new Omega.Location();
+      loc.set_tracking(tracking);
+      loc.set(0, 0, 0);
+      loc.set_orientation(0, 0, 1);
+      tracking.set(10, 0, 0);
+      assert(loc.angle_to_target()).equals(Math.PI/2);
+    });
+  });
+
+  describe("#facing_target", function(){
+    describe("angle to target is less than tolerance", function(){
+      it("returns true", function(){
+        var loc = new Omega.Location();
+        var tracking = new Omega.Location();
+        loc.set_tracking(tracking);
+        loc.set(0, 0, 0);
+        loc.set_orientation(0, 0, 1);
+        tracking.set(10, 0, 0);
+        assert(loc.facing_target(Math.PI)).isTrue();
+      });
+    });
+
+    describe("angle to target is greater than tolerance", function(){
+      it("returns false", function(){
+        var loc = new Omega.Location();
+        var tracking = new Omega.Location();
+        loc.set_tracking(tracking);
+        loc.set(0, 0, 0);
+        loc.set_orientation(0, 0, 1);
+        tracking.set(10, 0, 0);
+        assert(loc.facing_target(Math.PI/4)).isFalse();
+      });
     });
   });
 });}); // Omega.Location
