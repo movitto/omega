@@ -346,6 +346,48 @@ describe Location do
     end
   end
 
+  describe "#rotation_to" do
+    it "returns orientation difference to specified trajectory" do
+      l = Motel::Location.new :x => 10, :y => 20, :z => 30,
+                              :orientation => [0, 0, 1]
+      l.rotation_to(-20, 60, 150).should == [0.3947911196997614, -0.8, -0.6, 0.0]
+    end
+  end
+
+  describe "#facing?" do
+    context "rotation_to angle is greater than default tolerance" do
+      it "returns false" do
+        l = Motel::Location.new :x => 10, :y => 20, :z => 30,
+                                :orientation => [0, 0, 1]
+        l.facing?(-20, 60, 150).should be_false
+      end
+    end
+
+    context "rotation_to angle is greater than specified tolerance" do
+      it "returns false" do
+        l = Motel::Location.new :x => 20, :y => 60, :z => 190,
+                                :orientation => [0, 0, 1]
+        l.facing?(-20, 60, 150, :tolerance => Math::PI/2).should be_false
+      end
+    end
+
+    context "rotation_to angle is less than default tolerance" do
+      it "returns true" do
+        l = Motel::Location.new :x => -20, :y => 60, :z => 30,
+                                :orientation => [0, 0, 1]
+        l.facing?(-20, 60, 150).should be_true
+      end
+    end
+
+    context "rotation_to angle is less than specified tolerance" do
+      it "returns true" do
+        l = Motel::Location.new :x => -20, :y => 70, :z => 30,
+                                :orientation => [0, 0, 1]
+        l.facing?(-20, 60, 150, :tolerance => Math::PI/4).should be_true
+      end
+    end
+  end
+
   describe "#root" do
     context "parent is nil" do
       it 'return self' do
@@ -504,6 +546,21 @@ describe Location do
       l2.x.should == 14
       l2.y.should == 22
       l2.z.should == 30
+    end
+  end
+
+  describe "#distance_from" do
+    it "returns distance between coordinates and specified point" do
+      l = Motel::Location.new :x => 10, :y => 20, :z => 30
+      l.distance_from(-20, 60, 150).should == 130
+    end
+  end
+
+  describe "#direction_to" do
+    it "returns direction from coordinates to specified point" do
+      l = Motel::Location.new :x => 10, :y => 20, :z => 30
+      dir = l.direction_to(-20, 60, 150)
+      dir.should == [0.23076923076923078, -0.3076923076923077, -0.9230769230769231]
     end
   end
 
