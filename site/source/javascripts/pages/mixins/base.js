@@ -6,6 +6,10 @@
 
 Omega.Pages.Base = {
   init_page : function(){
-    this.node           = new Omega.Node();
+    var config = {http_host : Omega.Config.http_host,
+                  http_path : Omega.Config.http_path,
+                  ws_host   : Omega.Config.ws_host,
+                  ws_port   : Omega.Config.ws_port}
+    this.node = new Omega.Node(config);
   }
 };
