@@ -9,11 +9,13 @@ Omega.OrbitLine = function(args){
   if(!args) args = {};
   var orbit = args['orbit'];
   var color = args['color'] || this.default_color;
-  this.init_gfx(orbit, color)
+  var width = args['width'] || this.default_width;
+  this.init_gfx(orbit, color, width)
 };
 
 Omega.OrbitLine.prototype = {
   default_color : 0xAAAAAA,
+  default_width : 1,
 
   _geometry : function(orbit){
     var orbit_geo = new THREE.Geometry();
@@ -36,12 +38,12 @@ Omega.OrbitLine.prototype = {
     return orbit_geo;
   },
 
-  _material : function(color){
-    return new THREE.LineBasicMaterial({color: color})
+  _material : function(color, width){
+    return new THREE.LineBasicMaterial({color: color, linewidth: width})
   },
 
-  init_gfx : function(orbit, color){
-    this.line  = new THREE.Line(this._geometry(orbit), this._material(color));
+  init_gfx : function(orbit, color, width){
+    this.line  = new THREE.Line(this._geometry(orbit), this._material(color, width));
   }
 };
 
@@ -185,8 +187,8 @@ Omega.OrbitHelpers = {
     return !!(this.orbit_line) && (this.components.indexOf(this.orbit_line.line) != -1);
   },
 
-  _add_orbit_line : function(color){
-    this.orbit_line = new Omega.OrbitLine({orbit: this.orbit, color: color});
+  _add_orbit_line : function(color, width){
+    this.orbit_line = new Omega.OrbitLine({orbit: this.orbit, color: color, width: width});
     /// XXX need to set scale incase starting to orbit after entity was added to scene
     if(this.scene_scale) this.orbit_line.line.scale.set(1/this.scene_scale,
                                                         1/this.scene_scale,
