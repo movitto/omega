@@ -27,9 +27,13 @@ Omega.Config = {
   // ui
   //canvas_width      :         900,
   //canvas_height     :         400,
-  cam : {position : {'Cosmos::Entities::SolarSystem' : [ 2000,  3000,   3000],
-                     'Cosmos::Entities::Galaxy'      : [10000, 15000,  15000]},
-         target   : [0,    0,    0]},
+  cam : {position : {'Cosmos::Entities::SolarSystem' : [ 5000,  5000,    5000],
+                     'Cosmos::Entities::Galaxy'      : [    0,  10000,  10000]},
+         target   : [0,    0,    0],
+         distance : {max : 20000, min : 1000,
+
+                     /// far & near distances represented as a proportion of max
+                     far : 0.4, near : 0.1}},
 
   //default_root      : 'random',
 

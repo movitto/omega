@@ -29,6 +29,6 @@ Omega.JumpGateSelection.prototype = {
 };
 
 Omega.JumpGateSelection.for_jg = function(gate, material){
-  var size = gate.trigger_distance/2/Omega.Config.scale_system;
+  var size = gate.trigger_distance/2;
   return new Omega.JumpGateSelection({size: size, material: material});
 };

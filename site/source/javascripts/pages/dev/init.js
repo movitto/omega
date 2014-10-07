@@ -13,12 +13,6 @@ Omega.Pages.DevInitializer = {
     this.effects_player.wire_up();
     this.audio_controls.wire_up();
 
-    this.canvas.addEventListener('set_scene_root',
-      function(change){
-        if(change.data.root.json_class == "Cosmos::Entities::SolarSystem")
-          _this._scale_system(change.data.root);
-      });
-
     this.setup();
     return this;
   },

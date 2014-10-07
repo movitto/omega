@@ -14,12 +14,6 @@ Omega.UI.CanvasSceneManager = {
     stencilBuffer : false
   },
 
-  /// TODO different constraints depending on scene root type
-  cam_props : {
-    min_distance :   100,
-    max_distance : 50000
-  },
-
   render_stats : true,
 
   /// init Canvas 3D operations
@@ -75,8 +69,8 @@ Omega.UI.CanvasSceneManager = {
     var aspect = sw / sh;
     if(isNaN(aspect)) aspect = 1;
 
-    this.cam    = new THREE.PerspectiveCamera(75, aspect, 1, 42000 );
-    this.skyCam = new THREE.PerspectiveCamera(75, aspect, 1, 42000 );
+    this.cam    = new THREE.PerspectiveCamera(75, aspect, 1, 640000 );
+    this.skyCam = new THREE.PerspectiveCamera(75, aspect, 1, 640000 );
 
     this._init_cam_controls();
   },
@@ -84,8 +78,8 @@ Omega.UI.CanvasSceneManager = {
   _init_cam_controls : function(){
     var _this = this;
     this.cam_controls = new THREE.OrbitControls(this.cam);
-    this.cam_controls.minDistance = this.cam_props.min_distance;
-    this.cam_controls.maxDistance = this.cam_props.max_distance;;
+    this.cam_controls.minDistance = Omega.Config.cam.distance.min;
+    this.cam_controls.maxDistance = Omega.Config.cam.distance.max;
     this.cam_controls.addEventListener('change', function(){ _this.render(); });
     this.cam_controls.domElement = this.renderer.domElement;
     this.reset_cam();

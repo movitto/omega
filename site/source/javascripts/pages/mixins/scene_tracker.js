@@ -35,8 +35,6 @@ Omega.Pages.SceneTracker = {
       else if(old_root.json_class == 'Cosmos::Entities::SolarSystem'){
         this.stop_tracking_system_events();
         this.stop_tracking_scene_entities(entities);
-        this._unscale_system(old_root)
-        //this._unscale_system_entities(old_root);
       }
 
     }else{
@@ -53,7 +51,6 @@ Omega.Pages.SceneTracker = {
 
     }else if(root.json_class == 'Cosmos::Entities::SolarSystem'){
       this.track_system_events(root);
-      this._scale_system(root);
       this.sync_scene_planets(root);
       this.sync_scene_entities(root, entities, function(retrieved){
         _this.process_entities(retrieved);
@@ -67,66 +64,6 @@ Omega.Pages.SceneTracker = {
 
     if(!this.canvas.has(this.canvas.star_dust.id))
       this.canvas.add(this.canvas.star_dust, this.canvas.skyScene);
-  },
-
-  _scale_system : function(system){
-    if(!Omega.Config.scale_system) return;
-
-    var children = system.children;
-    for(var c = 0; c < children.length; c++){
-      var child = children[c];
-      this._scale_entity(child);
-      if(child.gfx_initialized()) child.update_gfx();
-    }
-
-    var manu = this.manu_entities();
-    for(var c = 0; c < manu.length; c++){
-      var manue = manu[c];
-      this._scale_entity(manue);
-      if(manue.gfx_initialized()) manue.update_gfx();
-    }
-  },
-
-  _scale_entity : function(entity){
-    var scale = Omega.Config.scale_system;
-    if(entity.scene_location){
-      /// backup original scene_location generator
-      entity._scene_location = entity.scene_location;
-
-      /// override scene location to scale all entities
-      /// TODO caching scene loc w/ invalidation mechanism
-      entity.scene_location = function(){
-        return this.location.clone().set(this.location.divide(scale));
-      };
-    }
-
-    entity.scene_scale = scale;
-
-    /// scale orbit components
-    if(entity.orbit)
-      entity.orbit_line.line.scale.set(1/scale, 1/scale, 1/scale);
-
-    if(entity.gfx_initialized()) entity.update_gfx();
-  },
-
-  _unscale_system : function(system){
-    if(!Omega.Config.scale_system) return;
-
-    var children = system.children;
-    for(var c = 0; c < children.length; c++)
-      this._unscale_entity(children[c]);
-    /// TODO unscale manu entities
-  },
-
-  _unscale_entity : function(entity){
-    if(entity._scene_location){
-      entity.scene_location  = entity._scene_location;
-      entity._scene_location = null;
-    }
-
-    entity.scene_scale = null;
-
-    if(entity.orbit) entity.orbit_line.line.scale.set(1, 1, 1);
   }
 };
 

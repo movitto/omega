@@ -13,6 +13,7 @@
 
 //= require "pages/mixins/event_handler"
 //= require "pages/mixins/scene_tracker"
+//= require "pages/mixins/tracks_cam"
 
 //= require "pages/mixins/validates_session"
 //= require "pages/mixins/autologin"
@@ -41,6 +42,7 @@ $.extend(Omega.Pages.Index.prototype, Omega.Pages.HasAudio);
 
 $.extend(Omega.Pages.Index.prototype, Omega.Pages.EventHandler);
 $.extend(Omega.Pages.Index.prototype, Omega.Pages.SceneTracker);
+$.extend(Omega.Pages.Index.prototype, Omega.Pages.TracksCam);
 
 $.extend(Omega.Pages.Index.prototype, Omega.Pages.ValidatesSession);
 $.extend(Omega.Pages.Index.prototype, Omega.Pages.Autologin);

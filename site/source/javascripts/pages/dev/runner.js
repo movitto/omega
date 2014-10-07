@@ -7,6 +7,7 @@
 Omega.Pages.DevRunner = {
   start : function(){
     this.effects_player.start();
+    this.track_cam();
 
     return this;
   }

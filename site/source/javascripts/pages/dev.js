@@ -8,7 +8,9 @@
 //= require "pages/mixins/has_registry"
 //= require "pages/mixins/has_canvas"
 //= require "pages/mixins/has_audio"
+
 //= require "pages/mixins/scene_tracker"
+//= require "pages/mixins/tracks_cam"
 
 //= require "pages/dev/init"
 //= require "pages/dev/runner"
@@ -30,7 +32,9 @@ $.extend(Omega.Pages.Dev.prototype, Omega.Pages.Base);
 $.extend(Omega.Pages.Dev.prototype, Omega.Pages.HasRegistry);
 $.extend(Omega.Pages.Dev.prototype, Omega.Pages.HasCanvas);
 $.extend(Omega.Pages.Dev.prototype, Omega.Pages.HasAudio);
+
 $.extend(Omega.Pages.Dev.prototype, Omega.Pages.SceneTracker);
+$.extend(Omega.Pages.Dev.prototype, Omega.Pages.TracksCam);
 
 $.extend(Omega.Pages.Dev.prototype, Omega.Pages.DevInitializer);
 $.extend(Omega.Pages.Dev.prototype, Omega.Pages.DevRunner);

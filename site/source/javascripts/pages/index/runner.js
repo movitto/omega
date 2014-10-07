@@ -13,6 +13,7 @@ Omega.Pages.IndexRunner = {
 
     this.effects_player.start();
     this.splash.start();
+    this.track_cam();
 
     var _this = this;
     if(this._should_autologin())

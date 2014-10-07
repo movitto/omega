@@ -27,6 +27,10 @@ Omega.UI.CanvasCameraManager = {
                                  default_target[2]);
     this.cam_controls.update();
 
+    /// XXX need to force raise event to trigger handlers incase camera
+    /// properties not changed
+    this.cam_controls.dispatchEvent({type : 'change'});
+
     this.entity_container.hide();
   },
 

@@ -25,6 +25,37 @@ Omega.UI.CanvasEntityGfx = {
     return this._location_tracker;
   },
 
+  /// scaled scene location
+  _scaled_scene_location : function(){
+    /// TODO caching scene loc w/ invalidation mechanism
+    return this.location.clone().set(this.location.divide(this.scene_scale));
+  },
+
+  /// scale position
+  scale_position : function(scale){
+    if(!this._scene_location) this._scene_location = this.scene_location;
+    this.scene_scale = scale;
+    this.scene_location = this._scaled_scene_location;
+
+    /// XXX need to also scale other components
+    if(this.orbit) this.orbit_line.line.scale.set(1/scale, 1/scale, 1/scale);
+    if(this.selection) this.selection.tmesh.scale.set(1/scale, 1/scale, 1/scale);
+
+    if(this.gfx_initialized()) this.update_gfx();
+  },
+
+  /// unscale position
+  unscale_position : function(){
+    if(this._scene_location){
+      this.scene_location  = this._scene_location;
+      this._scene_location = null;
+    }
+
+    this.scene_scale = null;
+    if(this.orbit) this.orbit_line.line.scale.set(1, 1, 1);
+    if(this.selection) this.selection.tmesh.scale.set(1, 1, 1);
+  },
+
   _has_type : function(){
     return typeof(this.type) !== "undefined";
   },
