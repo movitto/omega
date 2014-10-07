@@ -5,7 +5,7 @@
  */
 
 Omega.PlanetGfxUpdater = {
-  /// Update local system graphics on core entity changes
+  /// Update local planet graphics on core entity changes
   update_gfx : function(){
     this.mesh.update();
 

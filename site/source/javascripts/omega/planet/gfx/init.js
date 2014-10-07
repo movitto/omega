@@ -12,6 +12,7 @@ Omega.PlanetGfxInitializer = {
   _init_mesh : function(){
     this.mesh              = this._retrieve_resource('mesh').clone();
     this.mesh.omega_entity = this;
+    this.position_tracker().add(this.mesh.tmesh);
   },
 
   _init_axis : function(){
@@ -27,13 +28,11 @@ Omega.PlanetGfxInitializer = {
   _init_orbit : function(){
     this._calc_orbit();
     this._orbit_angle = this._orbit_angle_from_coords(this.location.coordinates());
-    this.orbit_line = new Omega.OrbitLine({orbit: this.orbit});
   },
 
   _init_components : function(){
-    this.components = [this.position_tracker(),
-                       this.mesh.tmesh,
-                       this.orbit_line.line];
+    this.components = [this.position_tracker()];
+    this._add_orbit_line(Omega.OrbitLine.prototype.default_color, 3);
   },
 
   /// Initialize local planet graphics

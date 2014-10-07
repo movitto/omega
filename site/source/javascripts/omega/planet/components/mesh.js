@@ -62,12 +62,8 @@ Omega.PlanetMesh.prototype = {
   update : function(){
     if(!this.tmesh) return; /// TODO remove conditional
     var entity = this.omega_entity;
-    var loc    = entity.scene_location();
-
-    this.tmesh.position.set(loc.x, loc.y, loc.z);
-                            
-    var rot = new THREE.Matrix4();
-    var axis = this._spin_axis();
+    var rot    = new THREE.Matrix4();
+    var axis   = this._spin_axis();
     rot.makeRotationAxis(axis, this.spin_angle);
     this.tmesh.rotation.setFromRotationMatrix(rot);
   },
