@@ -250,6 +250,11 @@ Omega.ShipGfxInitializer = {
     this.update_movement_effects();
   },
 
+  /// Update component depending on mode
+  set_mode : function(mode){
+    this.mode = mode;
+  },
+
   /// Return the attack component corresponding to the specified weapons class
   attack_component : function(){
     switch(this.weapons_class_type()){

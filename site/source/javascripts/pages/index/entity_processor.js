@@ -27,7 +27,7 @@ Omega.Pages.IndexEntityProcessor = {
 
       /// add to scene if appropriate
       if(same_scene && !in_scene){
-        entity.scale_position(this.scene_scale);
+        this._sync_entity_with_cam(entity);
         this.canvas.add(entity);
       }
 
