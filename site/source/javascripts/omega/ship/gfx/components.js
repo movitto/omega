@@ -12,6 +12,7 @@
 //= require "omega/ship/components/trails"
 //= require "omega/ship/components/trajectory"
 //= require "omega/ship/components/visited"
+//= require "omega/ship/components/indicator"
 
 //= require "omega/ship/attack/artillery"
 //= require "omega/ship/attack/missiles"

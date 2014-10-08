@@ -30,6 +30,7 @@ Omega.ShipGfxLoader = {
     this._store_resource('mining_vector',     new Omega.ShipMiningVector());
     this._store_resource('trajectory1',       new Omega.ShipTrajectory({color: 0x0000FF, direction: 'primary'}));
     this._store_resource('trajectory2',       new Omega.ShipTrajectory({color: 0x00FF00, direction: 'secondary'}));
+    this._store_resource('indicator',         new Omega.ShipIndicator({event_cb: event_cb}));
     this._load_artillery(event_cb);
   },
 

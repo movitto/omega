@@ -115,6 +115,13 @@ Omega.ShipGfxInitializer = {
     this.position_tracker().add(this.smoke.particles.mesh);
   },
 
+  _init_indicator : function(){
+    this.indicator = this._retrieve_resource('indicator').clone();
+    this.indicator.omega_entity = this;
+    this.indicator.sprite.position = this.position_tracker().position;
+    this.abstract_components.push(this.indicator.sprite);
+  },
+
   _add_lamp_components : function(){
     for(var l = 0; l < this.lamps.olamps.length; l++)
       this.mesh.tmesh.add(this.lamps.olamps[l].component);
@@ -223,6 +230,7 @@ Omega.ShipGfxInitializer = {
     this._init_lamps();
     this._init_trails();
     this._init_visited_route();
+    this._init_indicator();
     this._init_attack_vector();
     this._init_artillery();
     this._init_mining_vector();
