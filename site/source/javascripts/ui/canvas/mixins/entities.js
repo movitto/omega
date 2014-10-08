@@ -29,8 +29,9 @@ Omega.UI.CanvasEntitiesManager = {
 
     var _this = this;
     entity.init_gfx(function(evnt){ _this._init_gfx(); });
-    for(var ec = 0; ec < entity.components.length; ec++){
-      var component = entity.components[ec];
+    var components = entity.scene_components();
+    for(var ec = 0; ec < components.length; ec++){
+      var component = components[ec];
       scene.add(component);
 
       if(component.omega_obj && component.omega_obj.rendered_in)
@@ -55,8 +56,9 @@ Omega.UI.CanvasEntitiesManager = {
   remove : function(entity, scene){
     if(typeof(scene) === "undefined") scene = this.scene;
 
-    for(var ec = 0; ec < entity.components.length; ec++){
-      var component = entity.components[ec];
+    var components = entity.scene_components();
+    for(var ec = 0; ec < components.length; ec++){
+      var component = components[ec];
       scene.remove(component);
       /// TODO renderer.deallocate(component);
 

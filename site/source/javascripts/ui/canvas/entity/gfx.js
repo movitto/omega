@@ -6,6 +6,11 @@
 
 // Base Canvas Entity GFX Mixin
 Omega.UI.CanvasEntityGfx = {
+  /// Return scene components, by default components array
+  scene_components : function(){
+    return this.components;
+  },
+
   /// Returns location which to render gfx components, overridable
   scene_location : function(){
     return this.location;
@@ -18,7 +23,7 @@ Omega.UI.CanvasEntityGfx = {
     return this._position_tracker;
   },
 
-  // Returns 3D object tracking ship location
+  // Returns 3D object tracking entity location
   location_tracker : function(){
     if(!this._location_tracker)
       this._location_tracker = new THREE.Object3D();

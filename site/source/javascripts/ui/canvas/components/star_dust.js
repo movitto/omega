@@ -57,11 +57,17 @@ Omega.UI.CanvasStarDust.prototype = {
     this.clock = new THREE.Clock();
   },
 
+  scene_components : function(){
+    return this.components;
+  },
+
   has_effects : function(){ return true; },
 
   run_effects : function(){
     this.particles.tick(this.clock.getDelta());
-  }
+  },
+
+  scale_position : function(){}
 };
 
 THREE.EventDispatcher.prototype.apply( Omega.UI.CanvasStarDust.prototype );

@@ -5,7 +5,7 @@
  */
 
 Omega.UI.CanvasAxis = function(parameters){
-  this.size = 5000;
+  this.size = 100000;
   this.components = [];
   this.shader_components = [];
   $.extend(this, parameters);
@@ -58,7 +58,12 @@ Omega.UI.CanvasAxis.prototype = {
     return mesh;
   },
 
-  has_effects : function(){ return false; }
+  scene_components : function(){
+    return this.components;
+  },
+
+  has_effects : function(){ return false; },
+  scale_position : function(){}
 };
 
 THREE.EventDispatcher.prototype.apply( Omega.UI.CanvasAxis.prototype );
