@@ -31,7 +31,7 @@ Omega.PlanetGfxInitializer = {
   },
 
   _init_components : function(){
-    this.components = [this.position_tracker()];
+    this.components = [this.position_tracker(), this.camera_tracker()];
     this._add_orbit_line(Omega.OrbitLine.prototype.default_color, 3);
   },
 

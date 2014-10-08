@@ -40,7 +40,7 @@ Omega.SolarSystemGfxInitializer = {
     this.position_tracker().add(this.text.text);
     this.position_tracker().add(this.particles.component());
     this.position_tracker().add(this.interconns.component());
-    this.components = [this.position_tracker()];
+    this.components = [this.position_tracker(), this.camera_tracker()];
   },
 
   // Initialize local system graphics

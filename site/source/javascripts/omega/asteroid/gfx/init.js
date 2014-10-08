@@ -26,7 +26,7 @@ Omega.AsteroidGfxInitializer = {
   },
 
   init_components : function(){
-    this.components = [this.position_tracker()];
+    this.components = [this.position_tracker(), this.camera_tracker()];
   },
 
   init_gfx : function(event_cb){

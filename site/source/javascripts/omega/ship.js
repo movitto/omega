@@ -30,6 +30,8 @@ Omega.Ship.prototype = {
 
   json_class : 'Manufactured::Ship',
 
+  orient_camera : true,
+
   /// Update ship's mutable properties from other
   update : function(ship){
     this.hp             = ship.hp;
@@ -99,8 +101,7 @@ Omega.Ship.prototype = {
 
   clicked_in : function(canvas){
     canvas.page.audio_controls.play(canvas.page.audio_controls.effects.click);
-    canvas.follow_entity(this, {with_orientation : true,
-                                distance : [0, 100, -500]});
+    canvas.follow_entity(this, {distance : [0, 100, -500]});
   },
 
   selected : function(page){

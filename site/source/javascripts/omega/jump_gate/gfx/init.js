@@ -6,7 +6,7 @@
 
 Omega.JumpGateGfxInitializer = {
   _init_components : function(){
-    this.components = [this.position_tracker()];
+    this.components = [this.position_tracker(), this.camera_tracker()];
   },
 
   _init_lamps : function(){

@@ -30,6 +30,21 @@ Omega.UI.CanvasEntityGfx = {
     return this._location_tracker;
   },
 
+  // Returns 3D object used to track camera
+  camera_tracker : function(){
+    if(!this._camera_tracker){
+      this._camera_tracker = new THREE.Object3D();
+      this._camera_tracker.position = this.position_tracker().position;
+
+      if(this.orient_camera){
+        /// XXX quaternion ultimately controls rotation, keeping those in sync here
+        //this._camera_tracker.rotation = this.location_tracker().rotation;
+	      this._camera_tracker.quaternion = this.location_tracker().quaternion;
+      }
+    }
+    return this._camera_tracker;
+  },
+
   /// scaled scene location
   _scaled_scene_location : function(){
     /// TODO caching scene loc w/ invalidation mechanism

@@ -59,8 +59,7 @@ Omega.UI.CanvasCameraManager = {
 
              args = args || {};
     var distance  = args['distance'] || [500, 500, 500];
-    var component = args['with_orientation'] ? entity.location_tracker() :
-                                               entity.position_tracker();
+    var component = entity.camera_tracker();
 
     if(this.is_following(component)) return;
 
