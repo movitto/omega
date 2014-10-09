@@ -23,6 +23,9 @@ Omega.ShipGfxInitializer = {
     this.components.push(this.position_tracker());
     this.position_tracker().add(this.location_tracker());
     this.components.push(this.camera_tracker());
+
+    this.abstract_components = [];
+    this.abstract_components.push(this.camera_tracker());
   },
 
   _init_highlight : function(){

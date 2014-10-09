@@ -20,3 +20,11 @@ $.extend(Omega.ShipGfx, Omega.ShipGfxLoader);
 $.extend(Omega.ShipGfx, Omega.ShipGfxInitializer);
 $.extend(Omega.ShipGfx, Omega.ShipGfxUpdater);
 $.extend(Omega.ShipGfx, Omega.ShipGfxEffects);
+
+/// Override CanvasEntityGfx#scene_components to specify components based on mode
+Omega.ShipGfx.scene_components = function(){
+  if(!this.mode || this.mode == 'near')
+    return this.components;
+  else
+    return this.abstract_components;
+};
