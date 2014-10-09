@@ -1,31 +1,31 @@
-/* Omega Ship Indicator Gfx
+/* Omega Station Indicator Gfx
  *
  * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.ShipIndicator = function(args){
+Omega.StationIndicator = function(args){
   if(!args) args = {};
   var event_cb = args['event_cb'];
 
   this.init_gfx(event_cb);
 };
 
-Omega.ShipIndicator.prototype = {
+Omega.StationIndicator.prototype = {
   clone : function(){
-    return new Omega.ShipIndicator();
+    return new Omega.StationIndicator();
   },
 
   material : function(event_cb){
     var texture_path = Omega.Config.url_prefix + Omega.Config.images_path +
                        Omega.Config.resources.indicator.material;
     var texture = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
-    texture.omega_id = 'ship.indicator';
+    texture.omega_id = 'station.indicator';
 
     return new THREE.SpriteMaterial({ map: texture,
                                       useScreenCoordinates: false,
                                       transparent : true,
-                                      color : 0x0000FF});
+                                      color : 0x00FF00});
   },
 
   init_gfx : function(event_cb){

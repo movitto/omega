@@ -75,9 +75,10 @@ Omega.Config = {
                                      '/meshes/asteroids4.json',
                                      '/meshes/asteroids5.json']},
 
+    'indicator'    : {'material' : '/textures/indicator.png'},
+
     'missile'      : {'geometry' : '/meshes/missile.json'},
     'missile_bay'  : {'geometry' : '/meshes/missile-bay.json'},
-    'ship_indicator'  : '/textures/ship_indicator.png',
 
     'ships'        : {
       'mining'       : { 'material' : '/textures/hull.png',

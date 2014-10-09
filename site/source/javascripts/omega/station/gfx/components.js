@@ -8,5 +8,6 @@
 //= require 'omega/station/components/highlight'
 //= require 'omega/station/components/lamps'
 //= require 'omega/station/components/construction_bar'
+//= require 'omega/station/components/indicator'
 
 //= require 'omega/station/audio/construction'

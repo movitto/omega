@@ -9,12 +9,20 @@ Omega.StationGfxInitializer = {
 
   _init_components : function(){
     this.components = [this.position_tracker(), this.camera_tracker()];
+    this.abstract_components = [this.camera_tracker()];
   },
 
   _init_highlight : function(){
     this.highlight = this._retrieve_resource('highlight').clone();
     this.highlight.omega_entity = this;
     if(this.include_highlight) this.position_tracker().add(this.highlight.mesh);
+  },
+
+  _init_indicator : function(){
+    this.indicator = this._retrieve_resource('indicator').clone();
+    this.indicator.omega_entity = this;
+    this.indicator.sprite.position = this.position_tracker().position;
+    this.abstract_components.push(this.indicator.sprite);
   },
 
   _init_lamps : function(){
@@ -64,6 +72,7 @@ Omega.StationGfxInitializer = {
     this.load_gfx(event_cb);
     this._init_components();
     this._init_highlight();
+    this._init_indicator();
     this._init_lamps();
     this._init_construction_bar();
     this._init_audio();

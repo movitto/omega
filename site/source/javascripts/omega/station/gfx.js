@@ -21,3 +21,11 @@ $.extend(Omega.StationGfx, Omega.StationGfxLoader);
 $.extend(Omega.StationGfx, Omega.StationGfxInitializer);
 $.extend(Omega.StationGfx, Omega.StationGfxUpdater);
 $.extend(Omega.StationGfx, Omega.StationGfxEffects);
+
+/// Override CanvasEntityGfx#scene_components to specify components based on mode
+Omega.StationGfx.scene_components = function(){
+  if(!this.mode || this.mode == 'near')
+    return this.components;
+  else
+    return this.abstract_components;
+};
