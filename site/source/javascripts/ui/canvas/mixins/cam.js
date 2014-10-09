@@ -64,6 +64,7 @@ Omega.UI.CanvasCameraManager = {
     if(this.is_following(component)) return;
 
     this.cam.position.set(distance[0], distance[1], distance[2]);
+    this.cam_controls.target.set(0, 0, 0);
     this.follow(component);
     this.cam_controls.update();
   },
