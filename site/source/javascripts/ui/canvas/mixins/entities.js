@@ -92,6 +92,12 @@ Omega.UI.CanvasEntitiesManager = {
 
     var in_scene = this.has(entity.id);
     this.remove(entity, scene);
+
+    /// XXX three.js queues all components added/removed until render, if an components
+    /// is removed from one scene / added to another before render is called, the operation
+    /// will not work properly. Force render here to get around this
+    this.render();
+
     if(cb) cb(entity);
     if(in_scene) this.add(entity, scene);
   },
