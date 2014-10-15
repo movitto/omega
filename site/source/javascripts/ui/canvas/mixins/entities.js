@@ -106,6 +106,22 @@ Omega.UI.CanvasEntitiesManager = {
     if(in_scene) this.add(entity, scene);
   },
 
+  /// Reload entity in all scenes
+  reload_in_all : function(entity, cb){
+    var in_scene = this.has(entity.id);
+    this.remove(entity, this.farScene);
+    this.remove(entity, this.scene);
+
+    /// XXX see note in reload above
+    this.render();
+
+    if(cb) cb(entity);
+    if(in_scene){
+      this.add(entity, this.scene);
+      this.add(entity, this.farScene);
+    }
+  },
+
   // Clear entities from the scene
   clear : function(scene){
     if(typeof(scene) === "undefined") scene = this.scene;
