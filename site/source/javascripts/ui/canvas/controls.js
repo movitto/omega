@@ -61,9 +61,9 @@ Omega.UI.CanvasControls.prototype = {
     this.toggle_axis.on('click',
       function(evnt){
         if($(evnt.currentTarget).is(':checked'))
-          _this.canvas.add(_this.canvas.axis);
+          _this.canvas.add(_this.canvas.axis, _this.canvas.farScene);
         else
-          _this.canvas.remove(_this.canvas.axis);
+          _this.canvas.remove(_this.canvas.axis, _this.canvas.farScene);
         _this.canvas.animate();
       });
     this.toggle_axis.attr('checked', false);

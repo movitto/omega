@@ -44,11 +44,17 @@ Omega.UI.CanvasSceneManager = {
 
   _init_scenes : function(){
     this.scene    = new THREE.Scene();
+    this.farScene = new THREE.Scene();
     this.skyScene = new THREE.Scene();
+
+    this.scene.omega_id    = 'scene';
+    this.farScene.omega_id = 'far';
+    this.skyScene.omega_id = 'sky';
   },
 
   descendants : function(){
-    return this.scene.getDescendants().concat(this.skyScene.getDescendants());
+    return this.scene.getDescendants().concat(this.farScene.getDescendants())
+                                      .concat(this.skyScene.getDescendants());
   },
 
   _init_renderer : function(){
@@ -70,7 +76,13 @@ Omega.UI.CanvasSceneManager = {
     if(isNaN(aspect)) aspect = 1;
 
     this.cam    = new THREE.PerspectiveCamera(75, aspect, 1, 640000 );
-    this.skyCam = new THREE.PerspectiveCamera(75, aspect, 1, 640000 );
+    this.farCam = new THREE.PerspectiveCamera(75, aspect, 1, 640000 );
+    this.skyCam = new THREE.PerspectiveCamera(75, aspect, 1, 1000 );
+
+    /// tie camera positions / rotations
+    this.farCam.position   = this.cam.position;
+    this.farCam.quaternion = this.cam.quaternion;
+    this.skyCam.quaternion = this.cam.quaternion;
 
     this._init_cam_controls();
   },
@@ -119,11 +131,6 @@ Omega.UI.CanvasSceneManager = {
     /// clear renderer
     this.renderer.clear();
 
-    /// apply cam rotations to sky cam (but not translations)
-    this.skyCam.rotation.setFromRotationMatrix(
-      new THREE.Matrix4().extractRotation(this.cam.matrixWorld ),
-      this.skyCam.rotation.order);
-
     /// invoke 'rendered_in' callbacks on scene descendants
     for(var c = 0; c < this.rendered_in.length; c++){
       var child = this.rendered_in[c];
@@ -132,6 +139,7 @@ Omega.UI.CanvasSceneManager = {
 
     /// render actual scenes
     this.renderer.render(this.skyScene, this.skyCam);
+    this.renderer.render(this.farScene, this.farCam);
     this.renderer.render(this.scene, this.cam);
 
     /// render stats

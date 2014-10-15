@@ -37,6 +37,8 @@ Omega.UI.CanvasMouseHandler = {
       _this.mouse_x = evnt.clientX;
       _this.mouse_y = evnt.clientY;
     });
+
+    /// TODO detect when mouse is on edge of canvas, pan camera
   },
 
   // Return the 2D screen coords mapped to 2D canvas coords
@@ -62,7 +64,8 @@ Omega.UI.CanvasMouseHandler = {
 
   _canvas_clicked : function(evnt){
     var        ray = this._picking_ray(evnt.pageX, evnt.pageY);
-    var intersects = ray.intersectObjects(this.scene.getDescendants());
+    var children   = this.scene.getDescendants().concat(this.farScene.getDescendants());
+    var intersects = ray.intersectObjects(children);
 
     if(intersects.length > 0){
       var obj = intersects[0].object.omega_obj;

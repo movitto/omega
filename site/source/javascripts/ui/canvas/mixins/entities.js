@@ -9,11 +9,15 @@ Omega.UI.CanvasEntitiesManager = {
   set_scene_root : function(root){
     var old_root = this.root;
     this.clear();
+    this.clear(this.farScene);
     this.root = root;
     this.reset_cam();
     var children = root.children;
-    for(var c = 0; c < children.length; c++)
+    for(var c = 0; c < children.length; c++){
       this.add(children[c]);
+      this.add(children[c], this.farScene);
+    }
+
     this.dispatchEvent({type: 'set_scene_root',
                         data: {root: root, old_root: old_root}});
   },
