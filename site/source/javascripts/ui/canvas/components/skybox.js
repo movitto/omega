@@ -10,8 +10,8 @@ Omega.UI.CanvasSkybox = function(parameters){
 };
 
 Omega.UI.CanvasSkybox.prototype = {
-  id : 'canvas_skybox',
-  size : 32768,
+  id   : 'canvas_skybox',
+  size : 500,
 
   load_gfx : function(){
     if(typeof(Omega.UI.CanvasSkybox.gfx) !== 'undefined') return;
