@@ -8,6 +8,7 @@
 
 Omega.Star = function(parameters){
   this.components        = [];
+  this.abstract_components = [];
   this.effects_timestamp = new Date();
   this.type              = 'FFFFFF';
   $.extend(this, parameters);

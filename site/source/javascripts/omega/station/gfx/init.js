@@ -79,10 +79,5 @@ Omega.StationGfxInitializer = {
     this._init_mesh();
     this.last_moved = new Date();
     this.update_gfx();
-  },
-
-  /// Update component depending on mode
-  set_mode : function(mode){
-    this.mode = mode;
   }
 };

@@ -84,6 +84,12 @@ Omega.UI.CanvasEntityGfx = {
     return !this._has_type();
   },
 
+  /// Set scene mode
+  set_scene_mode : function(scene_mode){
+    this.scene_mode = scene_mode;
+    if(this.gfx_initialized()) this.update_gfx();
+  },
+
   // Return tracker used to manage load states,
   // initializing it if it doesn't exist
   _loaded_tracker : function(){

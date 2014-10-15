@@ -20,3 +20,10 @@ $.extend(Omega.JumpGateGfx, Omega.JumpGateGfxLoader);
 $.extend(Omega.JumpGateGfx, Omega.JumpGateGfxInitializer);
 $.extend(Omega.JumpGateGfx, Omega.JumpGateGfxUpdater);
 $.extend(Omega.JumpGateGfx, Omega.JumpGateGfxEffects);
+
+/// Override CanvasEntityGfx#scene_components to specify components based on scene
+Omega.JumpGateGfx.scene_components = function(scene){
+  var in_scene = (scene.omega_id == 'far' && this.scene_mode == 'far') ||
+                 (scene.omega_id != 'far' && this.scene_mode != 'far');
+  return in_scene ? this.components : [];
+};

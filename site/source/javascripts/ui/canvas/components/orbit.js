@@ -193,7 +193,7 @@ Omega.OrbitHelpers = {
     if(this.scene_scale) this.orbit_line.line.scale.set(1/this.scene_scale,
                                                         1/this.scene_scale,
                                                         1/this.scene_scale);
-    this.components.push(this.orbit_line.line);
+    this.abstract_components.push(this.orbit_line.line);
   },
 
   _rm_orbit_line : function(){

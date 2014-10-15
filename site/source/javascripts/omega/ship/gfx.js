@@ -21,10 +21,11 @@ $.extend(Omega.ShipGfx, Omega.ShipGfxInitializer);
 $.extend(Omega.ShipGfx, Omega.ShipGfxUpdater);
 $.extend(Omega.ShipGfx, Omega.ShipGfxEffects);
 
-/// Override CanvasEntityGfx#scene_components to specify components based on mode
-Omega.ShipGfx.scene_components = function(){
-  if(!this.mode || this.mode == 'near')
-    return this.components;
-  else
+/// Override CanvasEntityGfx#scene_components to specify components based on scene_mode
+Omega.ShipGfx.scene_components = function(scene){
+  if(scene.omega_id == 'far')
     return this.abstract_components;
+  else if(!this.scene_mode || this.scene_mode != 'far')
+    return this.components;
+  return [];
 };

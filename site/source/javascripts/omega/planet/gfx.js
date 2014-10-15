@@ -21,3 +21,15 @@ $.extend(Omega.PlanetGfx, Omega.PlanetGfxLoader);
 $.extend(Omega.PlanetGfx, Omega.PlanetGfxInitializer);
 $.extend(Omega.PlanetGfx, Omega.PlanetGfxUpdater);
 $.extend(Omega.PlanetGfx, Omega.PlanetGfxEffects);
+
+/// Override CanvasEntityGfx#scene_components to specify components based on scene
+Omega.PlanetGfx.scene_components = function(scene){
+  if(scene.omega_id == 'far'){
+    if(this.scene_mode == 'far')
+      return this.abstract_components.concat(this.components);
+    else
+      return this.abstract_components;
+  }
+
+  return this.components;
+};

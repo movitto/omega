@@ -18,73 +18,69 @@ Omega.Pages.TracksCam = {
   },
 
   _cam_change : function(){
-    this.set_cam_mode();
+    this.set_scene_mode();
   },
 
-
-  _set_entity_scales : function(){
+  _scale_entities : function(){
     var children      = this.canvas.root ? this.canvas.root.children : [];
     var manu_entities = this.manu_entities();
     var entities      = children.concat(manu_entities);
     for(var e = 0; e < entities.length; e++)
-      this._set_entity_scale(entities[e]);
+      this._scale_entity(entities[e]);
   },
 
-  _set_entity_scale : function(entity){
+  _scale_entity : function(entity){
     entity.scale_position(this.scene_scale);
   },
 
   _set_entity_modes : function(){
+    if(this.canvas.root && this.canvas.root.json_class != 'Cosmos::Entities::SolarSystem') return;
+
+    var children      = this.canvas.root ? this.canvas.root.children : [];
     var manu_entities = this.manu_entities();
-    for(var e = 0; e < manu_entities.length; e++)
-      this._set_entity_mode(manu_entities[e]);
+    var entities      = children.concat(manu_entities);
+    for(var e = 0; e < entities.length; e++)
+      this._set_entity_mode(entities[e]);
   },
 
   _set_entity_mode : function(entity){
-    /// TODO group nearby sprites
-    /// TODO detect if camera is in 'vicinity' of entity, set mode to that if so
-    if(entity.mode != this._cam_mode){
-      if(entity.in_scene()){
-        var _this = this;
-        this.canvas.reload(entity, function(){
-          entity.set_mode(_this._cam_mode);
-        });
-
-      }else{
-        entity.set_mode(this._cam_mode);
-      }
+    if(entity.mode != this._scene_mode){
+      var _this = this;
+      this.canvas.reload_in_all(entity, function(){
+        entity.set_scene_mode(_this._scene_mode);
+      });
     }
   },
 
-  set_cam_mode : function(){
+  set_scene_mode : function(){
     var percent  = this._cam_percent();
     var far      = Omega.Config.cam.distance.far;
     var near     = Omega.Config.cam.distance.near;
 
     if(percent > far){
-      this._cam_mode = "far";
-      this._far_cam_mode();
+      this._scene_mode = "far";
+      this._far_scene_mode();
 
     }else if(percent > near){
-      this._cam_mode = "mid";
-      this._mid_cam_mode();
+      this._scene_mode = "mid";
+      this._mid_scene_mode();
 
     }else{
-      this._cam_mode = "near";
-      this._near_cam_mode();
+      this._scene_mode = "near";
+      this._near_scene_mode();
     }
   },
 
-  _far_cam_mode : function(){
+  _far_scene_mode : function(){
     if(this.canvas.root && this.canvas.root.json_class != 'Cosmos::Entities::SolarSystem') return;
 
     this.scene_scale = Omega.Config.position_scales.system.max;
 
-    this._set_entity_scales();
+    this._scale_entities();
     this._set_entity_modes();
   },
 
-  _mid_cam_mode : function(){
+  _mid_scene_mode : function(){
     if(this.canvas.root && this.canvas.root.json_class != 'Cosmos::Entities::SolarSystem') return;
 
     /// scale from system_scale -> 1 as cam distance decreases
@@ -96,21 +92,21 @@ Omega.Pages.TracksCam = {
     var min     = Omega.Config.position_scales.system.min;
     this.scene_scale = percent * (max - min) + min;
 
-    this._set_entity_scales();
+    this._scale_entities();
     this._set_entity_modes();
   },
 
-  _near_cam_mode : function(){
+  _near_scene_mode : function(){
     if(this.canvas.root && this.canvas.root.json_class != 'Cosmos::Entities::SolarSystem') return;
 
     this.scene_scale = Omega.Config.position_scales.system.min;
 
-    this._set_entity_scales();
+    this._scale_entities();
     this._set_entity_modes();
   },
 
   _sync_entity_with_cam : function(entity){
-    this._set_entity_scale(entity);
+    this._scale_entity(entity);
     this._set_entity_mode(entity);
   }
 };

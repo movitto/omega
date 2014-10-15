@@ -15,6 +15,7 @@
 ///
 Omega.Ship = function(parameters){
   this.components = [];
+  this.abstract_components = [];
   this.resources = [];
   $.extend(this, parameters);
 

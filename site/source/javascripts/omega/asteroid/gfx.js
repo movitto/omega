@@ -18,3 +18,10 @@ $.extend(Omega.AsteroidGfx, Omega.UI.CanvasEntityGfx);
 $.extend(Omega.AsteroidGfx, Omega.AsteroidGfxLoader);
 $.extend(Omega.AsteroidGfx, Omega.AsteroidGfxInitializer);
 $.extend(Omega.AsteroidGfx, Omega.AsteroidGfxUpdater);
+
+/// Override CanvasEntityGfx#scene_components to specify components based on scene
+Omega.AsteroidGfx.scene_components = function(scene){
+  var in_scene = (scene.omega_id == 'far' && this.scene_mode == 'far') ||
+                 (scene.omega_id != 'far' && this.scene_mode != 'far');
+  return in_scene ? this.components : [];
+};
