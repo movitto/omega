@@ -25,6 +25,7 @@ Omega.ShipIndicator.prototype = {
     return new THREE.SpriteMaterial({ map: texture,
                                       useScreenCoordinates: false,
                                       transparent : true,
+                                      depthWrite : false,
                                       color : 0x0000FF});
   },
 
