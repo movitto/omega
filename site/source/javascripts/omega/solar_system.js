@@ -9,7 +9,6 @@
 
 Omega.SolarSystem = function(parameters){
   this.components = [];
-  this.shader_components = [];
 
   this.children   = [];
   $.extend(this, parameters);

@@ -13,7 +13,6 @@ Omega.UI.CanvasLamp = function(parameters){
   this.base_position = [0,0,0];
 
   this.components = [];
-  this.shader_components = [];
   $.extend(this, parameters);
 
   /// reduce color components seperately

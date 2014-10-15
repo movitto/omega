@@ -7,7 +7,6 @@
 Omega.UI.CanvasAxis = function(parameters){
   this.size = 100000;
   this.components = [];
-  this.shader_components = [];
   $.extend(this, parameters);
 };
 

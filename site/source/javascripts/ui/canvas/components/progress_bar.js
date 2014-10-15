@@ -16,7 +16,6 @@
 /// TODO add optional parameterized border around entire progress bar
 Omega.UI.CanvasProgressBar = function(parameters){
   this.components = [];
-  this.shader_components = [];
   $.extend(this, parameters);
 };
 
@@ -75,7 +74,6 @@ Omega.UI.CanvasProgressBar.prototype = {
                                            color1     : this.color1,
                                            color2     : this.color2,
                                            components : this.components,
-                                    shader_components : this.shader_components,
                                            component1 : this.component1,
                                            component2 : this.component2,
                                            vertices   : this.vertices});

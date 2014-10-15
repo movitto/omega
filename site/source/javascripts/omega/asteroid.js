@@ -9,7 +9,6 @@
 
 Omega.Asteroid = function(parameters){
   this.components = [];
-  this.shader_components = [];
   $.extend(this, parameters);
 
   this.location = Omega.convert.entity(this.location)
