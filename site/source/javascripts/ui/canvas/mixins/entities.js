@@ -27,58 +27,69 @@ Omega.UI.CanvasEntitiesManager = {
     return this.root != null && this.root.id == entity_id;
   },
 
+  /// Add specified component to scene
+  _add_component : function(component, scene){
+    scene.add(component);
+
+    if(component.omega_obj && component.omega_obj.rendered_in &&
+       this.rendered_in.indexOf(component) == -1)
+      this.rendered_in.push(component);
+
+    var children = component.getDescendants();
+    for(var cc = 0; cc < children.length; cc++){
+      var child = children[cc];
+      if(child.omega_obj && child.omega_obj.rendered_in &&
+         this.rendered_in.indexOf(child) == -1)
+        this.rendered_in.push(child);
+    }
+  },
+
   // Add specified entity to scene
   add : function(entity, scene){
     if(typeof(scene) === "undefined") scene = this.scene;
 
     var _this = this;
     entity.init_gfx(function(evnt){ _this._init_gfx(); });
-    var components = entity.scene_components();
-    for(var ec = 0; ec < components.length; ec++){
-      var component = components[ec];
-      scene.add(component);
+    var components = entity.scene_components(scene);
+    for(var ec = 0; ec < components.length; ec++)
+      this._add_component(components[ec], scene);
 
-      if(component.omega_obj && component.omega_obj.rendered_in)
-        this.rendered_in.push(component);
-
-      var children = component.getDescendants();
-      for(var cc = 0; cc < children.length; cc++){
-        var child = children[cc];
-        if(child.omega_obj && child.omega_obj.rendered_in)
-          this.rendered_in.push(child);
-      }
-    }
-
-    if(this.page && this.page.effects_player && entity.has_effects())
+    if(this.page && this.page.effects_player &&
+       entity.has_effects() && !this.page.effects_player.has(entity.id))
       this.page.effects_player.add(entity);
-    this.entities.push(entity.id);
+
+    if(!this.has(entity.id)) this.entities.push(entity.id);
 
     if(entity.added_to) entity.added_to(this, scene);
+  },
+
+  /// Remove specified component from scene
+  _remove_component : function(component, scene){
+    scene.remove(component);
+    /// TODO renderer.deallocate(component);
+
+    var index = this.rendered_in.indexOf(component);
+    if(index != -1) this.rendered_in.splice(index, 1);
+
+    var children = component.getDescendants();
+    for(var cc = 0; cc < children.length; cc++){
+      var child = children[cc];
+      var index = this.rendered_in.indexOf(child);
+      if(index != -1) this.rendered_in.splice(index, 1);
+    }
   },
 
   // Remove specified entity from scene
   remove : function(entity, scene){
     if(typeof(scene) === "undefined") scene = this.scene;
 
-    var components = entity.scene_components();
-    for(var ec = 0; ec < components.length; ec++){
-      var component = components[ec];
-      scene.remove(component);
-      /// TODO renderer.deallocate(component);
+    var components = entity.scene_components(scene);
+    for(var ec = 0; ec < components.length; ec++)
+      this._remove_component(components[ec], scene);
 
-      var index = this.rendered_in.indexOf(component);
-      if(index != -1) this.rendered_in.splice(index, 1);
-
-      var children = component.getDescendants();
-      for(var cc = 0; cc < children.length; cc++){
-        var child = children[cc];
-        var index = this.rendered_in.indexOf(child);
-        if(index != -1) this.rendered_in.splice(index, 1);
-      }
-    }
-
-    if(this.page.effects_player && entity.has_effects())
+    if(this.page.effects_player && this.page.effects_player.has(entity.id))
       this.page.effects_player.remove(entity.id);
+
     var index = this.entities.indexOf(entity.id);
     if(index != -1) this.entities.splice(index, 1);
 

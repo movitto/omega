@@ -7,8 +7,8 @@
 // Base Canvas Entity GFX Mixin
 Omega.UI.CanvasEntityGfx = {
   /// Return scene components, by default components array
-  scene_components : function(){
-    return this.components;
+  scene_components : function(scene){
+    return scene.omega_id == 'scene' ? this.components : [];
   },
 
   /// Returns location which to render gfx components, overridable
