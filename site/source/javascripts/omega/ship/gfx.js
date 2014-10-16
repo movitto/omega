@@ -23,9 +23,7 @@ $.extend(Omega.ShipGfx, Omega.ShipGfxEffects);
 
 /// Override CanvasEntityGfx#scene_components to specify components based on scene_mode
 Omega.ShipGfx.scene_components = function(scene){
-  if(scene.omega_id == 'far')
-    return this.abstract_components;
-  else if(!this.scene_mode || this.scene_mode != 'far')
-    return this.components;
-  return [];
+  var far_components = (this.scene_mode && this.scene_mode == 'far');
+  return far_components ? this.abstract_components :
+                          this.abstract_components.concat(this.components);
 };

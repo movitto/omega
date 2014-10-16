@@ -21,11 +21,3 @@ Omega.StarGfx = {
 $.extend(Omega.StarGfx, Omega.UI.CanvasEntityGfx);
 $.extend(Omega.StarGfx, Omega.StarGfxLoader);
 $.extend(Omega.StarGfx, Omega.StarGfxInitializer);
-
-/// Override CanvasEntityGfx#scene_components to always
-/// add components to far scene
-Omega.StarGfx.scene_components = function(scene){
-  if(scene.omega_id == 'far')
-    return this.abstract_components;
-  return this.components;
-};

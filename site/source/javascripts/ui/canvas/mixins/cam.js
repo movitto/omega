@@ -50,7 +50,6 @@ Omega.UI.CanvasCameraManager = {
     if(this.following_component) this.stop_following();
     this.following_component = component;
     component.add(this.cam);
-    component.add(this.farCam);
   },
 
   /// high level helper to follow an entity assuming
@@ -72,10 +71,8 @@ Omega.UI.CanvasCameraManager = {
 
   /// instruct canvas cam to stop following location
   stop_following : function(){
-    if(this.following_component){
-      this.following_component.remove(this.farCam);
+    if(this.following_component)
       this.following_component.remove(this.cam);
-    }
     this.following_component = null
   }
 };

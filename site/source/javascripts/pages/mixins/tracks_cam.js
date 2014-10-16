@@ -4,6 +4,10 @@
  * Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+/// TODO scale indicator size so they are always a fixed size
+/// upgrade three.js ? http://stackoverflow.com/questions/20396150/three-js-how-to-keep-sprite-text-size-unchanged-when-zooming
+/// (only in far mode? scale w/ camera distance in near mode?)
+
 Omega.Pages.TracksCam = {
   track_cam : function(){
     var _this = this;

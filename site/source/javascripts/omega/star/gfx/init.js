@@ -24,8 +24,7 @@ Omega.StarGfxInitializer = {
   },
 
   _init_components : function(){
-    this.components = [this.scene_light, this.glow.tglow];
-    this.abstract_components = [this.mesh.tmesh, this.light];
+    this.components = [this.scene_light, this.glow.tglow, this.mesh.tmesh, this.light];
   },
 
   init_gfx : function(event_cb){

@@ -8,7 +8,7 @@ Omega.StationGfxInitializer = {
   include_highlight : true,
 
   _init_components : function(){
-    this.components = [this.position_tracker(), this.camera_tracker()];
+    this.components = [this.position_tracker()];
     this.abstract_components = [this.camera_tracker()];
   },
 

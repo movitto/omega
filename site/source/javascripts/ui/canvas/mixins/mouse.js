@@ -64,7 +64,7 @@ Omega.UI.CanvasMouseHandler = {
 
   _canvas_clicked : function(evnt){
     var        ray = this._picking_ray(evnt.pageX, evnt.pageY);
-    var children   = this.scene.getDescendants().concat(this.farScene.getDescendants());
+    var children   = this.descendants();
     var intersects = ray.intersectObjects(children);
 
     if(intersects.length > 0){
