@@ -44,7 +44,7 @@ Omega.Pages.TracksCam = {
   },
 
   _set_entity_mode : function(entity){
-    if(entity.mode != this._scene_mode){
+    if(entity.scene_mode != this._scene_mode){
       var _this = this;
       this.canvas.reload_in_all(entity, function(){
         entity.set_scene_mode(_this._scene_mode);
@@ -83,8 +83,8 @@ Omega.Pages.TracksCam = {
   _mid_scene_mode : function(){
     if(this.canvas.root && this.canvas.root.json_class != 'Cosmos::Entities::SolarSystem') return;
 
-    /// scale from system_scale -> 1 as cam distance decreases
-    /// will be a bit of a jump at boundry as percent is not
+    /// scale from max -> min as cam distance decreases.
+    /// there will be a bit of a jump at boundry as percent is not
     /// being converted to proportion of near/far cam range
     /// (keeping for now as it is a good effect)
     var percent = this._cam_percent();
