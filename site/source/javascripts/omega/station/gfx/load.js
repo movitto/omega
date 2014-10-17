@@ -5,13 +5,13 @@
  */
 
 Omega.StationGfxLoader = {
-  async_gfx : 2,
+  async_gfx : 4,
 
   _load_highlight : function(){
     this._store_resource('highlight', new Omega.StationHighlightEffects());
   },
 
-  _load_indicator : function(){
+  _load_indicator : function(event_cb){
     this._store_resource('indicator', new Omega.StationIndicator({event_cb: event_cb}));
   },
 
@@ -42,7 +42,7 @@ Omega.StationGfxLoader = {
   load_gfx : function(event_cb){
     if(this.gfx_loaded()) return;
     this._load_highlight();
-    this._load_indicator();
+    this._load_indicator(event_cb);
     this._load_construction_bar();
     this._load_lamps();
     this._load_audio();

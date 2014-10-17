@@ -5,9 +5,9 @@
  */
 
 Omega.ShipGfxLoader = {
-  /// mesh material & geometry, shell material, missile geometry +
-  /// particles (explosion, destruction, smoke, trails)
-  async_gfx : 8,
+  /// mesh material & geometry, shell material, missile geometry,
+  /// particles (explosion, destruction, smoke, trails), hp_bar material
+  async_gfx : 9,
 
   _load_textures : function(event_cb){
     this._store_resource('mesh_material',     new Omega.ShipMeshMaterial({type: this.type, event_cb : event_cb}));

@@ -8,7 +8,7 @@
 
 Omega.ShipGfxInitializer = {
   debug_gfx : false,
-  include_highlight : true,
+  include_highlight : false,
   include_hp_bar    : true,
   include_visited   : false,
 
