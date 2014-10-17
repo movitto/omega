@@ -12,6 +12,8 @@ Omega.ShipIndicator = function(args){
 };
 
 Omega.ShipIndicator.prototype = {
+  size : [400, 400],
+
   clone : function(){
     return new Omega.ShipIndicator();
   },
@@ -31,7 +33,7 @@ Omega.ShipIndicator.prototype = {
 
   init_gfx : function(event_cb){
     this.sprite = new THREE.Sprite(this.material(event_cb));
-    this.sprite.scale.set(400, 400, 400);
+    this.sprite.scale.set(this.size[0], this.size[1], 1);
     this.sprite.omega_obj = this;
   }
 };
