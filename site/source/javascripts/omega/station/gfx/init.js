@@ -34,7 +34,6 @@ Omega.StationGfxInitializer = {
   _init_construction_bar : function(){
     this.construction_bar = this._retrieve_resource('construction_bar').clone();
     this.construction_bar.omega_entity = this;
-    this.construction_bar.bar.init_gfx();
   },
 
   _init_audio : function(){

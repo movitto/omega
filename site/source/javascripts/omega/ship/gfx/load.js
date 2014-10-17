@@ -21,7 +21,7 @@ Omega.ShipGfxLoader = {
   },
 
   _load_components : function(event_cb){
-    this._store_resource('hp_bar',            new Omega.ShipHpBar());
+    this._store_resource('hp_bar',            new Omega.ShipHpBar({event_cb: event_cb}));
     this._store_resource('highlight',         new Omega.ShipHighlightEffects());
     this._store_resource('lamps',             new Omega.ShipLamps({type: this.type}));
     this._store_resource('trails',            new Omega.ShipTrails({type: this.type, event_cb: event_cb}));

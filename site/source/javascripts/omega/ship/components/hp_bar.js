@@ -8,33 +8,25 @@
 
 Omega.ShipHpBar = function(args){
   if(!args) args = {};
-  this.bar = args['bar'] || this.load_bar();
+  var event_cb = args['event_cb'];
+  this.bar = args['bar'] || this._progress_bar(event_cb);
 };
 
 Omega.ShipHpBar.prototype = {
+  size : [100, 10],
+
   clone : function(){
     return new Omega.ShipHpBar({bar : this.bar.clone()});
   },
 
-  health_bar_props : {
-    length : 200
-  },
-
-  load_bar : function(){
-    var len = this.health_bar_props.length;
-    var bar =
-      new Omega.UI.CanvasProgressBar({
-        width : 3, length: len, axis : 'x',
-        color1: 0xFF0000, color2: 0x0000FF,
-        vertices: [[[-len/2, 100, 0],
-                    [-len/2, 100, 0]],
-                   [[-len/2, 100, 0],
-                    [ len/2, 100, 0]]]});
+  _progress_bar : function(event_cb){
+    var bar = new Omega.UI.CanvasProgressBar({size     : this.size,
+                                              color1   : 0x0000FF,
+                                              color2   : 0xFF0000,
+                                              event_cb : event_cb});
+    for(var c = 0; c < bar.components.length; c++)
+      bar.components[c].position.set(-100, 100, 0);
     return bar;
-  },
-
-  init_gfx : function(){
-    this.bar.init_gfx();
   },
 
   update : function(){

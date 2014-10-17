@@ -77,6 +77,8 @@ Omega.Config = {
 
     'indicator'    : {'material' : '/textures/indicator.png'},
 
+    'progress_bar' : {'material' : '/textures/progress-bar.png'},
+
     'missile'      : {'geometry' : '/meshes/missile.json'},
     'missile_bay'  : {'geometry' : '/meshes/missile-bay.json'},
 

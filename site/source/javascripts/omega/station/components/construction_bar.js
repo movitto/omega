@@ -6,28 +6,24 @@
 
 Omega.StationConstructionBar = function(args){
   if(!args) args = {};
-  this.bar = args['bar'] || this.init_gfx();
+  var event_cb = args['event_cb'];
+  this.bar = args['bar'] || this._progress_bar(event_cb);
 };
 
 Omega.StationConstructionBar.prototype = {
+  size : [100, 10],
+
   clone : function(){
     return new Omega.StationConstructionBar({bar : this.bar.clone()});
   },
 
-  construction_bar_props : {
-    length: 200
-  },
-
-  init_gfx : function(){
-    var len = this.construction_bar_props.length;
-    var bar =
-      new Omega.UI.CanvasProgressBar({
-        width: 3, length: len, axis : 'x',
-        color1: 0x00FF00, color2: 0x0000FF,
-        vertices: [[[-len/2, 100, 0],
-                    [-len/2, 100, 0]],
-                   [[-len/2, 100, 0],
-                    [ len/2, 100, 0]]]});
+  _progress_bar : function(event_cb){
+    var bar = new Omega.UI.CanvasProgressBar({size     : this.size,
+                                              color1   : 0x00FF00,
+                                              color2   : 0x0000FF,
+                                              event_cb : event_cb});
+    for(var c = 0; c < bar.components.length; c++)
+      bar.components[c].position.set(-100, 500, 0);
     return bar;
   },
 

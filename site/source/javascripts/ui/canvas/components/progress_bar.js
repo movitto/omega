@@ -1,88 +1,57 @@
 /* Omega JS Canvas ProgressBar Scene Component
  *
- * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+ * Copyright (C) 2013-2014 Mohammed Morsi <mo@morsi.org>
  * Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-/// Make sure to specify
-///   - id of component
-///   - width: line width
-///   - length : total line length
-///   - axis : world axis on which to render progression
-///   - color1 : first color of progression
-///   - color2 : contrasting color for progression
-///   - vertices : inital position of progression component vertices
-//
-/// TODO add optional parameterized border around entire progress bar
-Omega.UI.CanvasProgressBar = function(parameters){
-  this.components = [];
-  $.extend(this, parameters);
+Omega.UI.CanvasProgressBar = function(args){
+  if(!args) args = {};
+  var event_cb = args['event_cb'];
+
+  this.color1 = args['color1'];
+  this.color2 = args['color2'];
+  this.size   = args['size'];
+
+  if(args['sprite1'] && args['sprite2']){
+    this.sprite1 = args['sprite1'];
+    this.sprite2 = args['sprite2'];
+
+  }else{
+    this.init_gfx(event_cb);
+  }
+
+  this.components = [this.sprite1, this.sprite2];
 };
 
 Omega.UI.CanvasProgressBar.prototype = {
-  init_gfx : function(){
-    if(this.components.length > 0) return;
+  clone : function(){
+    return new Omega.UI.CanvasProgressBar({sprite1 : this.sprite1.clone(),
+                                           sprite2 : this.sprite2.clone(),
+                                           size    : this.size});
+  },
 
-    var mat1 = new THREE.LineBasicMaterial({color     : this.color1,
-                                            linewidth : this.width});
-    var mat2 = new THREE.LineBasicMaterial({color     : this.color2,
-                                            linewidth : this.width});
+  _texture : function(event_cb){
+    var texture_path = Omega.Config.url_prefix + Omega.Config.images_path +
+                       Omega.Config.resources.progress_bar.material;
+    return THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
+  },
 
-    var geo1 = new THREE.Geometry();
-    var geo2 = new THREE.Geometry();
+  _material : function(color, event_cb){
+    return new THREE.SpriteMaterial({ map: this._texture(event_cb),
+                                      useScreenCoordinates: false,
+                                      color : color,
+                                      alignment: THREE.SpriteAlignment.topLeft});
+  },
 
-    var g1v0 = new THREE.Vector3(this.vertices[0][0][0],
-                                 this.vertices[0][0][1],
-                                 this.vertices[0][0][2]);
-    var g1v1 = new THREE.Vector3(this.vertices[0][1][0],
-                                 this.vertices[0][1][1],
-                                 this.vertices[0][1][2]);
-    var g2v0 = new THREE.Vector3(this.vertices[1][0][0],
-                                 this.vertices[1][0][1],
-                                 this.vertices[1][0][2]);
-    var g2v1 = new THREE.Vector3(this.vertices[1][1][0],
-                                 this.vertices[1][1][1],
-                                 this.vertices[1][1][2]);
-    geo1.vertices.push(g1v0);
-    geo1.vertices.push(g1v1);
-    geo2.vertices.push(g2v0);
-    geo2.vertices.push(g2v1);
+  init_gfx : function(event_cb){
+    this.sprite1 = new THREE.Sprite(this._material(this.color1, event_cb));
+    this.sprite2 = new THREE.Sprite(this._material(this.color2)); /// event_cb not needed since same texture used
 
-    this.component1  = new THREE.Line(geo1, mat1);
-    this.component2  = new THREE.Line(geo2, mat2);
-    this.components = [this.component1, this.component2];
-
-    this.component1.omega_obj = this.component2.omega_obj = this;
+    this.sprite1.scale.set(this.size[0], this.size[1], 1);
+    this.sprite2.scale.set(this.size[0], this.size[1], 1);
   },
 
   update : function(percentage){
-    var comp1len = percentage * this.length;
-    var comp2len = this.length - comp1len;
-    var border = percentage < 0.5 ?
-                 (comp2len - this.length / 2) :
-                 (this.length / 2 - comp1len);
-    this.component1.geometry.vertices[1][this.axis] = border;
-    this.component2.geometry.vertices[0][this.axis] = border;
-    this.component1.geometry.verticesNeedUpdate = true;
-    this.component2.geometry.verticesNeedUpdate = true;
-  },
-
-  clone : function(){
-    return new Omega.UI.CanvasProgressBar({width      : this.width,
-                                           length     : this.length,
-                                           axis       : this.axis,
-                                           color1     : this.color1,
-                                           color2     : this.color2,
-                                           components : this.components,
-                                           component1 : this.component1,
-                                           component2 : this.component2,
-                                           vertices   : this.vertices});
-  },
-
-  /// canvas scene 'rendered_in' callback
-  rendered_in : function(canvas, component){
-    component.lookAt(canvas.cam.position);
+    this.sprite1.scale.set(this.size[0] * percentage, this.size[1], 1);
   }
 };
-
-THREE.EventDispatcher.prototype.apply( Omega.UI.CanvasProgressBar.prototype );

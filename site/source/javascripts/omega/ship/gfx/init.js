@@ -82,7 +82,6 @@ Omega.ShipGfxInitializer = {
   _init_hp_bar : function(){
     this.hp_bar = this._retrieve_resource('hp_bar').clone();
     this.hp_bar.omega_entity = this;
-    this.hp_bar.bar.init_gfx();
     if(this.include_hp_bar)
       for(var c = 0; c < this.hp_bar.bar.components.length; c++)
         this.position_tracker().add(this.hp_bar.bar.components[c]);
