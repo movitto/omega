@@ -12,17 +12,13 @@ Omega.PlanetGfxInitializer = {
   _init_mesh : function(){
     this.mesh              = this._retrieve_resource('mesh').clone();
     this.mesh.omega_entity = this;
-    this.position_tracker().add(this.mesh.tmesh);
+    this.location_tracker().add(this.mesh.tmesh);
   },
 
   _init_axis : function(){
     this.axis = this._retrieve_resource('axis').clone();
     this.axis.omega_entity = this;
-
-    var orientation = this.location.orientation();
-    this.axis.set_orientation(orientation[0], orientation[1], orientation[2]);
-
-    if(this.include_axis) this.position_tracker().add(this.axis.mesh);
+    if(this.include_axis) this.location_tracker().add(this.axis.mesh);
   },
 
   _init_orbit : function(){
@@ -31,6 +27,7 @@ Omega.PlanetGfxInitializer = {
   },
 
   _init_components : function(){
+    this.position_tracker().add(this.location_tracker());
     this.components = [this.position_tracker(), this.camera_tracker()];
     this._add_orbit_line(Omega.OrbitLine.prototype.default_color, 3);
   },
@@ -45,7 +42,7 @@ Omega.PlanetGfxInitializer = {
     this._init_axis();
     this._init_orbit();
     this._init_components();
-    this.spin_scale = (Math.random() * 0.75) + 0.5;
+    this.spin_velocity = ((Math.random() * 0.25) + 0.25) / 4;
 
     this.update_gfx();
     this.last_moved = new Date();

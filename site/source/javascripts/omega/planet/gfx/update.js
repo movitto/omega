@@ -7,9 +7,9 @@
 Omega.PlanetGfxUpdater = {
   /// Update local planet graphics on core entity changes
   update_gfx : function(){
-    this.mesh.update();
-
     var loc = this.scene_location();
     this.position_tracker().position.set(loc.x, loc.y, loc.z);
+    this.location_tracker().rotation.setFromRotationMatrix(this.location.rotation_matrix());
+    this.mesh.spin();
   }
 };

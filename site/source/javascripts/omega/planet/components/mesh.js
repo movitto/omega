@@ -14,16 +14,15 @@ Omega.PlanetMesh = function(args){
   else      this.tmesh = this._mesh(type, event_cb);
 
   if(this.tmesh) this.tmesh.omega_obj = this;
+
   this.spin_angle = 0;
 };
 
 Omega.PlanetMesh.prototype = {
   props : {
-    radius : 150, segments : 32, rings : 32
-  },
-
-  valid : function(){
-    return this.tmesh != null;
+    radius   : 150,
+    segments : 32,
+    rings    : 32
   },
 
   clone : function(){
@@ -41,36 +40,16 @@ Omega.PlanetMesh.prototype = {
   },
 
   _mesh : function(type, event_cb){
-    /// FIXME need to rotate material texture to line up w/ spin_axis
     return new THREE.Mesh(this._geometry(),
                           this._material(type, event_cb));
   },
 
-  _spin_axis : function(){
-    if(this.__spin_axis) return this.__spin_axis;
-
-    /// XXX intentionally swapping axis y/z here,
-    /// (also see note in planet/axis#set_orientation)
-    var loc  = this.omega_entity.scene_location();
-    var axis = new THREE.Vector3(loc.orientation_x,
-                                 loc.orientation_z,
-                                 loc.orientation_y).normalize()
-    this.__spin_axis = axis;
-    return axis;
+  spin : function(){
+    this.tmesh.rotateY(this.spin_angle);
   },
 
-  update : function(){
-    if(!this.tmesh) return; /// TODO remove conditional
-    var entity = this.omega_entity;
-    var rot    = new THREE.Matrix4();
-    var axis   = this._spin_axis();
-    rot.makeRotationAxis(axis, this.spin_angle);
-    this.tmesh.rotation.setFromRotationMatrix(rot);
-  },
-
-  spin : function(angle){
-    this.spin_angle += angle;
-    if(this.spin_angle > 2*Math.PI) this.spin_angle = 0;
+  set_spin : function(angle){
+    this.spin_angle = angle;
   }
 };
 
