@@ -16,15 +16,14 @@ Omega.StarGfxInitializer = {
     this.glow.set_color(this.type_int);
   },
 
-  _init_lights : function(){
+  _init_light : function(){
     this.light = this._retrieve_resource('light').clone();
     this.light.position = this.mesh.tmesh.position;
     this.light.color.setHex(this.type_int);
-    this.scene_light = this.light.clone();
   },
 
   _init_components : function(){
-    this.components = [this.scene_light, this.glow.tglow, this.mesh.tmesh, this.light];
+    this.components = [this.glow.tglow, this.mesh.tmesh, this.light];
   },
 
   init_gfx : function(event_cb){
@@ -32,7 +31,7 @@ Omega.StarGfxInitializer = {
     this.load_gfx(event_cb);
     this._init_mesh();
     this._init_glow();
-    this._init_lights();
+    this._init_light();
     this._init_components();
     this._gfx_initialized = true;
   }
