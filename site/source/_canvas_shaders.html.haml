@@ -1,5 +1,4 @@
-// two shaders from http://stemkoski.github.io/Three.js/Shader-Halo.html
-/// with modifications
+// two shaders from http://stemkoski.github.io/Three.js/Shader-Halo.html with modifications
 %script{:id=>"vertexShaderStar", :type=>"x-shader/x-vertex"}
   :plain
     varying vec3 vNormal;
@@ -33,4 +32,85 @@
         vec3 cpn = normalize(cp.xyz);
         float intensity = pow( c - dot(vNormal, cpn), p) / dist;
         gl_FragColor = vec4( r, g, b, 1.0 ) * intensity;
+    }
+
+%script{:id=>"vertexShaderSurface", :type=>"x-shader/x-vertex"}
+  :plain
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    void main()
+    {
+        vUv = uv;
+        vNormal = normalize( normalMatrix * normal );
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    }
+
+%script{:id=>"fragmentShaderSurface", :type=>"x-shader/x-fragment"}
+  :plain
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    uniform vec4 color;
+
+    uniform sampler2D texture;
+    uniform float time;
+
+    void main()
+    {
+      vec4 grayscale1  = texture2D( texture, vUv );
+
+      float gen = fract(grayscale1.x + time * 0.03);
+      vec2 vUv2 = vec2(gen, gen);
+      vec4 grayscale2 = texture2D( texture, vUv2 * 0.5);
+
+      vec4 grayscale = grayscale1 * 0.25 + grayscale2 * 0.90;
+
+      vec4 new_color = grayscale * color;
+
+      vec2 vUv3     = vec2( vUv.x + cos(time) * 0.001, vUv.y + sin(time) * 0.001 );
+      vec4 darkness = texture2D( texture, vUv3 ) * 0.35;
+      new_color    -= darkness;
+
+      vec4 cam  = viewMatrix * vec4(cameraPosition,0.0);
+      vec3 camn = normalize(cam.xyz);
+      float intensity = pow( dot(vNormal, camn) - 1.42, 9.0);
+      vec4 glow = vec4( 0.75, 0.7, 0.4, 0.0 ) * pow( intensity, 9.0 );
+      new_color += glow;
+
+      gl_FragColor = new_color;
+    }
+
+%script{:id=>"vertexShaderHalo", :type=>"x-shader/x-vertex"}
+  :plain
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    void main()
+    {
+        vUv = uv;
+        vNormal = normalize( normalMatrix * normal );
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    }
+
+%script{:id=>"fragmentShaderHalo", :type=>"x-shader/x-fragment"}
+  :plain
+    varying vec2 vUv;
+    varying vec3 vNormal;
+
+    uniform vec4 color;
+    uniform sampler2D texture;
+    uniform sampler2D map;
+    uniform float time;
+
+    void main()
+    {
+      vec4 grayscale1 = texture2D( texture, vUv );
+
+      float gen1      = fract(grayscale1.z + time * 0.1);
+      vec2 vUv2       = vec2(gen1, 0.0);
+      vec4 grayscale2 = texture2D( map, vUv2 );
+      grayscale2     *= 50.0;
+
+      vec4 scaled     = color + vec4(0.25, 0.25, 0.25, 1.0);
+
+      vec4 new_color  = grayscale1 * grayscale2 * scaled;
+      gl_FragColor    = vec4(new_color.xyz, 1.0);
     }

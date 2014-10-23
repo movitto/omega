@@ -4,13 +4,12 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-/// TODO solar flares
-
 //= require "ui/canvas/entity/gfx"
 
 //= require "omega/star/gfx/components"
 //= require "omega/star/gfx/load"
 //= require "omega/star/gfx/init"
+//= require "omega/star/gfx/effects"
 
 // Star Gfx Mixin
 Omega.StarGfx = {
@@ -21,3 +20,4 @@ Omega.StarGfx = {
 $.extend(Omega.StarGfx, Omega.UI.CanvasEntityGfx);
 $.extend(Omega.StarGfx, Omega.StarGfxLoader);
 $.extend(Omega.StarGfx, Omega.StarGfxInitializer);
+$.extend(Omega.StarGfx, Omega.StarGfxEffects);

@@ -7,3 +7,6 @@
 //= require "omega/star/components/mesh"
 //= require "omega/star/components/glow"
 //= require "omega/star/components/light"
+
+//= require "omega/star/components/halo"
+//= require "omega/star/components/surface"

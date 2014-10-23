@@ -57,7 +57,10 @@ Omega.Config = {
     'solar_system' : { 'material' : '/solar_system1.png'},
 
     'star'         : { 'base_texture'  : '/textures/stars/sun-',
-                       'extension' : 'jpg'},
+                       'extension' : 'jpg',
+                       'surface_texture'    : '/textures/sun-grayscale2.png',
+                       'halo_texture'       : '/textures/sun-halo3.png',
+                       'halo_shift_texture' : '/textures/sun-halo-shift.png'},
 
     'jump_gate'    : { 'material' : '/meshes/wormhole_generator/generatormap.jpg',
                        'geometry' : '/meshes/wormhole_generator/wormhole_generator.json'},
