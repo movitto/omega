@@ -54,7 +54,8 @@ Omega.UI.AsyncResourceLoader = {
   },
 
   _on_loaded : function(resource){
-    var id = resource.omega_id;
+    var resource_is_array = (typeof(resource) === "array" || typeof(resource) == "object") && resource[0];
+    var id = resource_is_array ? resource[0].omega_id : resource.omega_id;
     if(!this._retrieval_callbacks || !this._retrieval_callbacks[id]) return;
     for(var cb = 0; cb < this._retrieval_callbacks[id].length; cb++)
       this._retrieval_callbacks[id][cb](resource);
