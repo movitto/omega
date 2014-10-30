@@ -9,6 +9,12 @@ Omega.UI.CanvasCameraManager = {
     return entity ? Omega.Config.cam.position[entity.json_class] : [0,0,0];
   },
 
+  /// Return current absolute cam position
+  cam_world_position : function(){
+    if(!this._cam_world) this._cam_world = new THREE.Vector3();
+    return this._cam_world.getPositionFromMatrix(this.cam.matrixWorld);
+  },
+
   // Reset camera to original position
   reset_cam : function(){
     if(!this.cam || !this.cam_controls) return;

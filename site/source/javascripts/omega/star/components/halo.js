@@ -71,6 +71,6 @@ Omega.StarHalo.prototype = {
   },
 
   rendered_in : function(canvas, component){
-    this.tmesh.lookAt(canvas.cam.position);
+    this.tmesh.lookAt(canvas.cam_world_position());
   }
 };
