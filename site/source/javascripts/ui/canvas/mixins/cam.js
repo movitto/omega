@@ -32,12 +32,16 @@ Omega.UI.CanvasCameraManager = {
                                  default_target[1],
                                  default_target[2]);
     this.cam_controls.update();
-
-    /// XXX need to force raise event to trigger handlers incase camera
-    /// properties not changed
-    this.cam_controls.dispatchEvent({type : 'change'});
+    this._force_cam_update();
 
     this.entity_container.hide();
+  },
+
+  /// XXX for situations camera properties not changed
+  /// and we need to force event to be raised to
+  /// trigger handlers
+  _force_cam_update : function(){
+    this.cam_controls.dispatchEvent({type : 'change'});
   },
 
   // Focus the scene camera on the specified location
@@ -48,7 +52,7 @@ Omega.UI.CanvasCameraManager = {
 
   /// return bool indicating if cam is following component
   is_following : function(component){
-    return this.following_component == component;
+    return component ? (this.following_component == component) : !!(this.following_component);
   },
 
   /// instruct canvas cam to follow location
@@ -73,6 +77,7 @@ Omega.UI.CanvasCameraManager = {
     this.cam_controls.target.set(0, 0, 0);
     this.follow(component);
     this.cam_controls.update();
+    this._force_cam_update();
   },
 
   /// instruct canvas cam to stop following location
