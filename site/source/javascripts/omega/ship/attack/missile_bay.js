@@ -15,7 +15,7 @@ Omega.ShipMissileBay = function(args){
   if(mesh)                       this.mesh = mesh;
   else if(material && geometry)  this.mesh = new THREE.SkinnedMesh(geometry, material);
 
-  this.mesh.scale.set(5, 5, 5);
+  this.mesh.scale.set(50, 50, 50);
   this.mesh.omega_obj = this;
 
   this.clock    = new THREE.Clock();

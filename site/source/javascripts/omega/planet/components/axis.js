@@ -10,7 +10,7 @@ Omega.PlanetAxis = function(args){
 };
 
 Omega.PlanetAxis.prototype = {
-  length : 250,
+  length : 7500,
   color  : 'red',
 
   clone : function(){

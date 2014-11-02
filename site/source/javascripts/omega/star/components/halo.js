@@ -16,7 +16,7 @@ Omega.StarHalo = function(args){
 };
 
 Omega.StarHalo.prototype = {
-  size      : 1800,
+  size      : 35000,
 
   clone : function(){
     return new Omega.StarHalo({mesh : this.tmesh.clone()});
@@ -58,7 +58,7 @@ Omega.StarHalo.prototype = {
   },
 
   _geometry : function(){
-    return new THREE.PlaneGeometry(1800, 1800, 1, 1);
+    return new THREE.PlaneGeometry(this.size, this.size, 1, 1);
   },
 
   init_gfx : function(color, event_cb){

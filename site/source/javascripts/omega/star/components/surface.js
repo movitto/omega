@@ -15,7 +15,7 @@ Omega.StarSurface = function(args){
 };
 
 Omega.StarSurface.prototype = {
-  size      : 775,
+  size      : 15000,
   segments  : 32,
   rings     : 32,
 

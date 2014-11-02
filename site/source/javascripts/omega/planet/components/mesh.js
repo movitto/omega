@@ -20,7 +20,7 @@ Omega.PlanetMesh = function(args){
 
 Omega.PlanetMesh.prototype = {
   props : {
-    radius   : 150,
+    radius   : 5000,
     segments : 32,
     rings    : 32
   },
