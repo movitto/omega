@@ -73,7 +73,8 @@ Omega.Station.prototype = {
   clicked_in : function(canvas){
     var ac = canvas.page.audio_controls;
     ac.play(ac.effects.click);
-    canvas.follow_entity(this);
+
+    canvas.follow_entity(this, {distance : [0, 5000, -5000]});
   },
 
   selected : function(page){

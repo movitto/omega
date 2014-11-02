@@ -39,7 +39,9 @@ Omega.Planet.prototype = {
 
   /// Follow planets with camera on click
   clicked_in : function(canvas){
-    canvas.follow_entity(this);
+    var dist = 25000;
+    var dir  = this.location.direction_to(0, 0, 0);
+    canvas.follow_entity(this, {distance : [dist * dir[0], dist * dir[1], dist * dir[2]]});
   }
 };
 

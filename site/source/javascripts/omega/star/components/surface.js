@@ -12,6 +12,7 @@ Omega.StarSurface = function(args){
 
   if(color) this.init_gfx(color, event_cb);
   else if(mesh) this.tmesh = mesh;
+  this.tmesh.omega_obj = this;
 };
 
 Omega.StarSurface.prototype = {
@@ -55,6 +56,5 @@ Omega.StarSurface.prototype = {
     var mat = this._material(this._uniforms(tex, color));
 
     this.tmesh = new THREE.Mesh(geo, mat);
-    this.tmesh.omega_obj = this;
   }
 };
