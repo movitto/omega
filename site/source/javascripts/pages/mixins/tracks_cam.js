@@ -35,6 +35,7 @@ Omega.Pages.TracksCam = {
 
   _scale_entity : function(entity){
     entity.scale_position(this.scene_scale);
+    entity.scale_size(this.entity_scale);
   },
 
   _set_entity_modes : function(){
@@ -78,7 +79,8 @@ Omega.Pages.TracksCam = {
   _far_scene_mode : function(){
     if(this.canvas.root && this.canvas.root.json_class != 'Cosmos::Entities::SolarSystem') return;
 
-    this.scene_scale = Omega.Config.position_scales.system.max;
+    this.scene_scale  = Omega.Config.position_scales.system.far;
+    this.entity_scale = Omega.Config.entity_scales.system.far;
 
     this._scale_entities();
     this._set_entity_modes();
@@ -92,9 +94,14 @@ Omega.Pages.TracksCam = {
     /// being converted to proportion of near/far cam range
     /// (keeping for now as it is a good effect)
     var percent = this._cam_percent();
-    var max     = Omega.Config.position_scales.system.max;
-    var min     = Omega.Config.position_scales.system.min;
-    this.scene_scale = percent * (max - min) + min;
+    var maxp    = Omega.Config.position_scales.system.max;
+    var minp    = Omega.Config.position_scales.system.min;
+    this.scene_scale = percent * (maxp - minp) + minp;
+
+    var maxe    = Omega.Config.entity_scales.system.max;
+    var mine    = Omega.Config.entity_scales.system.min;
+    this.entity_scale = mine - percent * (mine - maxe);
+    //this.entity_scale = percent * (mine - maxe) + maxe;
 
     this._scale_entities();
     this._set_entity_modes();
@@ -103,7 +110,8 @@ Omega.Pages.TracksCam = {
   _near_scene_mode : function(){
     if(this.canvas.root && this.canvas.root.json_class != 'Cosmos::Entities::SolarSystem') return;
 
-    this.scene_scale = Omega.Config.position_scales.system.min;
+    this.scene_scale  = Omega.Config.position_scales.system.min;
+    this.entity_scale = Omega.Config.entity_scales.system.min;
 
     this._scale_entities();
     this._set_entity_modes();

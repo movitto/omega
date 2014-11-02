@@ -76,6 +76,10 @@ Omega.UI.CanvasEntityGfx = {
     if(this.selection) this.selection.tmesh.scale.set(1, 1, 1);
   },
 
+  /// scale_size, default noop
+  scale_size : function(scale){
+  },
+
   _has_type : function(){
     return typeof(this.type) !== "undefined";
   },

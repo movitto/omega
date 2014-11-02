@@ -66,7 +66,8 @@ Omega.UI.CanvasStarDust.prototype = {
     this.particles.tick(this.clock.getDelta());
   },
 
-  scale_position : function(){}
+  scale_position : function(){},
+  scale_size : function(){}
 };
 
 THREE.EventDispatcher.prototype.apply( Omega.UI.CanvasStarDust.prototype );

@@ -62,7 +62,8 @@ Omega.UI.CanvasAxis.prototype = {
   },
 
   has_effects : function(){ return false; },
-  scale_position : function(){}
+  scale_position : function(){},
+  scale_size : function(){}
 };
 
 THREE.EventDispatcher.prototype.apply( Omega.UI.CanvasAxis.prototype );

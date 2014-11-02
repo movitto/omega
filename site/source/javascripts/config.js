@@ -38,7 +38,8 @@ Omega.Config = {
   //default_root      : 'random',
 
   // scale positions depending on scene root
-  position_scales : {system : {max : 100000, min : 5000}},
+  position_scales : {system : {far :   10000, max :   10000, min : 2500}},  /// position scale is divided
+  entity_scales   : {system : {far :     0.5, max :  0.00001, min :    1}}, /// size scale is multiplied
 
   // event tracking
   ship_movement     :   10000000000,
