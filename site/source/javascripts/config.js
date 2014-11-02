@@ -33,7 +33,9 @@ Omega.Config = {
          restriction : {'default'                       : {max :  10000, min :   100},
                         'Cosmos::Entities::SolarSystem' : {max : 500000, min : 50000},
                         'Cosmos::Entities::Galaxy'      : {max :  25000, min :  1000},
-                        'Manufactured::Ship'            : {max :   1000, min :   500}},
+                        'Cosmos::Entities::Planet'      : {max :  10000, min :  5000},
+                        'Manufactured::Ship'            : {max :   5000, min :   250},
+                        'Manufactured::Station'         : {max :  10000, min :  2000}},
 
          /// far & near distances represented as a proportion of max
          distance : {far : 0.65, near : 0.3}},

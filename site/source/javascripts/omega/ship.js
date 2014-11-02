@@ -101,7 +101,7 @@ Omega.Ship.prototype = {
 
   clicked_in : function(canvas){
     canvas.page.audio_controls.play(canvas.page.audio_controls.effects.click);
-    canvas.follow_entity(this, {distance : [0, 1000, -2000]});
+    canvas.follow_entity(this, {distance : [0, 2000, -3000]});
   },
 
   selected : function(page){

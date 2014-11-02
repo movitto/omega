@@ -32,7 +32,7 @@ Omega.ShipGfx.scene_components = function(scene){
 Omega.ShipGfx.scale_size = function(scale){
   if(!this.indicator) return;
   var size = this.indicator.size;
-  if(this.scene_mode != 'near') scale = 0.25;
+  if(this.scene_mode != 'near') scale = 0.1;
   this.indicator.set_size(size[0] / scale,
                           size[1] / scale);
 };

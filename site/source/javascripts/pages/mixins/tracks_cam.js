@@ -18,7 +18,7 @@ Omega.Pages.TracksCam = {
 
   _cam_percent : function(){
     var distance = this.canvas.cam.position.clone().sub(this.canvas.cam_controls.target).length();
-    return distance / Omega.Config.cam.distance.max;
+    return distance / this.canvas.cam_restriction_for(this.canvas.root).max;
   },
 
   _cam_change : function(){
