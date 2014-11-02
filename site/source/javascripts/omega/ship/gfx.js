@@ -27,3 +27,12 @@ Omega.ShipGfx.scene_components = function(scene){
   return far_components ? this.abstract_components :
                           this.abstract_components.concat(this.components);
 };
+
+/// Override CanvasEntityGfx#scale_size to scale indicator size
+Omega.ShipGfx.scale_size = function(scale){
+  if(!this.indicator) return;
+  var size = this.indicator.size;
+  if(this.scene_mode != 'near') scale = 0.25;
+  this.indicator.set_size(size[0] / scale,
+                          size[1] / scale);
+};

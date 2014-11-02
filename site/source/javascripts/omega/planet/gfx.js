@@ -22,17 +22,10 @@ $.extend(Omega.PlanetGfx, Omega.PlanetGfxInitializer);
 $.extend(Omega.PlanetGfx, Omega.PlanetGfxUpdater);
 $.extend(Omega.PlanetGfx, Omega.PlanetGfxEffects);
 
-/// Override CanvasEntityGfx#set_scene_mode to update components depening on scene_mode
-Omega.PlanetGfx.set_scene_mode = function(scene_mode){
+/// Override CanvasEntityGfx#scale_size to scale mesh/axis size
+Omega.PlanetGfx.scale_size = function(scale){
   if(!this.mesh) return;
 
-  this.scene_mode = scene_mode;
-  if(this.scene_mode == 'far'){
-    this.mesh.tmesh.scale.set(1, 1, 1);
-    this.axis.mesh.scale.set(1, 1, 1);
-  }else{
-    var scale = 5;
-    this.mesh.tmesh.scale.set(scale, scale, scale);
-    this.axis.mesh.scale.set(scale, scale, scale);
-  }
+  this.mesh.tmesh.scale.set(scale, scale, scale);
+  this.axis.mesh.scale.set(scale, scale, scale);
 };
