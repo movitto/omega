@@ -28,12 +28,15 @@ Omega.Config = {
   //canvas_width      :         900,
   //canvas_height     :         400,
   cam : {position : {'Cosmos::Entities::SolarSystem' : [ 25000,  25000,    25000],
-                     'Cosmos::Entities::Galaxy'      : [    0,  10000,  10000]},
+                     'Cosmos::Entities::Galaxy'      : [    0,    5000,     5000]},
          target   : [0,    0,    0],
-         distance : {max : 300000, min : 1000,
+         restriction : {'default'                       : {max :  10000, min :   100},
+                        'Cosmos::Entities::SolarSystem' : {max : 500000, min : 50000},
+                        'Cosmos::Entities::Galaxy'      : {max :  25000, min :  1000},
+                        'Manufactured::Ship'            : {max :   1000, min :   500}},
 
-                     /// far & near distances represented as a proportion of max
-                     far : 0.65, near : 0.3}},
+         /// far & near distances represented as a proportion of max
+         distance : {far : 0.65, near : 0.3}},
 
   //default_root      : 'random',
 

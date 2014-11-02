@@ -84,8 +84,6 @@ Omega.UI.CanvasSceneManager = {
   _init_cam_controls : function(){
     var _this = this;
     this.cam_controls = new THREE.OrbitControls(this.cam);
-    this.cam_controls.minDistance = Omega.Config.cam.distance.min;
-    this.cam_controls.maxDistance = Omega.Config.cam.distance.max;
     this.cam_controls.addEventListener('change', function(){ _this.render(); });
     this.cam_controls.domElement = this.renderer.domElement;
     this.reset_cam();

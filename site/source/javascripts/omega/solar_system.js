@@ -138,7 +138,7 @@ Omega.SolarSystem.prototype = {
   clicked_in : function(canvas){
     /// TODO cleanup
     if(!canvas.entity_container.is_selected(this)){
-      canvas.follow_entity(this);
+      canvas.follow_entity(this, {no_restrict : true});
 
       var _this = this;
       /// TODO also retrieve / display manu entities in system

@@ -5,8 +5,14 @@
  */
 
 Omega.UI.CanvasCameraManager = {
-  default_position_for : function(entity){
+  default_cam_position_for : function(entity){
     return entity ? Omega.Config.cam.position[entity.json_class] : [0,0,0];
+  },
+
+  cam_restriction_for : function(entity){
+    return entity && Omega.Config.cam.restriction[entity.json_class] ?
+                     Omega.Config.cam.restriction[entity.json_class] :
+                     Omega.Config.cam.restriction['default'];
   },
 
   /// Return current absolute cam position
@@ -20,7 +26,7 @@ Omega.UI.CanvasCameraManager = {
     if(!this.cam || !this.cam_controls) return;
 
     this.stop_following();
-    var default_position = this.default_position_for(this.root);
+    var default_position = this.default_cam_position_for(this.root);
     var default_target   = Omega.Config.cam.target;
 
     this.cam_controls.object.position.set(default_position[0],
@@ -31,6 +37,9 @@ Omega.UI.CanvasCameraManager = {
     this.cam_controls.target.set(default_target[0],
                                  default_target[1],
                                  default_target[2]);
+
+    this.restrict_cam(this.cam_restriction_for(this.root));
+
     this.cam_controls.update();
     this._force_cam_update();
 
@@ -42,6 +51,12 @@ Omega.UI.CanvasCameraManager = {
   /// trigger handlers
   _force_cam_update : function(){
     this.cam_controls.dispatchEvent({type : 'change'});
+  },
+
+  /// Restrict cam controls
+  restrict_cam : function(restrictions){
+    if(restrictions['max']) this.cam_controls.maxDistance = restrictions['max'];
+    if(restrictions['min']) this.cam_controls.minDistance = restrictions['min'];
   },
 
   // Focus the scene camera on the specified location
@@ -76,6 +91,10 @@ Omega.UI.CanvasCameraManager = {
     this.cam.position.set(distance[0], distance[1], distance[2]);
     this.cam_controls.target.set(0, 0, 0);
     this.follow(component);
+
+    if(!args['no_restrict'])
+      this.restrict_cam(this.cam_restriction_for(entity));
+
     this.cam_controls.update();
     this._force_cam_update();
   },
@@ -85,5 +104,7 @@ Omega.UI.CanvasCameraManager = {
     if(this.following_component)
       this.following_component.remove(this.cam);
     this.following_component = null
+
+    this.restrict_cam(this.cam_restriction_for(this.root));
   }
 };
