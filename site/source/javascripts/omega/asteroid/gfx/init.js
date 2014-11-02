@@ -8,7 +8,8 @@ Omega.AsteroidGfxInitializer = {
   init_mesh : function(){
     /// pick a random mesh from those available
     var num_meshes = Omega.AsteroidMesh.geometry_paths()[0].length;
-    var mesh_num   = Math.floor(Math.random() * num_meshes);
+    var mesh_num   = typeof(this.mesh_num) !== "undefined" ?
+                     this.mesh_num : Math.floor(Math.random() * num_meshes);
 
     var _this = this;
     this._retrieve_async_resource('asteroid.meshes', function(geometries){

@@ -34,6 +34,7 @@ Omega.UI.AsyncResourceLoader = {
 
         var have_all_responses = resources.length == paths.length;
         if(have_all_responses){
+          /// TODO if path_is_array sort resources by path original path order
           var result = path_is_array ? resources : resources[0];
           _this._resources()[id] = result;
           if(event_cb) event_cb(result);
