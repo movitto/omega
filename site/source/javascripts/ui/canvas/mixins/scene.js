@@ -72,7 +72,7 @@ Omega.UI.CanvasSceneManager = {
     var aspect = sw / sh;
     if(isNaN(aspect)) aspect = 1;
 
-    this.cam    = new THREE.PerspectiveCamera(75, aspect, 1, 500000 );
+    this.cam    = new THREE.PerspectiveCamera(75, aspect, 1, 1000000 );
     this.skyCam = new THREE.PerspectiveCamera(75, aspect, 1,   1000 );
 
     /// tie scene / sky camera rotation

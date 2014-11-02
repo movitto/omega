@@ -20,7 +20,7 @@ Omega.Pages.DevInitializer = {
   setup : function(){
     var _this = this;
     this.canvas.init_gl().append();
-    this.canvas.cam.position.set(1500, 1500, 1500);
+    this.canvas.cam.position.set(25000, 25000, 25000);
     this.canvas.focus_on({x:0,y:0,z:0});
 
     Omega.Gen.init(function(){
