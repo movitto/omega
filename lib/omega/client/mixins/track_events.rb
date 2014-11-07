@@ -19,11 +19,15 @@ module Omega
       # @param [Array<Object>] args initialization parameters
       # @param [Callable] handler callback to invoke on event
       def handle(event, *args, &handler)
-        esetup = self.class.event_setup[event]
+        @setup_events ||= []
+        unless @setup_events.include?(event)
+          @setup_events << event
+          esetup = self.class.event_setup[event]
 
-        esetup.each { |cb|
-          self.instance_exec(*args, &cb)
-        } unless esetup.nil?
+          esetup.each { |cb|
+            self.instance_exec(*args, &cb)
+          } unless esetup.nil?
+        end
 
         @event_handlers ||= Hash.new() { |h,k| h[k] = [] }
         @event_handlers[event] << handler unless handler.nil?
@@ -37,11 +41,13 @@ module Omega
       # Clear all handlers
       def clear_handlers
         @event_handlers = nil
+        @setup_events   = []
       end
 
       # Clear handlers for the specified event
       def clear_handlers_for(event)
         @event_handlers[event] = [] if @event_handlers
+        @setup_events.delete(event) if @setup_events
         # TODO we should also remove rjr notification callback from @node
       end
 
@@ -113,35 +119,57 @@ module Omega
             end
 
             if events[e].has_key?(:subscribe)
-              event_setup << lambda { |*args|
-                self.node.invoke(events[e][:subscribe], self.entity.id, e)
-              }
+              event_setup << subscription_setup(e, events[e])
             end
 
             if events[e].has_key?(:notification)
-              event_setup << lambda { |*args|
-                @event_serializer = Mutex.new
-                @handled ||= []
-                unless @handled.include?(e)
-                  notification = events[e][:notification]
-                  self.node.handle(notification) { |*args|
-                    if events[e][:match].nil? || events[e][:match].call(self, *args)
-                      @event_serializer.synchronize {
-                        events[e][:update].call(self, *args) if events[e][:update]
-                        self.raise_event e, *args
-                      }
-                    end
-                  }
-                  @handled << e
-                end
-              }
+              event_setup << notification_setup(e, events[e])
             end
 
-            @event_setup ||= {}
+            @event_setup  ||= {}
             @event_setup[e] = event_setup
           }
         end
+
+        private
+
+        # Helper to return subscription setup method
+        def subscription_setup(event, opts)
+          lambda { |*args|
+            subscribe_method = opts[:subscribe]
+            node.invoke(subscribe_method, entity.id, event)
+          }
+        end
+
+        # Helper to return notification setup method
+        def notification_setup(event, opts)
+          lambda { |*args|
+            @handled ||= []
+            unless @handled.include?(event)
+              handle_notification(event, opts)
+              @handled << event
+            end
+          }
+        end
       end # module ClassMethods
+
+      def handle_notification(event, opts)
+        notification = opts[:notification]
+        node.handle(notification) { |*args|
+          matcher = opts[:match]
+          should_handle = matcher.nil? || matcher.call(self, *args)
+          on_notification(event, args, opts) if should_handle
+        }
+      end
+
+      def on_notification(event, event_args, opts)
+        @event_serializer ||= Mutex.new
+        @event_serializer.synchronize {
+          updater = opts[:update]
+          updater.call(self, *event_args) if updater
+          raise_event event, *event_args
+        }
+      end
     end # module TrackEvents
   end # module Client
 end # module Omega
