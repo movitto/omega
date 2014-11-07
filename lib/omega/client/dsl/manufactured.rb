@@ -20,7 +20,7 @@ module Omega
         begin return invoke 'manufactured::get_entity', 'with_id', id
         rescue Exception => e ; end
 
-        stargs = args.merge({:id => id})
+        stargs = {:solar_system => @solar_system }.merge(args).merge({:id => id})
 
         # create location if not specified
         unless stargs[:location]
@@ -71,7 +71,7 @@ module Omega
         begin return invoke 'manufactured::get_entity', 'with_id', id
         rescue Exception => e ; end
 
-        shargs = args.merge({:id => id})
+        shargs = {:solar_system => @solar_system }.merge(args).merge({:id => id})
 
         # create location if not specified
         unless shargs[:location]
