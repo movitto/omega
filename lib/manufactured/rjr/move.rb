@@ -27,10 +27,11 @@ module Manufactured::RJR
     raise ValidationError, loc unless loc.is_a?(Motel::Location)
   
     # update the entity's location & solar system
-    entity.location =
-      node.invoke('motel::get_location', 'with_id', entity.location.id)
-    entity.solar_system =
-      node.invoke('cosmos::get_entity',  'with_location', entity.location.parent_id)
+    entity.location     = node.invoke('motel::get_location',
+                                      'with_id', entity.location.id)
+
+    entity.solar_system = node.invoke('cosmos::get_entity',
+                                      'with_location', entity.location.parent_id)
   
     # lookup target system
     parent_id = loc.parent_id.nil? ? entity.system_id : loc.parent_id
@@ -47,7 +48,7 @@ module Manufactured::RJR
     else
       move_entity_in_system(entity, loc)
     end
-  
+
     # return entity
     entity
   }
