@@ -62,21 +62,109 @@ class Attack < Omega::Server::Command
     super(args)
   end
 
-  def first_hook
+  private
+
+  def refresh_entities
+    # update entities from registry
+    @attacker = retrieve(@attacker.id)
+    @defender = retrieve(@defender.id)
+  end
+
+  def refresh_locations
+    # update locations from motel
+    @attacker.location = invoke 'motel::get_location',
+                                'with_id', @attacker.location.id
+    @defender.location = invoke 'motel::get_location',
+                                'with_id', @defender.location.id
+  end
+
+  def start_attack
     @attacker.start_attacking(@defender)
     update_registry(@attacker)
   end
 
-  def before_hook
-    # update entities from registry
-    @attacker = retrieve(@attacker.id)
-    @defender = retrieve(@defender.id)
+  def stop_attack
+    @attacker.stop_attacking
+    update_registry(@attacker)
+    ::RJR::Logger.info "#{@attacker.id} stopped attacking #{@defender.id}"
+  end
 
-    # update locations from motel
-    @attacker.location =
-      invoke 'motel::get_location', 'with_id', @attacker.location.id
-    @defender.location =
-      invoke 'motel::get_location', 'with_id', @defender.location.id
+  def run_completion_callbacks
+    # invoke attackers's 'attacked_stop' callbacks
+    run_callbacks(@attacker, 'attacked_stop', @defender)
+
+    # invoke defender's 'defended_stop' callbacks
+    run_callbacks(@defender, 'defended_stop', @attacker)
+
+    # invoke defender's 'destroyed' callbacks
+    run_callbacks(@defender, 'destroyed_by', @attacker) unless @defender.alive?
+  end
+
+  def update_locations
+    # only need to update defender for now
+    # update ship's movement strategy to stopped
+    @defender.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
+      invoke("motel::update_location", @defender.location)
+
+    # TODO issue call to motel to lock destroyed ship's location
+    # (when that operation is supported)
+  end
+
+  def update_attributes
+    invoke('users::update_attribute', @attacker.user_id,
+           Users::Attributes::ShipsUserDestroyed.id,  1)
+    invoke('users::update_attribute', @defender.user_id,
+           Users::Attributes::UserShipsDestroyed.id,  1)
+  end
+
+  def create_loot
+    return if @defender.cargo_empty?
+
+    # two entities (ship/loot) sharing same location
+    loot = Manufactured::Loot.new :id => "#{@defender.id}-loot",
+             :location          => @defender.location,
+             :system_id         => @defender.system_id,
+             :movement_strategy => Motel::MovementStrategies::Stopped.instance,
+             :cargo_capacity    => @defender.cargo_capacity
+    @defender.resources.each { |r| loot.add_resource r }
+    registry << loot
+  end
+
+  def register_destroyed_event
+    event = Manufactured::Events::EntityDestroyed.new(:entity => @defender)
+    registry << event
+  end
+
+  # Invoked when defender is destroyed
+  def cleanup_defender
+    ::RJR::Logger.info "#{@attacker.id} destroyed #{@defender.id}"
+
+    update_locations
+
+    # Stop commands related to destroyed ship.
+    # All commands should auto-stop if related entity is not alive
+    # but this stops the commands immediately so that it's done w/
+    registry.stop_commands_for(@defender)
+
+    # set user attributes
+    update_attributes
+
+    # create loot if necessary
+    create_loot
+
+    # Dispatch new entity_destroyed event to registry
+    register_destroyed_event
+  end
+
+  public
+
+  def first_hook
+    start_attack
+  end
+
+  def before_hook
+    refresh_entities
+    refresh_locations
   end
 
   def after_hook
@@ -86,56 +174,15 @@ class Attack < Omega::Server::Command
   end
 
   def last_hook
-    @attacker.stop_attacking
-    ::RJR::Logger.info "#{@attacker.id} stopped attacking #{@defender.id}"
+    stop_attack
+    cleanup_defender unless @defender.alive?
+    run_completion_callbacks
+  end
 
-    # check if defender has been destroyed
-    if @defender.hp == 0
-      ::RJR::Logger.info "#{@attacker.id} destroyed #{@defender.id}"
-
-      # update ship's movement strategy to stopped
-      @defender.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
-      invoke("motel::update_location", @defender.location)
-
-      # TODO issue call to motel to lock destroyed ship's location
-      # (when that operation is supported)
-
-      # Stop commands related to destroyed ship.
-      # All commands should auto-stop if related entity is not alive
-      # but this stops the commands immediately so that it's done w/
-      registry.stop_commands_for(@defender)
-
-      # set user attributes
-      invoke('users::update_attribute', @attacker.user_id,
-             Users::Attributes::ShipsUserDestroyed.id,  1)
-      invoke('users::update_attribute', @defender.user_id,
-             Users::Attributes::UserShipsDestroyed.id,  1)
-
-      # create loot if necessary
-      unless @defender.cargo_empty?
-        # two entities (ship/loot) sharing same location
-        loot = Manufactured::Loot.new :id => "#{@defender.id}-loot",
-                 :location          => @defender.location,
-                 :system_id         => @defender.system_id,
-                 :movement_strategy => Motel::MovementStrategies::Stopped.instance,
-                 :cargo_capacity    => @defender.cargo_capacity
-        @defender.resources.each { |r| loot.add_resource r }
-        registry << loot
-      end
-
-      # invoke defender's 'destroyed' callbacks
-      run_callbacks(@defender, 'destroyed_by', @attacker)
-
-      # Dispatch new entity_destroyed event to registry
-      event = Manufactured::Events::EntityDestroyed.new(:entity => @defender)
-      registry << event
-    end
-
-    # invoke attackers's 'attacked_stop' callbacks
-    run_callbacks(@attacker, 'attacked_stop', @defender)
-
-    # invoke defender's 'defended_stop' callbacks
-    run_callbacks(@defender, 'defended_stop', @attacker)
+  def stop_hook
+    @attacker = retrieve(@attacker.id)
+    @defender = retrieve(@defender.id)
+    stop_attack
   end
 
   def should_run?
