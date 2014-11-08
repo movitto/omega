@@ -94,13 +94,13 @@ Omega::Client::Corvette.get_all.each { |corvette|
     sputs "#{c.id.bold.yellow} stopped attacking #{defender.id.bold.yellow}"
   }
   corvette.handle(:defended) { |c,event, defender, attacker|
-    sputs "#{c.id.bold.yellow} defendend against #{attacker.id.bold.yellow}"
+    sputs "#{c.id.bold.yellow} defended against #{attacker.id.bold.yellow}"
   }
   corvette.handle(:defended_stop) { |c,event, defender, attacker|
     sputs "#{c.id.bold.yellow} stopped defending against #{attacker.id.bold.yellow}"
   }
   corvette.handle(:destroyed_by) { |c,event, defender, attacker|
-    sputs "#{c.id.bold.yellow} destroyed by #{attacker.id.bold.yellow}"
+    sputs "#{c.id.bold.yellow} " + 'destroyed'.bold.red + " by #{attacker.id.bold.yellow}"
   }
   corvette.start_bot
 }
