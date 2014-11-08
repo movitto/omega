@@ -85,7 +85,7 @@ module Entity
     #
     # @return [true,false] indicating if ship is attacking or not
     def attacking?
-      !self.attacking.nil?
+      !self.attacking_id.nil?
     end
 
     # Set ship's attack target
@@ -93,10 +93,12 @@ module Entity
     # @param [Manufactured::Ship] defender ship being attacked
     def start_attacking(defender)
       self.attacking = defender
+      self.attacking.id = defender.id
     end
 
     # Clear ship's attacking target
     def stop_attacking
+      self.attacking_id = nil
       self.attacking = nil
     end
 
