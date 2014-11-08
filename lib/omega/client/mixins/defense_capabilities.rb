@@ -44,8 +44,10 @@ module Omega
           :off   => lambda { |e| },
           :on    =>
             lambda { |e|
+              # not handling for now to allow processing of any
+              # final messages received, may want to remove eventually
               # TODO remove rjr notifications
-              e.clear_handlers
+              #e.clear_handlers
             }
       end
     end # module DefenseCapabilities
