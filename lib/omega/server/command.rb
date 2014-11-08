@@ -58,7 +58,8 @@ class Command
                          :hooks =>  {:first  => [proc { self.first_hook  }],
                                      :before => [proc { self.before_hook }],
                                      :after  => [proc { self.after_hook  }],
-                                     :last   => [proc { self.last_hook   }]}
+                                     :last   => [proc { self.last_hook   }],
+                                     :stop   => [proc { self.stop_hook   }]}
 
     @added_at    = Time.parse(@added_at)    if @added_at.is_a?(String)
     @last_ran_at = Time.parse(@last_ran_at) if @last_ran_at.is_a?(String)
@@ -84,6 +85,10 @@ class Command
 
   # 'last' hook definition
   def last_hook
+  end
+
+  # 'stop' hook definition
+  def stop_hook
   end
 
   # Run hooks of the specified type

@@ -10,8 +10,8 @@ module Manufactured
 module RunsEntityCommands
   def stop_commands_for(entity)
     # stop all commands related to entity
+    to_remove = []
     @lock.synchronize {
-      to_remove = []
       @entities.each { |reg_entity|
         if reg_entity.kind_of?(Omega::Server::Command) &&
            reg_entity.processes?(entity) # TODO flush out processes? methods
@@ -19,7 +19,13 @@ module RunsEntityCommands
         end
       }
 
+
       @entities -= to_remove
+    }
+
+    to_remove.each { |cmd|
+      cmd.registry = self
+      cmd.run_hooks :stop
     }
   end
 end # module RunsEntityCommands
