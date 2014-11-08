@@ -24,6 +24,9 @@ module MovementStrategies
     # Stop location movement automatically after this distance moved, optional
     attr_accessor :stop_distance
 
+    # Stop location movement automatically when near specified coordinates, optional
+    attr_accessor :stop_near
+
     # Max speed, speed after which acceleration no longer has an effect
     attr_accessor :max_speed
 
@@ -40,6 +43,7 @@ module MovementStrategies
                            :ax => 1, :ay => 0, :az => 0,
                            :speed => nil, :acceleration => nil,
                            :stop_distance => nil,
+                           :stop_near => nil,
                            :max_speed => nil
 
       # normalize direction & acceleration vectors
@@ -70,6 +74,14 @@ module MovementStrategies
       !stop_distance.nil? && loc.distance_moved >= stop_distance
     end
 
+    # Return bool indicating if loc is within specified distance of stop coordinate
+    def near_stop_coordinate?(loc)
+      !stop_near.nil? &&
+      loc.distance_from(stop_near[1],
+                        stop_near[2],
+                        stop_near[3]) <= stop_near[0]
+    end
+
     # Return linear attributes in json format
     def linear_json
       {:speed         => speed,
@@ -81,6 +93,7 @@ module MovementStrategies
        :az            => az,
        :acceleration  => acceleration,
        :stop_distance => stop_distance,
+       :stop_near     => stop_near,
        :max_speed     => max_speed}
     end
 
@@ -115,10 +128,15 @@ module MovementStrategies
 
       distance     = speed * elapsed_seconds
 
+      # TODO if accelerating, slow acceleration/velocity instead of hard stops
+
       # stop at stop distance
       exceeds_stop = !stop_distance.nil? &&
                      (loc.distance_moved + distance) > stop_distance
       distance     = (stop_distance - loc.distance_moved) if exceeds_stop
+
+      # stop if near stop coordinate
+      distance  = 0 if near_stop_coordinate?(loc)
 
       # update location's coordinates
       loc.x += distance * dx

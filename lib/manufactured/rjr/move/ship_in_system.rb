@@ -16,14 +16,15 @@ module Manufactured::RJR
     distance = loc - entity.location
     raise OperationError, "#{entity} at location" if distance < 1
 
-    # calculate the new trajectory
+    # calculate the new trajectory and stop coords
     od = entity.location.rotation_to(*loc.coordinates)
+    stop = loc.coordinates.unshift(0)
 
     # Create linear movement strategy w/ movement trajectory
     # TODO s/dorientation/dacceleration, set acceleration params
     stopped = Motel::MovementStrategies::Stopped.instance
     linear  = Motel::MovementStrategies::Linear.new :dorientation  => true,
-                                                    :stop_distance => distance,
+                                                    :stop_near     => stop,
                                                     :speed         => entity.movement_speed
     entity.location.movement_strategy      = linear
     entity.location.next_movement_strategy = stopped
