@@ -64,7 +64,7 @@ module Entity
     constrained_attr :shield_refresh_rate
 
     # Ship which destroyed this one (or its id) if applicable
-    attr_accessor :destroyed_by
+    foreign_reference :destroyed_by
 
     # @!endgroup
 
@@ -72,6 +72,8 @@ module Entity
     def combat_state_from_args(args)
       attr_from_args args, :attacking    => nil,
                            :attacking_id => @attacking_id,
+                           :destroyed_by => nil,
+                           :destroyed_by_id => @destroyed_by_id,
                            :shield_level =>  nil,
                            :hp           =>  nil
     end
@@ -123,7 +125,7 @@ module Entity
     # Return combat attributes which are updatable
     def updatable_combat_attrs
       @updatable_combat_attrs ||=
-        [:hp, :shield_level, :attacking, :attacking_id]
+        [:hp, :shield_level, :attacking, :attacking_id, :destroyed_by, :destroyed_by_id]
     end
 
     # Return combat ship attributes in json format
@@ -133,7 +135,8 @@ module Entity
        :max_hp           => max_hp,
        :max_shield_level => max_shield_level,
        :attack_distance  => attack_distance,
-       :attacking_id     => attacking_id}
+       :attacking_id     => attacking_id,
+       :destroyed_by_id  => destroyed_by_id}
     end
 
     module ClassMethods
