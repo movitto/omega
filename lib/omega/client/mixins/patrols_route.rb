@@ -11,6 +11,8 @@ module Omega
 
       # Calculate an inter-system route to patrol and move through it.
       def patrol_route
+        return unless alive?
+
         @visited  ||= []
 
         # add local system to visited list
