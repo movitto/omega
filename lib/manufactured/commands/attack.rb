@@ -24,7 +24,7 @@ module Commands
 #
 # The callback events/types invoked include:
 # * 'attacked_stop' - invoked on the attacker when attacker stops attacking
-# * 'attacked_stop' - invoked on the defender when attacker stops attacking
+# * 'defended_stop' - invoked on the defender when attacker stops attacking
 # * 'attacked'      - invoked on the attacker when attacker actually launches the attack
 # * 'defended'      - invoked on the defender when attacker actually launches the attack
 # * 'destroyed'     - invoked on the defender if this attack cycle resulted in the defender hp becoming <= 0
@@ -97,14 +97,15 @@ class Attack < Omega::Server::Command
     run_callbacks(@defender, 'defended_stop', @attacker)
 
     # invoke defender's 'destroyed' callbacks
-    run_callbacks(@defender, 'destroyed_by', @attacker) unless @defender.alive?
+    destroyed_by_attacker = !@defender.alive? && @defender.destroyed_by_id == @attacker.id
+    run_callbacks(@defender, 'destroyed_by', @attacker) if destroyed_by_attacker
   end
 
   def update_locations
     # only need to update defender for now
     # update ship's movement strategy to stopped
     @defender.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
-      invoke("motel::update_location", @defender.location)
+    invoke("motel::update_location", @defender.location)
 
     # TODO issue call to motel to lock destroyed ship's location
     # (when that operation is supported)
@@ -159,6 +160,7 @@ class Attack < Omega::Server::Command
   public
 
   def first_hook
+    refresh_entities
     start_attack
   end
 
@@ -180,9 +182,11 @@ class Attack < Omega::Server::Command
   end
 
   def stop_hook
-    @attacker = retrieve(@attacker.id)
-    @defender = retrieve(@defender.id)
+    refresh_entities
+    return unless @attacker.attacking? # catches the command which stops others
+                                       # so that cb's are not run twice
     stop_attack
+    run_completion_callbacks
   end
 
   def should_run?
