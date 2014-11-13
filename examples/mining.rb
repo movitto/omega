@@ -9,6 +9,7 @@ require 'colored'
 require 'omega'
 require 'omega/client/dsl'
 require 'omega/client/entities/miner'
+require 'omega/client/entities/station'
 require 'omega/client/entities/user'
 require 'rjr/nodes/tcp'
 
