@@ -93,6 +93,8 @@ Omega.EntityTracker = {
     this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'defended');
     this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'defended_stop');
     this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'destroyed_by');
+    this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'transferred_to');
+    this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'transferred_from');
   },
 
   /// Stop tracking all ship motel and manu callbacks
@@ -113,6 +115,8 @@ Omega.EntityTracker = {
     this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'construction_complete');
     this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'construction_failed');
     this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'partial_construction');
+    this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'transferred_to');
+    this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'transferred_from');
   },
 
   /// Stop tracking all station motel and manu callbacks

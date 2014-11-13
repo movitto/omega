@@ -33,6 +33,8 @@ Omega.CallbackHandler.prototype = {
   _callbacks_construction_complete : Omega.Callbacks.construction_complete,
   _callbacks_construction_failed   : Omega.Callbacks.construction_failed,
   _callbacks_partial_construction  : Omega.Callbacks.partial_construction,
+  _callbacks_transferred_to        : Omega.Callbacks.transferred_to,
+  _callbacks_transferred_from      : Omega.Callbacks.transferred_from,
   _callbacks_system_jump           : Omega.Callbacks.system_jump,
   _callbacks_mission_victory       : Omega.Callbacks.mission_victory,
   _callbacks_mission_failed        : Omega.Callbacks.mission_failed,
@@ -82,6 +84,12 @@ Omega.CallbackHandler.prototype = {
 
       }else if(mevnt == 'partial_construction'){
         this._callbacks_partial_construction(evnt, event_args);
+
+      }else if(mevnt == 'transferred_to'){
+        this._callbacks_transferred_to(evnt, event_args);
+
+      }else if(mevnt == 'transferred_from'){
+        this._callbacks_transferred_from(evnt, event_args);
 
       }else if(mevnt == 'system_jump'){
         this._callbacks_system_jump(evnt, event_args);
