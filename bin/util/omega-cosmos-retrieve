@@ -103,7 +103,7 @@ if callbacks
 
     puts indent(i) + "Notifications:" if (entity.callbacks.size) > 0
     entity.callbacks.each { |n|
-      puts indent(i+1) + "- #{n.type} -> #{n.endpoint_id}"
+      puts indent(i+1) + "- #{n.event_type} -> #{n.endpoint_id}"
     }
   end
 

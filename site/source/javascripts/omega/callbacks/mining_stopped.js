@@ -11,9 +11,9 @@ Omega.Callbacks.mining_stopped = function(event, event_args){
   var resource = event_args[2];
   var reason   = event_args[3];
 
-  var entity = $.grep(this.page.all_entities(),
-                      function(entity){ return entity.id == ship.id; })[0];
+  var entity = this.page.entity(ship.id);
   if(entity == null) return;
+
   entity.clear_mining();
   entity.resources = ship.resources;
   entity._update_resources();

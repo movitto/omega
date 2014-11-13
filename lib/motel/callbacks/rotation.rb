@@ -102,8 +102,7 @@ class Rotation < Omega::Server::Callback
 
   # Create new callback from json representation
   def self.json_create(o)
-    callback = new(o['data'])
-    return callback
+    new(o['data'])
   end
 end # class Rotation
 end # module Callbacks

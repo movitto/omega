@@ -10,11 +10,10 @@ Omega.Callbacks.defended = function(event, event_args){
   var defender = event_args[1];
   var attacker = event_args[2];
 
-  var pattacker = $.grep(this.page.all_entities(),
-                         function(entity){ return entity.id == attacker.id; })[0];
-  var pdefender = $.grep(this.page.all_entities(),
-                         function(entity){ return entity.id == defender.id; })[0];
+  var pattacker = this.page.entity(attacker.id);
+  var pdefender = this.page.entity(defender.id);
   if(pattacker == null || pdefender == null) return;
+
   pdefender.hp           = defender.hp;
   pdefender.shield_level = defender.shield_level;
   pdefender.update_defense_gfx();

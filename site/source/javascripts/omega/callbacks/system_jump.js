@@ -11,10 +11,8 @@ Omega.Callbacks.system_jump = function(event, evnt_args){
   var old_system = evnt_args[2];
 
   var in_root = this.page.canvas.is_root(jumped.system_id);
-  var pentity = $.grep(this.page.all_entities(),
-                       function(entity){ return entity.id == jumped.id })[0];
-  var psystem = $.grep(this.page.all_entities(),
-                       function(entity){ return entity.id == jumped.system_id; })[0];
+  var pentity = this.page.entity(jumped.id);
+  var psystem = this.page.entity(jumped.system_id);
 
   if(!pentity) pentity = Omega.convert.entity(jumped);
   pentity.update_system(psystem);

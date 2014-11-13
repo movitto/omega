@@ -11,11 +11,11 @@ Omega.Callbacks.resource_collected = function(event, event_args){
   var resource = event_args[2];
   var quantity = event_args[3];
 
-  var entity = $.grep(this.page.all_entities(),
-                      function(entity){ return entity.id == ship.id; })[0];
+  var entity = this.page.entity(ship.id);
   if(entity == null) return;
 
-  if(!entity.is_mining()){
+  /// if mining target is set server side but not client side
+  if(ship.mining && !entity.is_mining()){
     var ast = this.page.asteroid_with_resource(ship.mining.id);
     var resource = ast.resource(ship.mining.id);
     entity.set_mining(resource, ast);

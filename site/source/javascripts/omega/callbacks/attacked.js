@@ -10,11 +10,10 @@ Omega.Callbacks.attacked = function(event, event_args){
   var attacker = event_args[1];
   var defender = event_args[2];
 
-  var pattacker = $.grep(this.page.all_entities(),
-                         function(entity){ return entity.id == attacker.id; })[0];
-  var pdefender = $.grep(this.page.all_entities(),
-                         function(entity){ return entity.id == defender.id; })[0];
+  var pattacker = this.page.entity(attacker.id);
+  var pdefender = this.page.entity(defender.id);
   if(pattacker == null || pdefender == null) return;
+
   pattacker.set_attacking(pdefender);
   pattacker.update_attack_gfx();
 };

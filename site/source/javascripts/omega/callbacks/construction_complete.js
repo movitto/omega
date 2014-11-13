@@ -10,9 +10,7 @@ Omega.Callbacks.construction_complete = function(event, evnt_args){
   var station     = evnt_args[1];
   var constructed = evnt_args[2];
 
-  var pstation = $.grep(this.page.all_entities(),
-                        function(entity){ return entity.id == station.id; })[0];
-
+  var pstation = this.page.entity(station.id);
   pstation._constructing = false;
   pstation.construction_percent = 0;
   pstation.resources = station.resources;
