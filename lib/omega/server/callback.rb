@@ -54,6 +54,21 @@ class Callback
     handler.call *args
   end
 
+  # Convert callback to json representation and return it
+  def to_json(*a)
+    {
+      'json_class' => self.class.name,
+      'data'       => { :endpoint_id => endpoint_id,
+                        :event_type  => event_type,
+                        :rjr_event   => rjr_event }
+    }.to_json(*a)
+  end
+
+  # Create new callback from json representation
+  def self.json_create(o)
+    new(o['data'])
+  end
+
 end # class Callback
 end # module Server
 end # module Omega
