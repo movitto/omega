@@ -78,7 +78,8 @@ class Ship
                                 merge(cargo_json).
                                 merge(docking_json).
                                 merge(combat_json).
-                                merge(mining_json)
+                                merge(mining_json).
+                                merge(callbacks_json)
     }.to_json(*a)
   end
 

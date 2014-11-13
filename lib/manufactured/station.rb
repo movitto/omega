@@ -68,7 +68,8 @@ class Station
       'json_class' => self.class.name,
       'data'       => base_json.merge(system_json).
                                 merge(cargo_json).
-                                merge(docks_json)
+                                merge(docks_json).
+                                merge(callbacks_json)
     }.to_json(*a)
   end
 

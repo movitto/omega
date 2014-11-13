@@ -36,6 +36,11 @@ module Entity
       @callbacks.select { |c| !c.kind_of?(Manufactured::Callback) }.empty?
       # && TODO ensure validity of individual callbacks
     end
+
+    # Return callbacks in json form
+    def callbacks_json
+      { :callbacks => callbacks }
+    end
   end # module HasCallbacks
 end # module Entity
 end # module Manufactured
