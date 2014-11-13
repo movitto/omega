@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/canvas/entity/resources"
+
 //= require "omega/ship/commands"
 //= require "omega/ship/interact"
 //= require "omega/ship/gfx"
@@ -16,12 +18,11 @@
 Omega.Ship = function(parameters){
   this.components = [];
   this.abstract_components = [];
-  this.resources = [];
   $.extend(this, parameters);
 
   this.parent_id = this.system_id;
   this.location = Omega.convert.entity(this.location)
-  this._update_resources();
+  this._init_resources();
   this._update_weapons_class();
 };
 
@@ -80,15 +81,6 @@ Omega.Ship.prototype = {
     return this.system_id == system_id;
   },
 
-  _update_resources : function(){
-    if(this.resources){
-      for(var r = 0; r < this.resources.length; r++){
-        var res = this.resources[r];
-        if(res.data) $.extend(res, res.data);
-      }
-    }
-  },
-
   _update_weapons_class : function(){
     this.weapons_class = Omega.Constraint.gen('ship', 'weapons_classes', this.type);
   },
@@ -121,6 +113,7 @@ Omega.Ship.prototype = {
 };
 
 THREE.EventDispatcher.prototype.apply( Omega.Ship.prototype );
+$.extend(Omega.Ship.prototype, Omega.UI.EntityResources);
 $.extend(Omega.Ship.prototype, Omega.ShipCommands);
 $.extend(Omega.Ship.prototype, Omega.ShipInteraction);
 $.extend(Omega.Ship.prototype, Omega.ShipGfx);

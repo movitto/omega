@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/canvas/entity/resources"
+
 //= require 'ui/canvas/components/orbit'
 //= require "omega/station/commands"
 //= require "omega/station/interact"
@@ -12,12 +14,11 @@
 Omega.Station = function(parameters){
   this.components = [];
   this.abstract_components = [];
-  this.resources  = [];
   $.extend(this, parameters);
 
   this.parent_id = this.system_id;
   this.location = Omega.convert.entity(this.location)
-  this._update_resources();
+  this._init_resources();
 };
 
 Omega.Station.prototype = {
@@ -61,15 +62,6 @@ Omega.Station.prototype = {
     return this.system_id == system_id;
   },
 
-  _update_resources : function(){
-    if(this.resources){
-      for(var r = 0; r < this.resources.length; r++){
-        var res = this.resources[r];
-        if(res.data)  $.extend(res, res.data);
-      }
-    }
-  },
-
   clicked_in : function(canvas){
     var ac = canvas.page.audio_controls;
     ac.play(ac.effects.click);
@@ -89,6 +81,7 @@ Omega.Station.prototype = {
 };
 
 THREE.EventDispatcher.prototype.apply( Omega.Station.prototype );
+$.extend(Omega.Station.prototype, Omega.UI.EntityResources);
 $.extend(Omega.Station.prototype, Omega.StationCommands);
 $.extend(Omega.Station.prototype, Omega.StationInteraction);
 $.extend(Omega.Station.prototype, Omega.StationGfx);

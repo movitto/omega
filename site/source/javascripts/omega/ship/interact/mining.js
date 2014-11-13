@@ -35,6 +35,7 @@ Omega.ShipMiningInteractions = {
 
   _refresh_mining_success : function(response, page, asteroid){
     asteroid.resources = response.result;
+    asteroid._update_resources();
     for(var r = 0; r < asteroid.resources.length; r++){
       var resource = asteroid.resources[r];
       this.dialog().append_mining_cmd(page, this, resource, asteroid);

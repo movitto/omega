@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/canvas/entity/resources"
+
 //= require "omega/asteroid/commands"
 //= require "omega/asteroid/gfx"
 
@@ -12,21 +14,12 @@ Omega.Asteroid = function(parameters){
   $.extend(this, parameters);
 
   this.location = Omega.convert.entity(this.location)
+  this._init_resources();
 };
 
 Omega.Asteroid.prototype = {
   constructor: Omega.Asteroid,
   json_class : 'Cosmos::Entities::Asteroid',
-
-  /// Return bool indicating if asteroid has the specified resource
-  has_resource : function(id){
-    return !!(this.resource(id));
-  },
-
-  /// Return resource for the specified id
-  resource : function(id){
-    return $.grep(this.resources, function(r){ return r.id == id; })[0];
-  },
 
   /// Return Asteroid in JSON format
   toJSON : function(){
@@ -44,5 +37,6 @@ Omega.Asteroid.prototype = {
   }
 };
 
+$.extend(Omega.Asteroid.prototype, Omega.UI.EntityResources);
 $.extend(Omega.Asteroid.prototype, Omega.AsteroidCommands);
 $.extend(Omega.Asteroid.prototype, Omega.AsteroidGfx);
