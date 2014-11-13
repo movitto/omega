@@ -60,6 +60,7 @@ Omega.UI.CanvasEntityGfx = {
     /// XXX need to also scale other components
     if(this.orbit) this.orbit_line.line.scale.set(1/scale, 1/scale, 1/scale);
     if(this.selection) this.selection.tmesh.scale.set(1/scale, 1/scale, 1/scale);
+    if(this.visited_route) this.visited_route.line.scale.set(1/scale, 1/scale, 1/scale);
 
     if(this.gfx_initialized()) this.update_gfx();
   },

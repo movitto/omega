@@ -35,7 +35,7 @@ Omega.ShipVisitedRoute.prototype = {
   },
 
   mark_visited : function(){
-    var loc = this.omega_entity.scene_location();
+    var loc = this.omega_entity.location;
     if(this.last_pos){
       var last_distance = loc.distance_from(this.last_pos[0],
                                             this.last_pos[1],
