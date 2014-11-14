@@ -21,6 +21,12 @@ Omega.PlanetGfxInitializer = {
     if(this.include_axis) this.location_tracker().add(this.axis.mesh);
   },
 
+  _init_label : function(){
+    this.label = new Omega.PlanetLabel({text : this.id});
+    this.label.omega_entity = this;
+    this.position_tracker().add(this.label.sprite);
+  },
+
   _init_orbit : function(){
     this._calc_orbit();
     this._orbit_angle = this._orbit_angle_from_coords(this.location.coordinates());
@@ -40,6 +46,7 @@ Omega.PlanetGfxInitializer = {
 
     this._init_mesh();
     this._init_axis();
+    this._init_label();
     this._init_orbit();
     this._init_components();
     this.spin_velocity = ((Math.random() * 0.25) + 0.25) / 4;

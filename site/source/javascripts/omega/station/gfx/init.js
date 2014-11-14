@@ -25,6 +25,12 @@ Omega.StationGfxInitializer = {
     this.abstract_components.push(this.indicator.sprite);
   },
 
+  _init_label : function(){
+    this.label = new Omega.StationLabel({text : this.id});
+    this.label.omega_entity = this;
+    this.position_tracker().add(this.label.sprite);
+  },
+
   _init_lamps : function(){
     this.lamps = this._retrieve_resource('lamps').clone();
     this.lamps.omega_entity = this;
@@ -72,6 +78,7 @@ Omega.StationGfxInitializer = {
     this._init_components();
     this._init_highlight();
     this._init_indicator();
+    this._init_label();
     this._init_lamps();
     this._init_construction_bar();
     this._init_audio();

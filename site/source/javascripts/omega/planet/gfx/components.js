@@ -6,3 +6,4 @@
 
 //= require "omega/planet/components/mesh"
 //= require "omega/planet/components/axis"
+//= require "omega/planet/components/label"
