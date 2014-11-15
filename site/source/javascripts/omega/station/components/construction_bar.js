@@ -11,7 +11,7 @@ Omega.StationConstructionBar = function(args){
 };
 
 Omega.StationConstructionBar.prototype = {
-  size : [100, 10],
+  size : [1000, 100],
 
   clone : function(){
     return new Omega.StationConstructionBar({bar : this.bar.clone()});
@@ -23,7 +23,7 @@ Omega.StationConstructionBar.prototype = {
                                               color2   : 0x0000FF,
                                               event_cb : event_cb});
     for(var c = 0; c < bar.components.length; c++)
-      bar.components[c].position.set(-100, 500, 0);
+      bar.components[c].position.set(0, 2000, 0);
     return bar;
   },
 

@@ -8,7 +8,8 @@
 Omega.EntityTracker = {
   /// Track cosmos-level system-wide events
   track_system_events : function(root){
-    this.node.ws_invoke('manufactured::subscribe_to', 'system_jump', 'to', root.id);
+    this.node.ws_invoke('manufactured::subscribe_to', 'system_jump', 'to',   root.id);
+    this.node.ws_invoke('manufactured::subscribe_to', 'system_jump', 'from', root.id);
   },
 
   // Stop tracking cosmos-level system wide events

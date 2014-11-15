@@ -19,7 +19,9 @@ Omega.Callbacks.construction_complete = function(event, evnt_args){
 
   // retrieve full entity from server / process
   var _this = this;
-  Omega.Ship.get(constructed.id, this.page.node, function(entity){
+  var entity_class = constructed.json_class == 'Manufactured::Station' ?
+                     Omega.Station : Omega.Ship;
+  entity_class.get(constructed.id, this.page.node, function(entity){
     _this.page.process_entity(entity);
     if(_this.page.canvas.is_root(entity.system_id)){
       _this.page.audio_controls.play(pstation.construction_audio, 'complete');

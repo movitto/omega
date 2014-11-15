@@ -29,6 +29,10 @@ Omega.Pages.IndexEntityProcessor = {
       if(same_scene && !in_scene){
         this._sync_entity_with_cam(entity);
         this.canvas.add(entity);
+
+      /// remove from scene if appropriate
+      }else if(!same_scene && in_scene){
+        this.canvas.remove(entity);
       }
 
       /// start tracking entity

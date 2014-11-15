@@ -88,6 +88,21 @@ $.extend(Omega.Station.prototype, Omega.StationGfx);
 $.extend(Omega.Station.prototype, Omega.OrbitHelpers);
 ///
 
+// Return station with the specified id
+Omega.Station.get = function(station_id, node, cb){
+  node.http_invoke('manufactured::get_entity', 'with_id', station_id,
+    function(response){
+      var station = null;
+      var err     = null;
+      if(response.result)
+        station = new Omega.Station(response.result);
+      else if(response.error)
+        err = response.error.message;
+      if(cb) cb(station, err);
+    });
+}
+
+
 // Return stations owned by the specified user
 Omega.Station.owned_by = function(user_id, node, cb){
   node.http_invoke('manufactured::get_entities',
