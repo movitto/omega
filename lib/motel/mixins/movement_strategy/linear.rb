@@ -98,6 +98,11 @@ module MovementStrategies
       !stop_near.nil? && (distance > distance_from_stop(loc))
     end
 
+    # Return bool indicating if location is facing movement direction
+    def facing_movement?(loc, tolerance)
+      loc.orientation_difference(*dir).first <= tolerance
+    end
+
     # Return linear attributes in json format
     def linear_json
       {:speed         => speed,
