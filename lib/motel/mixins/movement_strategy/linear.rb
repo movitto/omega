@@ -127,9 +127,8 @@ module MovementStrategies
 
     # Update acceleration of movement from location
     def update_acceleration_from(loc)
-      @ax = loc.orx
-      @ay = loc.ory
-      @az = loc.orz
+      @ax,@ay,@az = loc.is_a?(Location) ? [loc.orx, loc.ory, loc.orz] :
+                                          [loc[0],  loc[1],  loc[2]]
     end
 
     # Update velocity from acceleration
