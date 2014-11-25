@@ -31,7 +31,7 @@ def self.normalize(x,y,z)
   return x,y,z if x.nil? || y.nil? || z.nil?
 
   l = Math.sqrt(x**2 + y**2 + z**2)
-  raise ArgumentError if l <= 0
+  raise ArgumentError, [l, x, y, z] if l <= 0
 
   x /= l
   y /= l
