@@ -9,6 +9,7 @@ require 'motel/movement_strategies/rotate'
 require 'motel/movement_strategies/elliptical'
 require 'motel/movement_strategies/follow'
 require 'motel/movement_strategies/figure8'
+require 'motel/movement_strategies/towards'
 
 module Motel
   STRATEGY_CLASSES = {
@@ -17,7 +18,8 @@ module Motel
     :rotate     => MovementStrategies::Rotate,
     :elliptical => MovementStrategies::Elliptical,
     :follow     => MovementStrategies::Follow,
-    :figure8    => MovementStrategies::Figure8
+    :figure8    => MovementStrategies::Figure8,
+    :towards    => MovementStrategies::Towards
   }
 
   def self.valid_strategy_class?(id)
