@@ -31,10 +31,9 @@ module Manufactured::RJR
     # set parent and location
     # TODO set loc x, y, z to vicinity of reverse jump gate
     #       (gate to current system in destination system) if it exists ?
-    orig_parent = entity.parent
+    orig_parent   = entity.parent
     entity.parent = sys
-    entity.location.movement_strategy =
-      Motel::MovementStrategies::Stopped.instance
+    entity.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
   
     # update location and remove movement callbacks
     node.invoke('motel::update_location',  entity.location)
@@ -67,7 +66,7 @@ module Manufactured::RJR
   
     # run new system_jump event in registry
     event = Manufactured::Events::SystemJump.new :old_system => orig_parent,
-                                                 :entity => entity
+                                                 :entity     => entity
     registry << event
   
     nil

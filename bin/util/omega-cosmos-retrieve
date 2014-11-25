@@ -183,7 +183,7 @@ end
 
 def print_manufactured_entity(mu, i=0)
   puts indent(i) + mu.class.to_s + " " + mu.id.to_s.bold.yellow +
-                   " @ " + mu.location.coordinates.join(', ') + " -> " + mu.location.ms.class.to_s.split('::').last.downcase
+                   " @ " + mu.location.coordinates.join(', ') + " -> " + mu.location.ms.to_s
 
   if $extended
     puts indent(i+1) + "user: #{mu.user_id}"

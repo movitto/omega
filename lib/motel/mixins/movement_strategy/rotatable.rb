@@ -42,6 +42,8 @@ module MovementStrategies
       !stop_angle.nil? && loc.angle_rotated >= stop_angle
     end
 
+    alias :rotation_stopped? :change_due_to_rotation?
+
     # Rotate the specified location. Takes same parameters
     # as Motel::MovementStrategy#move to update location's
     # orientation after the specified elapsed interval.
