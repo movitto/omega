@@ -110,15 +110,14 @@ module MovementStrategies
     # Update movement strategy so as to rotate location away from target
     #
     # Assumes class including this module also includes Rotatable.
-    def face_away_from_target(loc)
+    def face_away_from_target(loc, angle)
        rot = rotation_to_target(loc)
 
-       angle = rot[0]
-       max_angle = Math::PI/4
-       if(angle > max_angle)
-         angle = angle - max_angle
+       rot_angle = rot[0]
+       if(rot_angle > angle)
+         rot_angle = rot_angle - angle
        else
-         angle = max_angle - angle
+         rot_angle = angle + rot_angle
        end
 
        loc.angle_rotated = 0
@@ -126,7 +125,7 @@ module MovementStrategies
                      :rot_x      => rot[1],
                      :rot_y      => rot[2],
                      :rot_z      => rot[3],
-                     :stop_angle => angle.abs
+                     :stop_angle => rot_angle.abs
     end
   end # module TracksLocation
 end # module MovementStrategies

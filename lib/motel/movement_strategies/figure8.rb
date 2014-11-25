@@ -72,7 +72,7 @@ class Figure8 < MovementStrategy
         # pick initial trajectory to begin evasion
         unless @evading
           ::RJR::Logger.debug "location #{loc.id} evading target via figure8 strategy"
-          face_away_from_target(loc)
+          face_away_from_target(loc, Math::PI/4)
         end
 
         # evading phase has begun
