@@ -131,11 +131,16 @@ module MovementStrategies
                                           [loc[0],  loc[1],  loc[2]]
     end
 
+    def acceleration_component(elapsed_seconds)
+      acceleration * elapsed_seconds
+    end
+
     # Update velocity from acceleration
-    def accelerate
-      ndx = dx * speed + ax * acceleration
-      ndy = dy * speed + ay * acceleration
-      ndz = dz * speed + az * acceleration
+    def accelerate(elapsed_seconds)
+      component = acceleration_component(elapsed_seconds)
+      ndx = dx * speed + ax * component
+      ndy = dy * speed + ay * component
+      ndz = dz * speed + az * component
 
       @speed = Math.sqrt(ndx**2 + ndy**2 + ndz**2)
       @speed = max_speed if max_speed && speed > max_speed
@@ -144,11 +149,9 @@ module MovementStrategies
 
     # Move location along linear path
     def move_linear(loc, elapsed_seconds)
-      accelerate unless acceleration.nil?
+      accelerate(elapsed_seconds) unless acceleration.nil?
 
-      distance     = speed * elapsed_seconds
-
-      # TODO if accelerating, slow acceleration/velocity instead of hard stops
+      distance = speed * elapsed_seconds
 
       # stop at stop distance
       distance = stop_distance - loc.distance_moved if exceeds_stop_distance?(loc, distance)
