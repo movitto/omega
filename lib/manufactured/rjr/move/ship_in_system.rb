@@ -6,8 +6,6 @@
 module Manufactured::RJR
   # Move a ship in a single system
   def move_ship_in_system(entity, loc)
-    # TODO may want to incorporate fuel into this at some point
-  
     # verify we are processing ships here, also ensure not docked
     raise OperationError, "#{entity} not ship" unless entity.is_a?(Ship)
     raise OperationError, "#{entity} docked"   unless !entity.docked?
@@ -16,29 +14,17 @@ module Manufactured::RJR
     distance = loc - entity.location
     raise OperationError, "#{entity} at location" if distance < 1
 
-    # calculate the new trajectory and stop coords
-    od = entity.location.rotation_to(*loc.coordinates)
-    stop = loc.coordinates.unshift(0)
-
-    # Create linear movement strategy w/ movement trajectory
-    # TODO s/dorientation/dacceleration, set acceleration params
+    # Create towards movement strategy
+    strategy = Motel::MovementStrategies::Towards.new :target       => loc.coordinates,
+                                                      :acceleration => entity.acceleration,
+                                                      :max_speed    => entity.movement_speed,
+                                                      :speed        => 1,
+                                                      :rot_theta    => entity.rotation_speed
     stopped = Motel::MovementStrategies::Stopped.instance
-    linear  = Motel::MovementStrategies::Linear.new :dorientation  => true,
-                                                    :stop_near     => stop,
-                                                    :speed         => entity.movement_speed
-    entity.location.movement_strategy      = linear
+
+    entity.location.movement_strategy      = strategy
     entity.location.next_movement_strategy = stopped
 
-    if od.first.abs > (Math::PI / 32)
-      entity.location.ms.rot_theta  = entity.rotation_speed
-      entity.location.ms.rot_x      = od[1]
-      entity.location.ms.rot_y      = od[2]
-      entity.location.ms.rot_z      = od[3]
-      entity.location.ms.stop_angle = od[0]
-
-      node.invoke('motel::track_rotation', entity.location.id, *od)
-    end
-  
     # track location movement and update location
     node.invoke('motel::track_movement', entity.location.id, distance)
     node.invoke('motel::update_location', entity.location)
