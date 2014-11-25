@@ -6,3 +6,4 @@
 require 'motel/mixins/movement_strategy/linear'
 require 'motel/mixins/movement_strategy/rotatable'
 require 'motel/mixins/movement_strategy/tracks_location'
+require 'motel/mixins/movement_strategy/tracks_coordinates'
