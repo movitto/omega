@@ -74,12 +74,28 @@ module MovementStrategies
       !stop_distance.nil? && loc.distance_moved >= stop_distance
     end
 
-    # Return bool indicating if loc is within specified distance of stop coordinate
-    def near_stop_coordinate?(loc)
-      !stop_near.nil? &&
+    # Return bool indicating if stop distance will be exceeded
+    # after the specified distance
+    def exceeds_stop_distance?(loc, distance)
+      !stop_distance.nil? && (loc.distance_moved + distance) > stop_distance
+    end
+
+    # Return distance location is from stop coordinate
+    def distance_from_stop(loc)
       loc.distance_from(stop_near[1],
                         stop_near[2],
-                        stop_near[3]) <= stop_near[0]
+                        stop_near[3])
+    end
+
+    # Return bool indicating if loc is within specified distance of stop coordinate
+    def near_stop_coordinate?(loc)
+      !stop_near.nil? && distance_from_stop(loc) <= stop_near[0]
+    end
+
+    # Return bool indicating if stop coordinate will be passed after
+    # the specified distance
+    def exceeds_stop_coordinate?(loc, distance)
+      !stop_near.nil? && (distance > distance_from_stop(loc))
     end
 
     # Return linear attributes in json format
@@ -131,12 +147,15 @@ module MovementStrategies
       # TODO if accelerating, slow acceleration/velocity instead of hard stops
 
       # stop at stop distance
-      exceeds_stop = !stop_distance.nil? &&
-                     (loc.distance_moved + distance) > stop_distance
-      distance     = (stop_distance - loc.distance_moved) if exceeds_stop
+      distance = stop_distance - loc.distance_moved if exceeds_stop_distance?(loc, distance)
 
       # stop if near stop coordinate
-      distance  = 0 if near_stop_coordinate?(loc)
+      if near_stop_coordinate?(loc)
+        distance = 0
+
+      elsif exceeds_stop_coordinate?(loc, distance)
+        distance = distance_from_stop(loc)
+      end
 
       # update location's coordinates
       loc.x += distance * dx
