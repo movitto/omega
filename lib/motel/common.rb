@@ -317,4 +317,15 @@ class Fixnum
   def round_to(precision)
     return self
   end
+
+  # return the number of zeros after the first non-zero least significant bit
+  def zeros
+    v = self
+    i = -1
+    until v < 1
+      v /= 10
+      i += 1
+    end
+    i
+  end
 end
