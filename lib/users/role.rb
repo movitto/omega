@@ -28,7 +28,7 @@ class Role
   # Update this roles's properties from other roles.
   #
   # @param [Users::Role] new_role role from which to copy values from
-  def update(new_role)
+  def update(new_role, *attrs)
     #@id = new_role.id
     @privileges = new_role.privileges
   end

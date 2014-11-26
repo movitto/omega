@@ -110,8 +110,10 @@ module Registry
     # updated must define the 'update' method which
     # takes another entity which to copy attributes from/etc.
     #
+    # Optional attrs will be passed onto entity update method
+    #
     # Raises :updated event on self with updated entity
-    def update(entity, &selector)
+    def update(entity, *attrs, &selector)
       # TODO default selector ? (such as with_id)
       init_registry
       orig = cloned = nil
@@ -123,7 +125,7 @@ module Registry
 
         if found
           orig = RJR::JSONParser.parse(rentity.to_json)
-          rentity.update(entity)
+          rentity.update(entity, *attrs)
           cloned = RJR::JSONParser.parse(rentity.to_json)
         end
       }

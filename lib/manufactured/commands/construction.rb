@@ -66,8 +66,9 @@ class Construction < Omega::Server::Command
   end
 
   # Update command from another
-  def update(cmd)
+  def update(cmd, *attrs)
     update_from(cmd, :start_time, :completed)
+    super(cmd, *attrs)
   end
 
   def should_run?

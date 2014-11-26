@@ -259,28 +259,28 @@ class Mission
     }
   end
 
+  # Return all updatable attributes
+  def updatable_attrs
+    [:id, :title, :description, :mission_data,
+     :creator_id, :assigned_to_id, :assigned_time,
+     :timeout, :requirements, :assignment_callbacks,
+     :victory_conditions, :victory_callbacks,
+     :failure_callbacks, :victorious, :failed]
+  end
+
   # Update the mission from the specified args
   #
   # @see initialize above for valid options accepted by update
-  def update(args = {})
-    attrs = [:id, :title, :description, :mission_data,
-             :creator_id, :assigned_to_id, :assigned_time,
-             :timeout, :requirements, :assignment_callbacks,
-             :victory_conditions, :victory_callbacks,
-             :failure_callbacks, :victorious,
-             :failed]
-
-    [:mission, 'mission'].each { |mission|
-      update_from(args[mission], *attrs) if args.is_a?(Hash) && args[mission]
-    }
-
-    update_from(args, *attrs)
+  def update(mission, *attrs)
+    attrs = updatable_attrs if attrs.empty?
+    update_from(mission, *attrs)
   end
 
   # Return a copy of this mission, setting any additional attributes given
   def clone(args = {})
     m = Mission.new
-    m.update(args.merge(:mission => self))
+    m.update(self)
+    m.update(args)
     m
   end
 

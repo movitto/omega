@@ -32,7 +32,7 @@ class User
   # Update this users's properties from other user.
   #
   # @param [Users::User] new_user user from which to copy values from
-  def update(user)
+  def update(user, *attrs)
     update_base_attrs(user)
     update_registration(user)
     update_roles(user)

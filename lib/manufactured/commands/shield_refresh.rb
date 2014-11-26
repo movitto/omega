@@ -54,7 +54,7 @@ class ShieldRefresh < Omega::Server::Command
 
   def after_hook
     # persist entity to registry
-    update_registry(@entity)
+    update_registry(@entity, :shield_level)
   end
 
   def should_run?

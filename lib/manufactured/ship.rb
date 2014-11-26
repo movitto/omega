@@ -50,8 +50,9 @@ class Ship
   # Update this ship's attributes from other ship
   #
   # @param [Manufactured::Ship] ship entity which to copy attributes from
-  def update(ship)
-    update_from(ship, *updatable_attrs, :skip_nil => false)
+  def update(ship, *attrs)
+    attrs = updatable_attrs if attrs.empty?
+    update_from(ship, *attrs, :skip_nil => false)
   end
 
   # Return boolean indicating if this ship is valid

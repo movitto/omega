@@ -66,8 +66,7 @@ class Command
     #\@id = \@id.intern if \@id.is_a?(String)
   end
 
-  # TODO this needed?
-  def update(cmd)
+  def update(cmd, *attrs)
     update_from(cmd, :ran_first_hooks, :added_at, :last_ran_at, :exec_rate)
   end
 

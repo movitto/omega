@@ -61,7 +61,7 @@ module Manufactured::RJR
   
     else
       # update registry entity
-      registry.update entity, &with_id(entity.id)
+      registry.update entity, :solar_system, &with_id(entity.id)
     end
   
     # run new system_jump event in registry

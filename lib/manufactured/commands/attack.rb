@@ -80,12 +80,12 @@ class Attack < Omega::Server::Command
 
   def start_attack
     @attacker.start_attacking(@defender)
-    update_registry(@attacker)
+    update_registry(@attacker, :attacking)
   end
 
   def stop_attack
     @attacker.stop_attacking
-    update_registry(@attacker)
+    update_registry(@attacker, :attacking)
     ::RJR::Logger.info "#{@attacker.id} stopped attacking #{@defender.id}"
   end
 
@@ -171,8 +171,8 @@ class Attack < Omega::Server::Command
 
   def after_hook
     # persist entities to the registry
-    update_registry(@attacker)
-    update_registry(@defender)
+    #update_registry(@attacker)
+    update_registry(@defender, :hp, :shield_level, :destroyed_by)
   end
 
   def last_hook

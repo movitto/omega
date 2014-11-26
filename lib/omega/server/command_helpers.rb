@@ -9,8 +9,8 @@ module Server
   # Mixin to be included in commands to provide various utilities
   module CommandHelpers
     # update entity in registry
-    def update_registry(entity)
-      registry.update(entity) { |e| e.respond_to?(:id) && e.id == entity.id }
+    def update_registry(entity, *attrs)
+      registry.update(entity, *attrs) { |e| e.respond_to?(:id) && e.id == entity.id }
     end
   
     # retrieve entity from registry

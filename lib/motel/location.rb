@@ -60,8 +60,9 @@ class Location
    # Update this location's attributes from other location
    #
    # @param [Motel::Location] location location from which to copy values from
-   def update(location)
-      update_from(location, *updatable_attrs)
+   def update(location, *attrs)
+     attrs = updatable_attrs if attrs.empty?
+     update_from(location, *attrs)
    end
 
    # Validate the location's properties

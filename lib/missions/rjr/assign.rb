@@ -55,7 +55,7 @@ assign_mission = proc { |mission_id, user_id|
     rmission.assign_to user
 
     # XXX update mission to pull in attributes required by callbacks below
-    mission.update :mission => rmission
+    mission.update rmission
   }
 
   # invoke assignment callbacks

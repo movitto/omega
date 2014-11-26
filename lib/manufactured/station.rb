@@ -41,8 +41,9 @@ class Station
   # Update this station's attributes from other station
   #
   # @param [Manufactured::Station] station entity from which to copy values from
-  def update(station)
-    update_from(station, *updatable_attrs)
+  def update(station, *attrs)
+    attrs = updatable_attrs if attrs.empty?
+    update_from(station, *attrs)
   end
 
   # Return boolean indicating if this station is valid

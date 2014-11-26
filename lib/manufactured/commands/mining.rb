@@ -91,14 +91,14 @@ class Mining < Omega::Server::Command
     @error = false
   end
 
-  def update(cmd)
+  def update(cmd, *attrs)
     update_from(cmd, :resource)
-    super(cmd)
+    super(cmd, *attrs)
   end
 
   def first_hook
     @ship.start_mining(@resource)
-    update_registry(@ship)
+    update_registry(@ship, :mining)
   end
 
   def before_hook
@@ -123,13 +123,13 @@ class Mining < Omega::Server::Command
 
   def after_hook
     # update ship and resources
-    update_registry(@ship)
+    update_registry(@ship, :resources)
     invoke 'cosmos::set_resource', @resource
   end
 
   def last_hook
     @ship.stop_mining
-    update_registry(@ship)
+    update_registry(@ship, :mining)
 
     reason = ''
     r = gen_resource
