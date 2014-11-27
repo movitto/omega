@@ -74,7 +74,7 @@ class Towards < MovementStrategy
     end
 
     # slow down as we approach target
-    if near_target?(loc)
+    if @arriving || near_target?(loc)
       face loc, [-dx, -dy, -dz] unless @arriving
       rotate(loc, elapsed_seconds)
       @arriving = true

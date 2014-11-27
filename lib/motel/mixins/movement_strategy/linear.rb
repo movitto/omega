@@ -35,6 +35,11 @@ module MovementStrategies
       [dx, dy, dz]
     end
 
+    # Acceleration direction as an array
+    def adir
+      [ax, ay, az]
+    end
+
     # Initialize linear attributes from args.
     #
     # Direction vector will be normalized if not already
