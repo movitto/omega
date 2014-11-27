@@ -41,6 +41,8 @@ Omega.ShipGfxUpdater = {
       this._run_movement = this._run_rotation_movement;
     else if(this.location.is_moving('figure8'))
       this._run_movement = this._run_figure8_movement;
+    else if(this.location.is_moving('towards'))
+      this._run_movement = this._run_towards_movement;
     else if(this.location.is_stopped())
       this._run_movement = this._no_movement;
 

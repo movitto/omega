@@ -71,6 +71,12 @@ Omega.LocationMovement = {
     this.orientation_z = new_or[2];
   },
 
+  /// Return bool indicating if rotation is stopped
+  rot_stopped : function(){
+    return typeof(this.movement_strategy.stop_angle) !== "undefined" &&
+           this.angle_rotated >= this.movement_strategy.stop_angle;
+  },
+
   /// Return rotation direction
   rot_dir : function(x, y, z){
     if((typeof(x) === "array" || typeof(x) === "object") &&
@@ -115,15 +121,15 @@ Omega.LocationMovement = {
     this.rot_dir(rot[1], rot[2], rot[3]);
   },
 
-  face_away_from_target : function(max_angle){
+  face_away_from_target : function(angle){
     var rot       = this.rotation_to_target();
-    var angle     = rot[0];
+    var rot_angle = rot[0];
 
-    if(angle > max_angle) angle = angle - max_angle;
-    else angle = max_angle - angle;
+    if(rot_angle > angle) rot_angle = rot_angle - angle;
+    else rot_angle = angle + rot_angle;
 
     this.angle_rotated = 0;
-    this.movement_strategy.stop_angle = Math.abs(angle);
+    this.movement_strategy.stop_angle = Math.abs(rot_angle);
     this.rot_dir(rot[1], rot[2], rot[3]);
   }
 };

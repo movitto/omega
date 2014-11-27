@@ -12,30 +12,28 @@ Omega.LocationTracking = {
 
   /// Boolean indicating if location is near target
   near_target : function(dist){
-    if(!this.tracking) return true;
+    var target = this.tracking || this.movement_strategy.target;
+    if(!target) return true;
     if(typeof(dist) === "undefined") dist = this.movement_strategy.distance;
-    return this.distance_from(this.tracking) <= dist;
+    return this.distance_from(target) <= dist;
   },
 
   // Return distance from target
   distance_from_target : function(){
-    return this.distance_from(this.tracking.x,
-                              this.tracking.y,
-                              this.tracking.z);
+    var target = this.tracking || this.movement_strategy.target;
+    return this.distance_from(target);
   },
 
   /// Return unit direction vector from this location's coords to specified coords
   direction_to_target : function(){
-    return this.direction_to(this.tracking.x,
-                             this.tracking.y,
-                             this.tracking.z);
+    var target = this.tracking || this.movement_strategy.target;
+    return this.direction_to(target);
   },
 
   /// Return axis-angle rotation to target
   rotation_to_target : function(){
-    return this.rotation_to(this.tracking.x,
-                            this.tracking.y,
-                            this.tracking.z);
+    var target = this.tracking || this.movement_strategy.target;
+    return this.rotation_to(target);
   },
 
   /// Return angle component of axis-angle rotation to target

@@ -36,6 +36,7 @@ Omega.MovementStrategies = {
     linear  : 'Motel::MovementStrategies::Linear',
     rotate  : 'Motel::MovementStrategies::Rotate',
     follow  : 'Motel::MovementStrategies::Follow',
-    figure8 : 'Motel::MovementStrategies::Figure8'
+    figure8 : 'Motel::MovementStrategies::Figure8',
+    towards : 'Motel::MovementStrategies::Towards'
   }
 };

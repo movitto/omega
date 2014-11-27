@@ -99,6 +99,7 @@ Omega.get_shader = function(id){
 
 // The Math Module
 Omega.Math = {
+  CLOSE_ENOUGH     :    0.0001,
   CARTESIAN_MAJOR  : [1, 0, 0],
   CARTESIAN_MINOR  : [0, 1, 0],
   CARTESIAN_NORMAL : [0, 0, 1],

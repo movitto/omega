@@ -75,5 +75,9 @@ Omega.LocationMovementStrategy = {
     this.movement_strategy.ax = dir[0];
     this.movement_strategy.ay = dir[1];
     this.movement_strategy.az = dir[2];
+  },
+
+  facing_movement : function(tolerance){
+    return this.orientation_difference(this.ms_dir())[0] <= tolerance;
   }
 };
