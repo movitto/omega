@@ -13,15 +13,15 @@ module Omega::Client
       @s = Omega::Client::Ship.new
     end
 
-    describe "#destroyed" do
-      context "entity not alive" do
-        it "clears event handlers" do
-          @s.should_receive(:clear_handlers)
-          @s.class.send :init_entity, @s
-          @s.set_state(:destroyed)
-        end
-      end
-    end
+    #describe "#destroyed" do
+    #  context "entity not alive" do
+    #    it "clears event handlers" do
+    #      @s.should_receive(:clear_handlers)
+    #      @s.class.send :init_entity, @s
+    #      @s.set_state(:destroyed)
+    #    end
+    #  end
+    #end
 
     describe "#dock_to" do
       it "invokes manufactured::dock" do

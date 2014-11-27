@@ -113,9 +113,17 @@ end
 # @return [Array<Float>] array containing angle and x,y,z components of rotation axis
 def self.axis_angle(x1, y1, z1, x2, y2, z2)
   a  = angle_between(x1, y1, z1, x2, y2, z2)
-  ax = (a.abs <= CLOSE_ENOUGH || a.abs == Math::PI) ?        # special case, parallel vectors, no rotation
-       normal_vector(x1, y1, z1, *CARTESIAN_NORMAL_VECTOR) : # FIXME need to handle case where vectors are parallel to cartesian normal
-       normal_vector(x1, y1, z1, x2, y2, z2)
+
+  ax = if (a.abs <= CLOSE_ENOUGH || (a.abs - Math::PI).abs <= CLOSE_ENOUGH)
+         # Special case, parallel vectors, pick arbitrary vector to generate axis
+         na  = angle_between(x1, y1, z1, *CARTESIAN_NORMAL_VECTOR)
+         vec = (na <= CLOSE_ENOUGH) ? MAJOR_CARTESIAN_AXIS : CARTESIAN_NORMAL_VECTOR
+         normal_vector(x1, y1, z1, *vec)
+
+       else
+         normal_vector(x1, y1, z1, x2, y2, z2)
+       end
+
   ax = normalize(*ax)
   [a] + ax
 end

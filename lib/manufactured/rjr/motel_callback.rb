@@ -28,7 +28,7 @@ module Manufactured::RJR
 
       # update the entity in the registry
       entity.location = loc
-      registry.update(entity, :distance_moved, &with_id(entity.id))
+      registry.update(entity, :distance_moved, :location, &with_id(entity.id))
     end
 
     nil

@@ -96,6 +96,7 @@ module Manufactured::RJR
       @d.should_receive(:add_module).with('manufactured/rjr/subscribe_to')
       @d.should_receive(:add_module).with('manufactured/rjr/remove_callbacks')
       @d.should_receive(:add_module).with('manufactured/rjr/resources')
+      @d.should_receive(:add_module).with('manufactured/rjr/transfer')
       @d.should_receive(:add_module).with('manufactured/rjr/move')
       @d.should_receive(:add_module).with('manufactured/rjr/follow')
       @d.should_receive(:add_module).with('manufactured/rjr/stop')

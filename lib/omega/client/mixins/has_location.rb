@@ -1,4 +1,3 @@
-#!/usr/bin/ruby
 # omega client location tracker
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
@@ -59,6 +58,5 @@ module Omega
             }
       end
     end # module HasLocation
-
   end # module  Client
 end # module Omega

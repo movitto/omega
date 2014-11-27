@@ -328,11 +328,14 @@ describe Location do
     it "returns sphereical orientation difference" do
       l = Location.new :coordinates => [0, 0, 0],
                        :orientation => [0, 0, 1]
-      l.orientation_difference(0, 0, 1).should == [0, 0, 0, 1]
-      l.orientation_difference(0, 0, 2).should == [0, 0, 0, 1]
+      l.orientation_difference(0, 0, 1).should  == [0, 0, 1, 0]
+      l.orientation_difference(0, 0, 2).should  == [0, 0, 1, 0]
 
-      l.orientation_difference(0, 1, 0).should == [Math::PI/2, -1, 0, 0]
-      l.orientation_difference(1, 1, 0).should == [Math::PI/2, -0.7071067811865475, 0.7071067811865475, 0.0]
+      l.orientation_difference(0, 0, -1).should == [Math::PI, 0, 1, 0]
+      l.orientation_difference(1, 0, 0).should  == [Math::PI/2, 0, 1, 0]
+      l.orientation_difference(-1, 0, 0).should == [Math::PI/2, 0, -1, 0]
+      l.orientation_difference(0, 1, 0).should  == [Math::PI/2, -1, 0, 0]
+      l.orientation_difference(1, 1, 0).should  == [Math::PI/2, -0.7071067811865475, 0.7071067811865475, 0.0]
     end
 
     context "tried to specify orientation towards location's own coordinate" do

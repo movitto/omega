@@ -116,7 +116,7 @@ describe Mining, :rjr => true do
     end
 
     it "updates registry ship" do
-      @m.should_receive(:update_registry).with(@s)
+      @m.should_receive(:update_registry).with(@s, :mining)
       @m.first_hook
     end
   end
@@ -183,7 +183,7 @@ describe Mining, :rjr => true do
     end
 
     it "saves ship in registry" do
-      @m.should_receive(:update_registry).with(@s)
+      @m.should_receive(:update_registry).with(@s, :resources)
       @m.after_hook
     end
 
@@ -227,8 +227,8 @@ describe Mining, :rjr => true do
     end
 
     it "saves ship in registry" do
-      @m.should_receive(:update_registry).with(@sh)
-      @m.after_hook
+      @m.should_receive(:update_registry).with(@sh, :mining)
+      @m.last_hook
     end
 
     it "runs mining_stopped callbacks" do

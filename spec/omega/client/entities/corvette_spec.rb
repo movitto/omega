@@ -66,12 +66,27 @@ module Omega::Client
 
       it "starts listening for destroyed_by events" do
         @c.should_receive(:handle).with(:destroyed_by)
+        @c.should_receive(:handle).at_least(:once)
         @c.start_bot
       end
 
       it "starts patrol route" do
         @c.should_receive(:patrol_route)
         @c.start_bot
+      end
+
+      it "handles attacked_stop event" do
+        @c.should_receive(:handle).with(:attacked_stop)
+        @c.should_receive(:handle).at_least(:once)
+        @c.start_bot
+      end
+
+      context "attacked_stop" do
+        it "resumes patrol route" do
+          @c.should_receive(:patrol_route).twice
+          @c.start_bot
+          @c.raise_event :attacked_stop
+        end
       end
     end
 
@@ -180,6 +195,7 @@ module Omega::Client
           it 'jumps to next system' do
             @c.should_receive(:jump_to)
             @c.patrol_route
+            @c.should_receive(:patrol_route) # stub out additional patrol_route invocations
             @c.raise_event(:movement)
           end
 
@@ -233,11 +249,6 @@ module Omega::Client
           @c.check_proximity
         end
 
-        it "handles attacked_stop event" do
-          @c.should_receive(:handle).with(:attacked_stop)
-          @c.check_proximity
-        end
-
         context "already handling attacked_stop" do
           it "does not register another attacked_stop handler" do
             @c.instance_variable_set(:@check_proximity_handler, true)
@@ -249,14 +260,6 @@ module Omega::Client
         it "attacks ship" do
           @c.should_receive(:attack).with{ |*a| a[0].id.should == @o.id }
           @c.check_proximity
-        end
-
-        context "attacked_stop" do
-          it "resumes patrol route" do
-            @c.should_receive :patrol_route
-            @c.check_proximity
-            @c.raise_event :attacked_stop
-          end
         end
       end
     end

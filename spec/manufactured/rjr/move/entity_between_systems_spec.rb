@@ -133,7 +133,7 @@ module Manufactured::RJR
 
     context "system.proxy_to is not set" do
       it "updates registry entity" do
-        @registry.should_receive(:update).with(@sh).and_call_original
+        @registry.should_receive(:update).with(@sh, :solar_system).and_call_original
         move_entity_between_systems(@sh, @nsys)
         @rsh.system_id.should == @nsys.id
       end

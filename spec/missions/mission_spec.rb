@@ -566,7 +566,7 @@ describe Mission do
                        :victorious => true,
                        :failed => true
       m2 = Mission.new
-      m2.update :mission => m1
+      m2.update m1
       m2.id.should == "mission123"
       m2.title.should == "test_mission"
       m2.description.should == "test_missiond"

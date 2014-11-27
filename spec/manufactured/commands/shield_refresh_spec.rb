@@ -63,7 +63,7 @@ describe ShieldRefresh do
     it "saves entity to registry" do
       sh = build(:ship)
       s = ShieldRefresh.new :entity => sh
-      s.should_receive(:update_registry).with(sh)
+      s.should_receive(:update_registry).with(sh, :shield_level)
       s.after_hook
     end
   end

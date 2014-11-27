@@ -58,48 +58,20 @@ module Manufactured::RJR
         @sh.location.coordinates = [100, 0, 0]
         @sh.location.orientation = [-1, 0, 0]
         move_entity_in_system(@sh, @l)
-        @sh.location.movement_strategy.
-           should be_an_instance_of(Motel::MovementStrategies::Linear)
-        @sh.location.movement_strategy.dorientation.should be_true
-        @sh.location.movement_strategy.rot_theta.should == 0
-        @sh.location.movement_strategy.speed.should == @sh.movement_speed
-        @sh.location.movement_strategy.stop_distance.should == 100
+        @sh.location.movement_strategy.should be_an_instance_of(Motel::MovementStrategies::Towards)
+        @sh.location.movement_strategy.target.should == @l.coordinates
+        @sh.location.movement_strategy.acceleration.should == @sh.acceleration
+        @sh.location.movement_strategy.max_speed.should == @sh.movement_speed
+        @sh.location.movement_strategy.speed.should == 1
+        @sh.location.movement_strategy.rot_theta.should == @sh.rotation_speed
       end
     end
 
     it "sets next movement strategy to stopped" do
       move_entity_in_system(@sh, @l)
-      @sh.location.next_movement_strategy.
-        should == Motel::MovementStrategies::Stopped.instance
+      @sh.location.next_movement_strategy.should == Motel::MovementStrategies::Stopped.instance
     end
 
-
-    context "entity is not facing location" do
-      before(:each) do
-        @sh.location.coordinates = [100, 0, 0]
-        @sh.location.orientation = [1, 0, 0]
-      end
-
-      it "rotates entity to face location" do
-        move_entity_in_system(@sh, @l)
-        @sh.location.movement_strategy.
-          should be_an_instance_of(Motel::MovementStrategies::Linear)
-        @sh.location.movement_strategy.rot_theta.should == Math::PI * @sh.rotation_speed
-        @sh.location.movement_strategy.stop_angle.should == Math::PI
-        @sh.location.movement_strategy.rot_dir.should == [0, 0, 1]
-      end
-
-      it "tracks rotation" do
-        Manufactured::RJR.node.should_receive(:invoke).
-                          with("motel::track_rotation", @sh.id,
-                               Math::PI, 0, 0, 1)
-        Manufactured::RJR.node.should_receive(:invoke).
-                          with("motel::track_movement", @sh.id, 100)
-        Manufactured::RJR.node.should_receive(:invoke).
-                          with("motel::update_location", an_instance_of(Motel::Location))
-        move_entity_in_system(@sh, @l)
-      end
-    end
 
     it "tracks movement" do
       @sh.location.orientation = [-1, 0, 0]

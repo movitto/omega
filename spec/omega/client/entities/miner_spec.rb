@@ -187,7 +187,7 @@ module Omega::Client
       context "cargo not full" do
         it "selects mining target" do
           @r.should_receive(:cargo_full?).and_return(false)
-          @r.should_receive(:select_target)
+          @r.should_receive(:select_mining_target)
           @r.start_bot
         end
       end
@@ -205,7 +205,7 @@ module Omega::Client
       it "selects closest station" do
         s = create(:valid_station, :location => @r.location)
         @r.should_receive(:closest).with(:station).and_return([s])
-        @r.should_receive(:select_target)
+        @r.should_receive(:select_mining_target)
         @r.offload_resources
       end
 
@@ -225,7 +225,7 @@ module Omega::Client
         end
 
         it "does not select target" do
-          @r.should_not_receive(:select_target)
+          @r.should_not_receive(:select_mining_target)
           @r.offload_resources
         end
 
@@ -276,7 +276,7 @@ module Omega::Client
           s = create(:valid_station, :location => @r.location)
           @r.should_receive(:closest).with(:station).and_return([s])
           @r.should_receive(:transfer_all_to).with(s)
-          @r.should_receive(:select_target)
+          @r.should_receive(:select_mining_target)
           @r.offload_resources
         end
       end
@@ -312,13 +312,13 @@ module Omega::Client
           @r.offload_resources
           s.location.x = 0
           @r.should_receive(:transfer_all_to).with(s)
-          @r.should_receive(:select_target)
+          @r.should_receive(:select_mining_target)
           @r.raise_event(:movement)
         end
       end
     end
 
-    describe "#select_target" do
+    describe "#select_mining_target" do
       before(:each) do
         s = create(:valid_ship, :type => :mining,
                    :location => build(:location, :x => 0, :y => 0, :z => 0))
@@ -337,35 +337,35 @@ module Omega::Client
 
       it "selects closest resource" do
         @r.should_receive(:closest).with(:resource).and_return([])
-        @r.select_target
+        @r.select_mining_target
       end
 
       context "no resources found" do
         it "raises no_resources event" do
           @r.should_receive(:closest).with(:resource).and_return([])
           @r.should_receive(:raise_event).with(:no_resources)
-          @r.select_target
+          @r.select_mining_target
         end
 
         it "just returns" do
           @r.should_receive(:closest).with(:resource).and_return([])
           @r.should_not_receive(:move_to)
           @r.should_not_receive(:mine)
-          @r.select_target
+          @r.select_mining_target
         end
       end
 
       it "raises selected_resource event" do
         @r.should_receive(:closest).with(:resource).and_return([@cast])
         @r.should_receive(:raise_event).with(:selected_resource, @cast)
-        @r.select_target
+        @r.select_mining_target
       end
 
       context "closest resource withing mining distance" do
         it "starts mining resource" do
           @r.should_receive(:closest).with(:resource).and_return([@cast])
           @r.should_receive(:mine).with(@cres)
-          @r.select_target
+          @r.select_mining_target
         end
       end
 
@@ -381,13 +381,13 @@ module Omega::Client
       it "moves to closes resource" do
         @r.should_receive(:closest).with(:resource).and_return([@fast])
         @r.should_receive(:move_to)
-        @r.select_target
+        @r.select_mining_target
       end
 
       context "arrived at closest resource" do
         it "starts mining resource" do
           @r.should_receive(:closest).with(:resource).and_return([@fast])
-          @r.select_target
+          @r.select_mining_target
           @r.should_receive(:mine).with(@fres)
           @r.raise_event :movement
         end

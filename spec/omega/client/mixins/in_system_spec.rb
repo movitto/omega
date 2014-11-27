@@ -4,7 +4,7 @@
 # Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
-require 'omega/client/entities/in_system'
+require 'omega/client/mixins/in_system'
 require 'omega/client/entities/station'
 require 'omega/client/entities/solar_system'
 

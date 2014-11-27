@@ -59,10 +59,13 @@ describe Attack, :rjr => true do
   describe "#first_hook" do
     it "starts attack" do
       setup_manufactured
-      e1 = build(:ship)
-      e2 = build(:ship)
+      e1 = build(:valid_ship)
+      e2 = build(:valid_ship)
+
       a = Attack.new :attacker => e1, :defender => e2
-      a.registry= @registry
+      a.registry = @registry
+      a.should_receive(:refresh_entities) # stub out refresh entities
+
       e1.should_receive(:start_attacking).with(e2)
       a.first_hook
     end
@@ -106,21 +109,22 @@ describe Attack, :rjr => true do
     end
 
     it "saves attacker and defender in registry" do
-      @a.should_receive(:update_registry).with(@e1)
-      @a.should_receive(:update_registry).with(@e2)
+      @a.should_receive(:update_registry).with(@e2, :hp, :shield_level, :destroyed_by)
       @a.after_hook
     end
   end
 
   describe "#last_hook" do
+    include Omega::Server::DSL # for with_id below
+
     before(:each) do
       setup_manufactured
 
       @e1 = create(:valid_ship)
       @e2 = create(:valid_ship)
 
-      @re1 = @registry.safe_exec { |es| es.find { |e| e.id == @e1.id } }
-      @re2 = @registry.safe_exec { |es| es.find { |e| e.id == @e2.id } }
+      @re1 = registry_entity @registry, &with_id(@e1.id)
+      @re2 = registry_entity @registry, &with_id(@e2.id)
 
       @a = Attack.new :attacker => @e1, :defender => @e2
       @a.registry= @registry
@@ -177,10 +181,23 @@ describe Attack, :rjr => true do
         }
       end
 
-      it "runs destroyed callbacks" do
+      it "runs defended_stop callbacks" do
         @re2.should_receive(:run_callbacks).with('defended_stop', @e1)
-        @re2.should_receive(:run_callbacks).with('destroyed_by', @e1)
         @a.last_hook
+      end
+
+      it "does not run destroyed_by callbacks" do
+        @re2.should_not_receive(:run_callbacks).with('destroyed_by', @e1)
+        @a.last_hook
+      end
+
+      context "attacker destroyed defender" do
+        it "runs destroyed_by callbacks" do
+          @e2.destroyed_by_id = @e1.id
+          @re2.should_receive(:run_callbacks).with('destroyed_by', @e1)
+          @re2.should_receive(:run_callbacks).at_least(:once) # defended_stop, other cbs
+          @a.last_hook
+        end
       end
 
       it "adds new entity destroyed event to registry" do
