@@ -25,14 +25,15 @@ describe("Omega.CallbackHandler", function(){
       });
 
       it("updates entity system", function(){
-        page.entities = [jumped, psys];
+        page.entity(jumped.id, jumped);
+        page.entity(psys.id, psys);
         tracker._callbacks_system_jump("manufactured::event_occurred", eargs);
         assert(page.entity(jumped.id).solar_system).equals(psys);
       });
 
       describe("entity does not exist locally", function(){
         it("stores entity in registry", function(){
-          page.entities = [psys];
+          page.entity(psys.id, psys);
           tracker._callbacks_system_jump("manufactured::event_occurred", eargs);
           assert(page.entity(jumped.id)).isNotNull();
         });
@@ -44,7 +45,8 @@ describe("Omega.CallbackHandler", function(){
         });
 
         it("processes_entity on page", function(){
-          page.entities = [jumped, psys];
+          page.entity(jumped.id, jumped);
+          page.entity(psys.id, psys);
           tracker._callbacks_system_jump("manufactured::event_occurred", eargs);
           sinon.assert.calledWith(page.process_entity, jumped);
         });

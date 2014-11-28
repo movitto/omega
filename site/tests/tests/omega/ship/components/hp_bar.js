@@ -10,7 +10,6 @@ describe("Omega.ShipHpBar", function(){
                                 orientation_z : 1});
 
       hp_bar = new Omega.ShipHpBar();
-      hp_bar.init_gfx();
       hp_bar.omega_entity = {location: loc, hp : 10.0, max_hp : 100.0};
     });
 

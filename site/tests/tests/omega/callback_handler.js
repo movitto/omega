@@ -55,7 +55,7 @@ describe("Omega.CallbackHandler", function(){
 
       describe("attacked event", function(){
         it("invokes attacked callback", function(){
-          var eargs    = ['attacked', {}];
+          var eargs    = ['attacked', {}, {}];
           var attacked = sinon.spy(tracker, '_callbacks_attacked');
           tracker._msg_received('manufactured::event_occurred', eargs);
           sinon.assert.calledWith(attacked, 'manufactured::event_occurred', eargs);
@@ -64,7 +64,7 @@ describe("Omega.CallbackHandler", function(){
 
       describe("attacked stop event", function(){
         it("invokes attacked_stop callback", function(){
-          var eargs = ['attacked_stop', {}];
+          var eargs = ['attacked_stop', {}, {}];
           var attacked_stop = sinon.spy(tracker, '_callbacks_attacked_stop');
           tracker._msg_received('manufactured::event_occurred', eargs);
           sinon.assert.calledWith(attacked_stop, 'manufactured::event_occurred', eargs);
@@ -73,7 +73,7 @@ describe("Omega.CallbackHandler", function(){
 
       describe("defended event", function(){
         it("invokes defended callback", function(){
-          var eargs = ['defended', {}];
+          var eargs = ['defended', {}, {}];
           var defended = sinon.spy(tracker, '_callbacks_defended');
           tracker._msg_received('manufactured::event_occurred', eargs);
           sinon.assert.calledWith(defended, 'manufactured::event_occurred', eargs);
@@ -82,7 +82,7 @@ describe("Omega.CallbackHandler", function(){
 
       describe("defended stop event", function(){
         it("invokes defended_stop callback", function(){
-          var eargs = ['defended_stop', {}];
+          var eargs = ['defended_stop', {}, {}];
           var defended_stop = sinon.spy(tracker, '_callbacks_defended_stop');
           tracker._msg_received('manufactured::event_occurred', eargs);
           sinon.assert.calledWith(defended_stop, 'manufactured::event_occurred', eargs);
@@ -91,7 +91,7 @@ describe("Omega.CallbackHandler", function(){
 
       describe("destroyed_by event", function(){
         it("invokes destroyed_by callback", function(){
-          var eargs = ['destroyed_by', {}];
+          var eargs = ['destroyed_by', {}, {}];
           var destroyed_by = sinon.spy(tracker, '_callbacks_destroyed_by');
           tracker._msg_received('manufactured::event_occurred', eargs);
           sinon.assert.calledWith(destroyed_by, 'manufactured::event_occurred', eargs);

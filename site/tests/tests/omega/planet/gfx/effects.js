@@ -31,10 +31,10 @@ describe("Omega.PlanetGfxEffects", function(){
     });
 
     it("spins planet", function(){
-      sinon.spy(pl.mesh, 'spin');
+      sinon.spy(pl.mesh, 'set_spin');
       pl.last_moved = new Date() - 1000;
       pl.run_effects();
-      sinon.assert.calledWith(pl.mesh.spin, 0.5 * pl.spin_scale)
+      sinon.assert.calledWith(pl.mesh.set_spin, pl.spin_velocity)
     });
 
     it("refreshes planet graphics", function(){

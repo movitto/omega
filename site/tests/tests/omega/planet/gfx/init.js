@@ -45,17 +45,10 @@ describe("Omega.PlanetGfxInitializer", function(){
       assert(planet.axis).equals(axis);
     });
 
-    it("sets axis orientation", function(){
-      sinon.stub(planet.location, 'orientation').returns([0,1,0]);
-      sinon.stub(axis, 'set_orientation');
-      planet.init_gfx(event_cb);
-      sinon.assert.calledWith(axis.set_orientation, 0, 1, 0);
-    });
-
     it("generates random spin scale", function(){
       planet.init_gfx(event_cb);
-      assert(planet.spin_scale).isLessThan(1.25);
-      assert(planet.spin_scale).isGreaterThan(0.5);
+      assert(planet.spin_velocity).isNumeric();
+      assert(planet.spin_velocity).isGreaterThan(0);
     });
 
     it("updates graphics", function(){
@@ -81,11 +74,22 @@ describe("Omega.PlanetGfxInitializer", function(){
       assert(planet.last_moved).isNotNull();
     });
 
-    it("adds tracker, mesh, and orbit mesh to planet scene components", function(){
+    it("adds trackers planet scene components", function(){
       planet.init_gfx(event_cb);
       assert(planet.components[0]).equals(planet.position_tracker());
-      assert(planet.components[1]).equals(planet.mesh.tmesh);
+      assert(planet.components[1]).equals(planet.camera_tracker());
       assert(planet.components[2]).equals(planet.orbit_line.line);
+    });
+
+    it("adds mesh and axis to location tracker", function(){
+      planet.init_gfx(event_cb);
+      assert(planet.location_tracker().children).includes(planet.mesh.tmesh);
+      assert(planet.location_tracker().children).includes(planet.axis.mesh);
+    });
+
+    it("adds label to position tracker", function(){
+      planet.init_gfx(event_cb);
+      assert(planet.position_tracker().children).includes(planet.label.sprite);
     });
   });
 });});

@@ -164,7 +164,8 @@ describe("Omega.Pages.IndexEntityProcessor", function(){
       page   = $.extend({canvas : new Omega.UI.Canvas()},
                         Omega.Pages.IndexEntityProcessor,
                         Omega.EntityTracker,
-                        Omega.Pages.SceneTracker);
+                        Omega.Pages.SceneTracker,
+                        Omega.Pages.TracksCam);
       page.canvas.root = Omega.Gen.solar_system();
       entity = Omega.Gen.ship({system_id : page.canvas.root.id});
 

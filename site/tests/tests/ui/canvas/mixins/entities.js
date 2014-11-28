@@ -185,6 +185,7 @@ describe("Omega.UI.Canvas", function(){
       canvas.add(jg);
       sinon.stub(canvas, 'remove');
       sinon.stub(canvas, 'add');
+      sinon.stub(canvas, 'render');
     });
 
     it("removes entity from canvas", function(){

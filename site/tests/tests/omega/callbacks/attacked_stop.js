@@ -20,7 +20,8 @@ describe("Omega.CallbackHandler", function(){
 
         ship.init_gfx();
 
-        page.entities = [ship, tgt];
+        page.entity(ship.id, ship);
+        page.entity(tgt.id, tgt);
         eargs         = ['attacked_stop', eship, etgt];
       });
 

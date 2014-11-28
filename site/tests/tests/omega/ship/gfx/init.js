@@ -103,15 +103,16 @@ describe("Omega.ShipGfxInitializer", function(){
       assert(ship.location_tracker().children).includes(ship.mesh.tmesh);
     });
 
-    it("add highlight effects to position tracker", function(){
+    it("adds highlight effects to position tracker", function(){
+      ship.include_highlight = true;
       ship.init_gfx();
       assert(ship.position_tracker().children).includes(ship.highlight.mesh);
     });
 
     it("adds hp bar to position tracker", function(){
       ship.init_gfx();
-      assert(ship.position_tracker().children).includes(ship.hp_bar.bar.component1);
-      assert(ship.position_tracker().children).includes(ship.hp_bar.bar.component2);
+      assert(ship.position_tracker().children).includes(ship.hp_bar.bar.components[0]);
+      assert(ship.position_tracker().children).includes(ship.hp_bar.bar.components[1]);
     });
 
     it("clones Ship highlight effects", function(){
@@ -195,12 +196,6 @@ describe("Omega.ShipGfxInitializer", function(){
       ship.init_gfx();
       assert(ship.hp_bar).equals(hp_bar);
       assert(ship.hp_bar.omega_entity).equals(ship);
-    });
-
-    it("initializes hp bar gfx", function(){
-      sinon.spy(hp_bar.bar, 'init_gfx');
-      ship.init_gfx();
-      sinon.assert.called(ship.hp_bar.bar.init_gfx);
     });
 
     it("clones ship destruction effects", function(){

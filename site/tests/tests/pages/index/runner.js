@@ -10,6 +10,7 @@ describe("Omega.Pages.Index", function(){
     before(function(){
       sinon.stub(page.effects_player, 'start');
       sinon.stub(page.splash, 'start');
+      sinon.stub(page, 'track_cam');
       sinon.stub(page, 'autologin');
       sinon.stub(page, 'validate_session');
     });

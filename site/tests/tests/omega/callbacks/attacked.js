@@ -19,8 +19,9 @@ describe("Omega.CallbackHandler", function(){
         eship  = Omega.Gen.ship({id: 'ship1', attacking : etgt});
 
         ship.init_gfx();
+        page.entity(ship.id, ship);
+        page.entity(tgt.id,  tgt);
 
-        page.entities = [ship, tgt];
         eargs         = ['attacked', eship, etgt];
       });
 

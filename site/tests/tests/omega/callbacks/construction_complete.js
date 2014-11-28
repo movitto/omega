@@ -29,8 +29,8 @@ describe("Omega.CallbackHandler", function(){
                                          resources : [{'material_id' : 'gold'}]});
 
         station.init_gfx();
+        page.entity(station.id, station);
 
-        page.entities = [station, constructed];
         eargs         = ['construction_complete', estation, constructed];
       });
 

@@ -62,11 +62,11 @@ describe("Omega.JumpGate", function(){
   });
 
   describe("#_add_selection_sphere", function(){
-    it("adds selection sphere as a child of the scene mesh", function(){
+    it("adds selection sphere to position tracker", function(){
       jg.init_gfx();
-      assert(jg.mesh.tmesh.getDescendants()).doesNotInclude(jg.selection.tmesh);
+      assert(jg.position_tracker().children).doesNotInclude(jg.selection.tmesh);
       jg._add_selection_sphere();
-      assert(jg.mesh.tmesh.getDescendants()).includes(jg.selection.tmesh);
+      assert(jg.position_tracker().children).includes(jg.selection.tmesh);
     });
   });
 
@@ -75,7 +75,7 @@ describe("Omega.JumpGate", function(){
       jg.init_gfx();
       jg._add_selection_sphere();
       jg._rm_selection_sphere();
-      assert(jg.mesh.tmesh.getDescendants()).doesNotInclude(jg.selection.tmesh);
+      assert(jg.position_tracker().children).doesNotInclude(jg.selection.tmesh);
     });
   });
 
@@ -114,13 +114,23 @@ describe("Omega.JumpGate", function(){
     });
 
     describe("reload callback", function(){
-      it("adds selection sphere to jg mesh", function(){
+      it("adds selection sphere", function(){
         jg.init_gfx();
         jg.selected(page);
 
-        assert(jg.mesh.tmesh.getDescendants()).doesNotInclude(jg.selection.tmesh);
+        sinon.spy(jg, '_add_selection_sphere');
         page.canvas.reload.omega_callback()();
-        assert(jg.mesh.tmesh.getDescendants()).includes(jg.selection.tmesh);
+        sinon.assert.called(jg._add_selection_sphere);
+      });
+
+      it("only adds selection sphere once", function(){
+        jg.init_gfx();
+        jg.selected(page);
+
+        sinon.spy(jg, '_add_selection_sphere');
+        page.canvas.reload.omega_callback()();
+        page.canvas.reload.omega_callback()();
+        sinon.assert.calledOnce(jg._add_selection_sphere);
       });
     });
   });
@@ -149,12 +159,12 @@ describe("Omega.JumpGate", function(){
         jg.init_gfx();
         jg.selected(page);
         page.canvas.reload.omega_callback()();
-        assert(jg.mesh.tmesh.getDescendants()).includes(jg.selection.tmesh);
+        assert(jg.position_tracker().children).includes(jg.selection.tmesh);
 
         page.canvas.reload.reset();
         jg.unselected(page);
         page.canvas.reload.omega_callback()();
-        assert(jg.mesh.tmesh.getDescendants()).doesNotInclude(jg.selection.tmesh);
+        assert(jg.position_tracker().children).doesNotInclude(jg.selection.tmesh);
       });
     });
   });

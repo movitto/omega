@@ -23,7 +23,7 @@ describe("Omega.UI.Canvas", function(){
     it("sets camera controls position", function(){
       controls.object.position.set(100,100,100);
       canvas.root = Omega.Gen.solar_system();
-      var position = canvas.default_position_for(canvas.root);
+      var position = canvas.default_cam_position_for(canvas.root);
       canvas.reset_cam();
       assert(controls.object.position.x).close(position[0], 0.01);
       assert(controls.object.position.y).close(position[1], 0.01);

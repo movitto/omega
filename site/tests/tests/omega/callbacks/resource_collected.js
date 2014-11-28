@@ -26,11 +26,12 @@ describe("Omega.CallbackHandler", function(){
                                 system_id : 'system1',
                                 resources : [res]});
         ship.init_gfx();
+        page.entity(ship.id, ship);
+        page.entity(system.id, system);
 
         eship = Omega.Gen.ship({id        : 'ship1',
                                 resources : [eres],
                                 mining    :  eres});
-        page.entities = [ship, system];
         eargs         = ['resource_collected', eship, res, 40];
       });
 

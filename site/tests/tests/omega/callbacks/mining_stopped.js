@@ -23,7 +23,7 @@ describe("Omega.CallbackHandler", function(){
         eship = Omega.Generate.ship({id: 'ship1'});
 
 
-        page.entities = [ship];
+        page.entity(ship.id, ship);
         eargs         = ['mining_stopped', eship, res, 'cargo_full'];
       });
 

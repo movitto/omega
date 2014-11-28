@@ -22,7 +22,8 @@ describe("Omega.CallbackHandler", function(){
         tgt.init_gfx()
         ship.init_gfx()
 
-        page.entities = [ship, tgt];
+        page.entity(ship.id, ship);
+        page.entity(tgt.id, tgt);
         page.canvas.entities = [ship.id, tgt.id];
         eargs         = ['destroyed_by', etgt, eship];
       });

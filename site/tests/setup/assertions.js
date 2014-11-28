@@ -58,6 +58,10 @@ pavlov.specify.extendAssertions({
     ok(actual.__proto__ === expected.prototype, message);
   },
 
+  isNumeric : function(actual, message){
+    ok(typeof(actual) === "number", message);
+  },
+
   includes: function(array, value, message) {
     var found = false;
     for(var ai in array){

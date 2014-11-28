@@ -112,7 +112,7 @@ describe("Omega.JumpGateGfxInitializer", function(){
 
     it("adds position tracker to jump gate scene components", function(){
       jg.init_gfx();
-      assert(jg.components).isSameAs([jg.position_tracker()]);
+      assert(jg.components).isSameAs([jg.position_tracker(), jg.camera_tracker()]);
     });
 
     it("updates gfx", function(){

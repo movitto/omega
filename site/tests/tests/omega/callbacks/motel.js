@@ -25,7 +25,7 @@ describe("Omega.CallbackHandler", function(){
         eship.location = ship.location.clone();
         eship.location.set(1,1,1);
                                 
-        page.entities = [ship];
+        page.entity(ship.id, ship);
         eargs         = [eship.location];
       });
 

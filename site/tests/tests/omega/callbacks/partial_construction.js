@@ -22,7 +22,8 @@ describe("Omega.CallbackHandler", function(){
 
         station.init_gfx();
 
-        page.entities = [station, constructing];
+        page.entity(station.id, station);
+        page.entity(constructing.id, constructing);
         eargs         = ['partial_construction', estation, constructing, 0.6];
       });
 

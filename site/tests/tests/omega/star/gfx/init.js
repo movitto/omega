@@ -41,9 +41,9 @@ describe("Omega.StarGfxInitializer", function(){
       assert(star.light.color.getHex()).equals(parseInt('0x' + type));
     });
 
-    it("adds mesh, light, and glow to star scene components", function(){
+    it("adds surface, halo, and light to star scene components", function(){
       star.init_gfx();
-      assert(star.components).isSameAs([star.glow.tglow, star.mesh.tmesh, star.light]);
+      assert(star.components).isSameAs([star.surface.tmesh, star.halo.tmesh, star.light]);
     });
   });
 });});

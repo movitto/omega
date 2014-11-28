@@ -21,7 +21,8 @@ describe("Omega.CallbackHandler", function(){
 
         station.init_gfx();
 
-        page.entities = [station, failed];
+        page.entity(station.id, station);
+
         eargs         = ['construction_failed', estation, failed];
       });
 

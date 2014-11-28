@@ -82,7 +82,8 @@ describe("Omega.SolarSystemGfxInitializer", function(){
     it("adds position tracker, particles to solar system scene components", function(){
       system.init_gfx();
       var tracker = system.position_tracker();
-      assert(system.components).isSameAs([tracker]);
+      var cam_tracker = system.camera_tracker();
+      assert(system.components).isSameAs([tracker, cam_tracker]);
       assert(tracker.children).includes(system.plane.tmesh);
       assert(tracker.children).includes(system.text.text);
       assert(tracker.children).includes(system.particles.component());

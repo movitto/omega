@@ -14,7 +14,7 @@ sinon.match.func_domain = function(){
          }, 'func_domain');
 };
 
-// matches type in same manner as pavlov isOfType above
+// matches type in same manner as pavlov isOfType assertion
 sinon.match.ofType = function(expected){
   return sinon.match(function(value){
            return value.__proto__ == expected.prototype;

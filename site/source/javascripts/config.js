@@ -31,7 +31,7 @@ Omega.Config = {
                      'Cosmos::Entities::Galaxy'      : [    0,    5000,     5000]},
          target   : [0,    0,    0],
          restriction : {'default'                       : {max :  10000, min :   100},
-                        'Cosmos::Entities::SolarSystem' : {max : 500000, min : 50000},
+                        'Cosmos::Entities::SolarSystem' : {max : 500000, min : 40000},
                         'Cosmos::Entities::Galaxy'      : {max :  25000, min :  1000},
                         'Cosmos::Entities::Planet'      : {max :  10000, min :  5000},
                         'Manufactured::Ship'            : {max :   5000, min :   250},

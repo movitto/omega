@@ -38,7 +38,7 @@ describe("Omega.AsteroidGfxInitializer", function(){
     it("adds position tracker to asteroid scene components", function(){
       var ast = Omega.Gen.asteroid();
       ast.init_gfx();
-      assert(ast.components).isSameAs([ast.position_tracker()]);
+      assert(ast.components).isSameAs([ast.position_tracker(), ast.camera_tracker()]);
     });
   });
 });});
