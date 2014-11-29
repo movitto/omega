@@ -11,11 +11,24 @@ require 'colored'
 require 'omega'
 require 'rjr/nodes/amqp'
 
-name          = nil
-manufactured  = false
-alive         = false
-callbacks     = false
-extended      = false
+###
+# Parse CLI
+
+def conf
+  @conf ||= {:name         => nil,
+             :manufactured => false,
+             :alive        => false,
+             :callbacks    => false,
+             :extended     => false,
+             :asteroids    => false}
+end
+
+def require_params!
+  return unless conf[:name].nil?
+
+  puts "Must specify name".bold.red
+  exit 1
+end
 
 optparse = OptionParser.new do |opts|
   opts.on('-h', '--help', 'Display this help screen') do
@@ -24,61 +37,94 @@ optparse = OptionParser.new do |opts|
   end
 
   opts.on('-m', '--manufactured', 'include optional manufacted entities information') do
-    manufactured = true
+    conf[:manufactured] = true
   end
 
   opts.on('-a', '--alive', 'only display manufactured entities that are alive') do
-    alive = true
+    conf[:alive] = true
   end
 
   opts.on('-n', '--name name', 'name of entity to retrieve') do |i|
-    name = i
+    conf[:name] = i
   end
 
   opts.on('-c', '--callbacks', 'display entity callbacks') do
-    callbacks = true
+    conf[:callbacks] = true
   end
 
   opts.on('-e', '--extended', 'print extended attributes') do
-    extended = true
+    conf[:extended] = true
+  end
+
+  opts.on('--ast', '--asteroids', 'print asteroids') do
+    conf[:asteroids] = true
   end
 end
 
 optparse.parse!
+require_params!
 
-if name.nil?
-  puts "Must specify name"
-  exit 1
+###
+# Retrieve Data
+
+def node
+  # TODO alternate connection types, destination options
+  @node ||= RJR::Nodes::AMQP.new :node_id    => 'omega-cosmos-retrieve',
+                                 :broker     => 'localhost',
+                                 :keep_alive => true
 end
 
-$extended = extended
+def user
+  @user ||= Users::User.new(:id       => 'admin',
+                            :password => 'nimda')
+end
 
-RJR::Logger.log_level= ::Logger::INFO
+def login
+  node.invoke('omega-queue', 'users::login', user)
+end
 
-$rjr_node   = RJR::Nodes::AMQP.new :node_id => 'omega-cosmos-retrieve', :broker => 'localhost', :keep_alive => true
-login_user = Users::User.new(:id => 'admin', :password => 'nimda')
-session    = $rjr_node.invoke('omega-queue', 'users::login', login_user)
-$rjr_node.message_headers['session_id'] = session.id
+def set_headers(session)
+  node.message_headers['session_id'] = session.id
+end
 
-entity = $rjr_node.invoke('omega-queue', 'cosmos::get_entity', 'with_name', name)
+def get_entity
+  node.invoke('omega-queue', 'cosmos::get_entity', 'with_name', conf[:name])
+end
 
-$manufactured_entities = []
-if manufactured
+def get_galaxy_manu(entity)
+  entity.solar_systems.collect { |sys|
+    node.invoke('omega-queue', 'manufactured::get_entities', 'under', sys.id)
+  }.flatten
+end
+
+def get_system_manu(entity)
+  node.invoke('omega-queue', 'manufactured::get_entities', 'under', entity.id)
+end
+
+def get_manu(entity)
   if entity.is_a?(Cosmos::Entities::Galaxy)
-    entity.solar_systems.each { |sys|
-      $manufactured_entities += $rjr_node.invoke('omega-queue', 'manufactured::get_entities', 'under', sys.id)
-    }
+    get_galaxy_manu(entity)
 
   elsif entity.is_a?(Cosmos::Entities::SolarSystem)
-    $manufactured_entities = $rjr_node.invoke('omega-queue', 'manufactured::get_entities', 'under', entity.id)
+    get_system_manu(entity)
 
   # elsif entity.is_a?(Asteroid) # TODO get entities mining this asteroid
   end
 end
 
-if alive
-  $manufactured_entities.reject! { |entity| !entity.alive? }
-end
+RJR::Logger.log_level= ::Logger::INFO
+
+session = login
+set_headers session
+
+entity = get_entity
+
+manu_entities = conf[:manufactured] ? get_manu(entity) : []
+manu_entities.reject! { |entity| !entity.alive? } if conf[:alive]
+conf[:manu_entities] = manu_entities
+
+###
+# Print Output
 
 puts "Entity: " + entity.to_s
 
@@ -88,7 +134,7 @@ def indent(i)
   r
 end
 
-if callbacks
+if conf[:callbacks]
   def print_callbacks(entity, i=0)
     return if entity.nil?
 
@@ -115,8 +161,17 @@ else
   end
 end
 
+def coordinate_str(loc)
+  loc.coordinates.collect { |c| c.round_to(2) }.join(', ').blue
+end
+
+def orientation_str(loc)
+  loc.orientation.collect { |o| o.round_to(2) }.join(', ')
+end
+
 def print_galaxy(galaxy, i=0)
   puts indent(i) + "galaxy " + galaxy.name.bold.green
+  puts indent(i+i) + "id: " + galaxy.id.bold
   print_callbacks(galaxy, i+1)
   galaxy.solar_systems.each { |sys|
     print_system(sys, i+1)
@@ -124,46 +179,42 @@ def print_galaxy(galaxy, i=0)
 end
 
 def print_system(sys, i=0)
-  puts indent(i) + "system " + sys.name.bold.green + " @ " + sys.location.coordinates.join(', ')
+  puts indent(i) + "system " + sys.name.bold.green +
+                   " @ "     + coordinate_str(sys.location)
+  puts indent(i+i) + "id: " + sys.id.bold
   print_callbacks(sys, i+1)
   print_star(sys.star, i+1)
-  sys.planets.each { |p|
-    print_planet(p, i+1)
-  }
-  sys.asteroids.each { |a|
-    print_asteroid(a, i+1)
-  }
-  sys.jump_gates.each { |j|
-    print_jump_gate(j, i+1)
-  }
-  $manufactured_entities.select { |mu| mu.system_id == sys.id }.each{ |mu|
-    print_manufactured_entity(mu, i+1)
-  }
+  sys.planets.each    { |p| print_planet(p,    i+1) }
+  sys.asteroids.each  { |a| print_asteroid(a,  i+1) } if conf[:asteroids]
+  sys.jump_gates.each { |j| print_jump_gate(j, i+1) }
+
+  conf[:manu_entities].select { |mu| mu.system_id == sys.id }
+                      .each   { |mu| print_manufactured_entity(mu, i+1) }
 end
 
 def print_star(star, i=0)
-  puts indent(i) + "star " + star.name + " @ " + star.location.coordinates.join(', ') unless star.nil?
+  return if star.nil?
+  puts indent(i) + "star " + star.name +
+                   " @ "   + coordinate_str(star.location)
   print_callbacks(star, i+1)
 end
 
 def print_planet(planet, i=0)
-  puts indent(i) + "planet " + planet.name + " @ " + planet.location.coordinates.join(', ')
+  puts indent(i) + "planet " + planet.name +
+                   " @ "     + coordinate_str(planet.location)
   print_callbacks(planet, i+1)
-  planet.moons.each { |m|
-    print_moon(m, i+1)
-  }
+  planet.moons.each { |m| print_moon(m, i+1) }
   print_callbacks(planet, i+1)
 end
 
 def print_asteroid(asteroid, i=0)
-  puts indent(i) + "asteroid " + asteroid.name.bold.red + " @ " + asteroid.location.coordinates.join(', ')
+  puts indent(i) + "asteroid " + asteroid.name.bold.red +
+                   " @ "       + coordinate_str(asteroid.location)
   print_callbacks(asteroid, i+1)
 
-  resources = $rjr_node.invoke('omega-queue', 'cosmos::get_resources', asteroid.id)
+  resources = node.invoke('omega-queue', 'cosmos::get_resources', asteroid.id)
   puts indent(i+i) + "resources: "
-  resources.each { |rs|
-    print_resource(rs, i+2)
-  }
+  resources.each { |rs| print_resource(rs, i+2) }
 end
 
 def print_resource(resource, i=0)
@@ -171,23 +222,25 @@ def print_resource(resource, i=0)
 end
 
 def print_moon(moon, i=0)
-  puts indent(i) + "moon " + moon.name + " @ " + moon.location.coordinates.join(', ')
+  puts indent(i) + "moon " + moon.name +
+                   " @ "   + coordinate_str(moon.location)
   print_callbacks(moon, i+1)
 end
 
 def print_jump_gate(jump_gate, i=0)
   # TODO retrieve / print endpoint system
-  puts indent(i) + "jump gate to " + jump_gate.endpoint_id + " @ " + jump_gate.location.coordinates.join(', ')
+  puts indent(i) + "jump gate to " + jump_gate.endpoint_id.bold +
+                   " @ "           + coordinate_str(jump_gate.location)
   print_callbacks(jump_gate, i+1)
 end
 
 def print_manufactured_entity(mu, i=0)
   puts indent(i) + mu.class.to_s + " " + mu.id.to_s.bold.yellow +
-                   " @ "  + mu.location.coordinates.join(', ')  +
-                   " > "  + mu.location.orientation.join(', ')  +
+                   " @ "  + coordinate_str(mu.location)  +
+                   " > "  + orientation_str(mu.location)  +
                    " -> " + mu.location.ms.to_s
 
-  if $extended
+  if conf[:extended]
     puts indent(i+1) + "user: #{mu.user_id}"
 
     if mu.is_a?(Manufactured::Ship)
