@@ -20,7 +20,8 @@ def conf
              :alive        => false,
              :callbacks    => false,
              :extended     => false,
-             :asteroids    => false}
+             :asteroids    => false,
+             :refresh      => false}
 end
 
 def require_params!
@@ -44,8 +45,13 @@ optparse = OptionParser.new do |opts|
     conf[:alive] = true
   end
 
-  opts.on('-n', '--name name', 'name of entity to retrieve') do |i|
-    conf[:name] = i
+  opts.on('-n', '--name name', 'name of entity to retrieve') do |n|
+    conf[:name] = n
+  end
+
+  opts.on('-r', '--refresh [seconds=n]', 'keep process alive and refresh data event n seconds') do |s|
+    s = 5 if s.nil?
+    conf[:refresh] = s.to_i
   end
 
   opts.on('-c', '--callbacks', 'display entity callbacks') do
@@ -112,21 +118,22 @@ def get_manu(entity)
   end
 end
 
+def get_data
+  entity = get_entity
+  conf[:entity] = entity
+
+  manu_entities = conf[:manufactured] ? get_manu(entity) : []
+  manu_entities.reject! { |manu| !manu.alive? } if conf[:alive]
+  conf[:manu_entities] = manu_entities
+end
+
 RJR::Logger.log_level= ::Logger::INFO
 
 session = login
 set_headers session
 
-entity = get_entity
-
-manu_entities = conf[:manufactured] ? get_manu(entity) : []
-manu_entities.reject! { |entity| !entity.alive? } if conf[:alive]
-conf[:manu_entities] = manu_entities
-
 ###
 # Print Output
-
-puts "Entity: " + entity.to_s
 
 def indent(i)
   r = ''
@@ -258,19 +265,63 @@ def print_manufactured_entity(mu, i=0)
   print_notifications(mu, i+1)
 end
 
-case entity
-when Cosmos::Entities::Galaxy
-  print_galaxy(entity)
-when Cosmos::Entities::SolarSystem
-  print_system(entity)
-when Cosmos::Entities::Star
-  print_star(entity)
-when Cosmos::Entities::Planet
-  print_planet(entity)
-when Cosmos::Entities::Asteroid
-  print_asteroid(entity)
-when Cosmos::Entities::Moon
-  print_moon(entity)
-when Cosmos::Entities::JumpGate
-  print_jump_gate(entity)
+def print_entity
+  entity = conf[:entity]
+  puts "Entity: " + entity.to_s
+
+  case entity
+  when Cosmos::Entities::Galaxy
+    print_galaxy(entity)
+  when Cosmos::Entities::SolarSystem
+    print_system(entity)
+  when Cosmos::Entities::Star
+    print_star(entity)
+  when Cosmos::Entities::Planet
+    print_planet(entity)
+  when Cosmos::Entities::Asteroid
+    print_asteroid(entity)
+  when Cosmos::Entities::Moon
+    print_moon(entity)
+  when Cosmos::Entities::JumpGate
+    print_jump_gate(entity)
+  end
+end
+
+###
+# Refresh loop
+
+def clear_screen
+  puts "\e[H\e[2J"
+end
+
+#def reset_cursor
+#  puts "\033[0;0H"
+#end
+
+def trap_int
+  trap("INT") do
+    puts "Exiting".red.bold
+    exit 0
+  end
+end
+
+def main
+  get_data
+  clear_screen if conf[:refresh]
+  print_entity
+end
+
+def refresh_loop
+  while true
+    main
+    sleep conf[:refresh]
+  end
+end
+
+if conf[:refresh]
+  trap_int
+  refresh_loop
+
+else
+  main
 end
