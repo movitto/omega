@@ -10,6 +10,7 @@
 require 'ostruct'
 require 'tempfile'
 require 'optparse'
+require 'open3'
 
 require 'omega'
 require 'rjr/nodes/tcp'
@@ -22,6 +23,7 @@ def config
                              :labels    => [],
                              :url       => 'jsonrpc://localhost:8181',
                              :gnuplot   => '/usr/bin/gnuplot',
+                             :xwininfo  => '/usr/bin/xwininfo',
                              :delay     => 5,
                              :quit      => false,
                              :locations => {})
@@ -34,6 +36,10 @@ def verify_params!
   exit 1
 end
 
+def xwininfo?
+  File.executable?(config.xwininfo)
+end
+
 optparse = OptionParser.new do |opts|
   opts.on('-h', '--help', 'Display this help screen') do
     puts opts
@@ -42,6 +48,10 @@ optparse = OptionParser.new do |opts|
 
   opts.on('-g', '--gnuplot path', 'path to the gnuplot binary') do |p|
     config.gnuplot = p
+  end
+
+  opts.on('-x', '--xwininfo path', 'path to the xwininfo cmd (not required)') do |p|
+    config.xwininfo = p
   end
 
   opts.on('-u', '--url url', 'url of omega-server') do |u|
@@ -212,8 +222,17 @@ def orient_plots
   config.ids.collect { |id| orient_plot_str(id) }
 end
 
-def pipe(str)
-  config.io.puts str
+def pwrite(str)
+  config.stdin.puts str
+  config.stdin.flush
+end
+
+def pread
+  config.stdout.gets
+end
+
+def pread_err
+  config.stderr.gets
 end
 
 def multiplot_header
@@ -254,18 +273,18 @@ def coords_plot
 end
 
 def plot_coords
-  pipe coords_title
-  pipe coords_style
-  pipe center_label
+  pwrite coords_title
+  pwrite coords_style
+  pwrite center_label
 
   config.labels.each_index do |i|
-    pipe format_label(config.labels[i], i)
+    pwrite format_label(config.labels[i], i)
   end
 
-  pipe set_coords_xrange
-  pipe set_coords_yrange
-  pipe set_coords_zrange
-  pipe coords_plot
+  pwrite set_coords_xrange
+  pwrite set_coords_yrange
+  pwrite set_coords_zrange
+  pwrite coords_plot
 end
 
 def orientation_title
@@ -293,7 +312,7 @@ def set_orientation_zrange
 end
 
 def orientations_plot
-  config.io.puts "splot #{orient_plots.join(',')}"
+  pwrite "splot #{orient_plots.join(',')}"
 end
 
 def multiplot_footer
@@ -301,24 +320,24 @@ def multiplot_footer
 end
 
 def plot_orientation
-  pipe orientation_title
-  pipe orientation_style
+  pwrite orientation_title
+  pwrite orientation_style
 
-  1.upto(config.labels.size) { |i| pipe unset_label(i) }
+  1.upto(config.labels.size) { |i| pwrite unset_label(i) }
 
-  pipe set_orientation_xrange
-  pipe set_orientation_yrange
-  pipe set_orientation_zrange
-  pipe orientations_plot
+  pwrite set_orientation_xrange
+  pwrite set_orientation_yrange
+  pwrite set_orientation_zrange
+  pwrite orientations_plot
 end
 
 def plot_locations
   return if config.first_location # skip first location as axis range won't be valid
-  pipe "set term x11"
-  pipe multiplot_header
+  pwrite "set term x11"
+  pwrite multiplot_header
   plot_coords
   plot_orientation
-  pipe multiplot_footer
+  pwrite multiplot_footer
 end
 
 ###
@@ -331,6 +350,32 @@ def trap_int
   end
 end
 
+def window_id
+  pwrite "show variables all"
+  pwrite "print '~~~'"
+  finish, window_id = false, nil
+  until finish
+    out = pread_err
+    window_id = $1   if out =~ /^\s*GPVAL_TERM_WINDOWID = ([0-9]*)$/
+    finish    = true if out =~ /^~~~$/
+  end
+  window_id
+end
+
+def window_status
+  return true     unless xwininfo?
+  return :opening unless window_id
+
+  output = `#{config.xwininfo} -id #{window_id} 2>&1`
+  output =~ /.*No such window with id.*/ ? :closed : :open
+end
+
+def detect_close
+  return unless window_status == :closed
+  puts "GNUPlot Closed, Exiting"
+  exit 0
+end
+
 def main
   refresh_locations
   plot_locations
@@ -338,17 +383,24 @@ end
 
 def run_loop
   until config.quit
+    detect_close
     main
     sleep config.delay
   end
 end
 
-def open_pipe
-  IO.popen([config.gnuplot, '-noraise'], 'w') do |io|
-    config.io = io
+def gnuplot_cmd
+  "#{config.gnuplot} -noraise"
+end
+
+def open_pwrite
+  Open3.popen3(gnuplot_cmd) do |stdin, stdout, stderr, th|
+    config.stdin  = stdin
+    config.stdout = stdout
+    config.stderr = stderr
     run_loop
   end
 end
 
 trap_int
-open_pipe
+open_pwrite
