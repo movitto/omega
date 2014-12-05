@@ -33,4 +33,5 @@ UUID_PATTERN = /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/
 
 module OmegaTest
   CLOSE_ENOUGH=0.00001
+  CLOSE_PRECISION=4
 end
