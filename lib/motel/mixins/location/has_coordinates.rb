@@ -98,6 +98,11 @@ module HasCoordinates
     Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
   end
 
+  # Return distance from this location to origin
+  def distance_from_origin
+    distance_from 0, 0, 0
+  end
+
   # Return normalized direction vector from this location's coordinates to specified ones
   def direction_to(tx, ty, tz)
     dx = x - tx

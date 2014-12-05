@@ -21,6 +21,11 @@ def self.gen_uuid
       Array.new(16) {|x| rand(0xff) }
 end
 
+# Return length of specified vector
+def self.length(x, y, z)
+  Math.sqrt(x ** 2 + y ** 2 + z ** 2)
+end
+
 # Normalize and return specified vector
 #
 # @param [Integer,Float] x x component of vector
@@ -104,6 +109,8 @@ end
 # Retrieve the axis angle representation of the rotation
 # between the two specified vectors.
 #
+# Note this will return axis orthogonal to input vectors
+#
 # @param [Integer,Float] x1 x component of first vector
 # @param [Integer,Float] y1 y component of first vector
 # @param [Integer,Float] z1 z component of first vector
@@ -117,7 +124,8 @@ def self.axis_angle(x1, y1, z1, x2, y2, z2)
   ax = if (a.abs <= CLOSE_ENOUGH || (a.abs - Math::PI).abs <= CLOSE_ENOUGH)
          # Special case, parallel vectors, pick arbitrary vector to generate axis
          na  = angle_between(x1, y1, z1, *CARTESIAN_NORMAL_VECTOR)
-         vec = (na <= CLOSE_ENOUGH) ? MAJOR_CARTESIAN_AXIS : CARTESIAN_NORMAL_VECTOR
+         vec = (na <= CLOSE_ENOUGH) || ((na.abs - Math::PI).abs <= CLOSE_ENOUGH) ?
+                MAJOR_CARTESIAN_AXIS : CARTESIAN_NORMAL_VECTOR
          normal_vector(x1, y1, z1, *vec)
 
        else
@@ -129,6 +137,10 @@ def self.axis_angle(x1, y1, z1, x2, y2, z2)
 end
 
 # Rotate specified point by angle around specified axis angle
+#
+# Note this preserves original location's length
+# (multiple vectors may form same axis angle so this isn't
+#  necessarily congruent with axis_angle above)
 #
 # @param [Integer,Float] x x component of location to rotate
 # @param [Integer,Float] y y component of location to rotate
@@ -161,22 +173,30 @@ end
 #   - the angle we want is the single/unique apex angle in
 #     an isoscoles triangle residing on the surface of rotation
 #   - the angle we want can be computed with:
-#      sin(angle/2) = 1/2 base of triangle * length of side of triangle
+#      sin(angle/2) = 1/2 base of triangle / length of side of triangle
 #   - the base of the triangle is simply the distance between the
 #     original & new coordinates
 #   - the side of the triangle can be retrieved by taking the sin of the
 #     angle between the axis vector and the original coordinate vector.
-#   - Note: We are assuming that the surace of rotation is at a distance of
-#           1 from the origin, if this is not the case, the previous will
-#           need to be adjusted to take this into account
 #   - Finally we map the result to the domain of 0->2*PI
 def self.rotated_angle(x, y, z, ox, oy, oz, ax, ay, az)
+  nlen = Motel.length( x,  y,  z)
+  olen = Motel.length(ox, oy, oz)
+  alen = Motel.length(ax, ay, az)
+  raise ArgumentError if alen == 0 || nlen == 0 || olen == 0 ||
+                         (nlen - olen).abs > CLOSE_ENOUGH
+
+  # angle between rotation axis vector and coordinate vectors
+  oa = angle_between(ox, oy, oz, ax, ay, az)
+  na = angle_between( x,  y,  z, ax, ay, az)
+  raise ArgumentError if (oa - na).abs > CLOSE_ENOUGH
+  return 0 if oa < CLOSE_ENOUGH || (Math::PI - oa) < CLOSE_ENOUGH
+
+  # length of side of rotation triangle
+  ad = olen * Math.sin(oa)
+
   # base length of rotation triangle
   nd = Math.sqrt((x-ox)**2 + (y-oy)**2 + (z-oz)**2)
-
-  # angle between rotation axis vector and original coordinate vector
-  oa = angle_between(ox,oy,oz,ax,ay,az)
-  ad = Math.sin(oa)
 
   # calc the rotation angle
   hsa = nd/ad/2
@@ -257,7 +277,7 @@ end
 # @return [true,false] indicating if vectors are orthogonal
 def self.orthogonal?(x1,y1,z1, x2,y2,z2)
   return false if x1.nil? || y1.nil? || z1.nil? || x2.nil? || y2.nil? || z2.nil?
-  return (x1 * x2 + y1 * y2 + z1 * z2).abs < 0.00001 # TODO close enough?
+  return (x1 * x2 + y1 * y2 + z1 * z2).abs < CLOSE_ENOUGH
 end
 
 # Generate and reutrn a random normalized vector
@@ -305,35 +325,47 @@ end
 
 end # module Motel
 
-# We extend Float to provide floating point rounding mechanism
 class Float
-
   # Round float to the specified precision
   #
   # @param [Integer] precision number of decimal places to return in float
   # @return float rounded to the specified precision
   def round_to(precision)
-     return nil if precision < 0
+     raise ArgumentError, precision if precision < 0
      return (self * 10 ** precision).round.to_f / (10 ** precision)
   end
 end
 
-# We extend Fixnum so we don't need to distinguish between an int and float
-# to use round_to
 class Fixnum
   # Returns self (fixnums are always rounded)
   def round_to(precision)
     return self
   end
 
-  # return the number of zeros after the first non-zero least significant bit
+  # return the number of zeros after the first non-zero least significant digit
   def zeros
-    v = self
+    return 1 if self == 0
+
+    v = self.abs
     i = -1
+    until v < 1
+      z  = v % 10 == 0
+      v /= 10
+      i += 1
+      return i unless z
+    end
+    i
+  end
+
+  # return the number of significant digits
+  def digits
+    v = self.abs
+    i = 0
     until v < 1
       v /= 10
       i += 1
     end
+
     i
   end
 end
