@@ -35,9 +35,25 @@ module MovementStrategies
       [dx, dy, dz]
     end
 
+    # Set linear direction
+    def dir=(*dir)
+      dir = dir.flatten
+      @dx = dir[0]
+      @dy = dir[1]
+      @dz = dir[2]
+    end
+
     # Acceleration direction as an array
     def adir
       [ax, ay, az]
+    end
+
+    # Set acceelration direction
+    def adir=(*dir)
+      dir = dir.flatten
+      @ax = dir[0]
+      @ay = dir[1]
+      @az = dir[2]
     end
 
     # Initialize linear attributes from args.
@@ -81,6 +97,8 @@ module MovementStrategies
 
     # Return bool indicating if stop distance will be exceeded
     # after the specified distance
+    #
+    # TODO rename to will_exceed_stop_distance
     def exceeds_stop_distance?(loc, distance)
       !stop_distance.nil? && (loc.distance_moved + distance) > stop_distance
     end
@@ -99,6 +117,7 @@ module MovementStrategies
 
     # Return bool indicating if stop coordinate will be passed after
     # the specified distance
+    # TODO rename to will_exceed_stop_coordinate?
     def exceeds_stop_coordinate?(loc, distance)
       !stop_near.nil? && (distance > distance_from_stop(loc))
     end

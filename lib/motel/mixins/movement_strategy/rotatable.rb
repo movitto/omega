@@ -21,6 +21,14 @@ module MovementStrategies
       [rot_x, rot_y, rot_z]
     end
 
+    # Set rot dir
+    def rot_dir=(*dir)
+      dir = dir.flatten
+      @rot_x = dir[0]
+      @rot_y = dir[1]
+      @rot_z = dir[2]
+    end
+
     # Initialize rotation params from args hash
     def init_rotation(args = {})
       attr_from_args args, :rot_theta => 0,
@@ -44,6 +52,10 @@ module MovementStrategies
 
     alias :rotation_stopped? :change_due_to_rotation?
 
+    def will_rotate_past_stop?(loc, angle)
+      !stop_angle.nil? && (loc.angle_rotated + angle.abs) > stop_angle
+    end
+
     # Rotate the specified location. Takes same parameters
     # as Motel::MovementStrategy#move to update location's
     # orientation after the specified elapsed interval.
@@ -54,10 +66,9 @@ module MovementStrategies
       angle_rotated = @rot_theta * elapsed_seconds
 
       # stop at stop angle
-      total_rotated = loc.angle_rotated + angle_rotated.abs
-      exceeds_stop  = !stop_angle.nil? && (total_rotated > stop_angle)
       nangle        = angle_rotated < 0
-      angle_rotated = (stop_angle - loc.angle_rotated) * (nangle ? -1 : 1 ) if exceeds_stop
+      adjusted      = (stop_angle - loc.angle_rotated) * (nangle ? -1 : 1 ) if stop_angle
+      angle_rotated = adjusted if will_rotate_past_stop?(loc, angle_rotated)
 
       # update location's orientation
       nor =

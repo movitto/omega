@@ -18,9 +18,10 @@ FactoryGirl.define do
     factory :location do
       sequence(:id, 10000)
 
-      x Kernel.rand(-1000...1000)
-      y Kernel.rand(-1000...1000)
-      z Kernel.rand(-1000...1000)
+      x { Kernel.rand(-1000...1000) }
+      y { Kernel.rand(-1000...1000) }
+      z { Kernel.rand(-1000...1000) }
+      orientation { Motel.rand_vector }
     end
   end
 end
