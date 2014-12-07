@@ -8,6 +8,10 @@ require 'motel/location'
 
 module Motel
 describe Location do
+  let(:loc)    { build(:location) }
+  let(:other)  { build(:location) }
+  let(:parent) { build(:location) }
+
   describe "#parent_id=" do
     it "should set parent_id" do
       l = Location.new
@@ -42,6 +46,25 @@ describe Location do
 
       @l.parent = nil
       @l.parent_id.should == nil
+    end
+  end
+
+  describe "#heirarchy_from_args" do
+    it "initializes children" do
+      children = [:c]
+      loc.heirarchy_from_args :children => children
+      loc.children.should == children
+    end
+
+    it "initializes parent" do
+      loc.heirarchy_from_args :parent => parent
+      loc.parent.should == parent
+      loc.parent_id.should == parent.id
+    end
+
+    it "initializes parent_id" do
+      loc.heirarchy_from_args :parent_id => parent.id
+      loc.parent_id.should == parent.id
     end
   end
 
@@ -134,5 +157,42 @@ describe Location do
     end
   end
 
+  describe "#heirarchy_json" do
+    it "returns heirarchy json data hash" do
+      loc.heirarchy_json.should be_an_instance_of(Hash)
+    end
+
+    it "returns parent_id in json data hash" do
+      loc.parent = parent
+      loc.heirarchy_json[:parent_id].should == parent.id
+    end
+
+    it "returns children in json data hash" do
+      loc.children = [other]
+      loc.heirarchy_json[:children].should == [other]
+    end
+  end
+
+  describe "#parent_id_str" do
+    it "returns parent_id in string form" do
+      parent.id = 'parent_location'
+      loc.parent = parent
+      loc.parent_id_str.should == 'parent_l'
+    end
+  end
+
+  describe "#heirarchy_eql?" do
+    context "parent_id != other.parent_id" do
+      it "returns false" do
+        loc.parent = parent
+        loc.heirarchy_eql?(other).should be_false
+      end
+    end
+
+    it "returns true" do
+      loc.parent = other.parent = parent
+      loc.heirarchy_eql?(other).should be_true
+    end
+  end
 end # describe Location
 end # module Motel

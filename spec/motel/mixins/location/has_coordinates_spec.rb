@@ -8,25 +8,80 @@ require 'motel/location'
 
 module Motel
 describe Location do
+  let(:loc)   { build(:location) }
+  let(:other) { build(:location) }
+
+  describe "#coordinates_from_args" do
+    it "initializes coordinates from compact args" do
+      loc.coordinates_from_args :coordinates => [10, 1, 0]
+      loc.x.should == 10
+      loc.y.should == 1
+      loc.z.should == 0
+
+      loc.coordinates_from_args 'coordinates' => [2000, 0, -1]
+      loc.x.should == 2000
+      loc.y.should == 0
+      loc.z.should == -1
+    end
+
+    it "initializes coordinates" do
+      loc.coordinates_from_args :x => 75, :y => 50, :z => -1
+      loc.x.should == 75
+      loc.y.should == 50
+      loc.z.should == -1
+    end
+
+    it "converts coordinates to floats" do
+      loc.coordinates_from_args :x => '75.0', :y => '19.1', :z => '-14.9'
+      loc.x.should ==  75.0
+      loc.y.should ==  19.1
+      loc.z.should == -14.9
+    end
+  end
+
+  describe "#coordinates_valid?" do
+    context "all coordinates are numeric" do
+      it "returns true" do
+        loc.coordinates_valid?.should be_true
+      end
+    end
+
+    context "at least one coordinate is not numeric" do
+      it "returns false" do
+        loc.x = 'a'
+        loc.coordinates_valid?.should be_false
+
+        loc.x = 1
+        loc.y = 'b'
+        loc.coordinates_valid?.should be_false
+
+        loc.y = 2
+        loc.z = 'c'
+        loc.coordinates_valid?.should be_false
+      end
+    end
+  end
+
   describe "#coordinates" do
     it "returns array of coordinates" do
-      l = Location.new :x => 1, :y => 2, :z => 3
-      l.coordinates.should == [1,2,3]
+      loc.x = 1
+      loc.y = 2
+      loc.z = 3
+      loc.coordinates.should == [1,2,3]
     end
   end
 
   describe "#coordinates=" do
     it "sets location's coordinates" do
-      l = Location.new
-      l.coordinates = 1, 2, 3
-      l.x.should == 1
-      l.y.should == 2
-      l.z.should == 3
+      loc.coordinates = 1, 2, 3
+      loc.x.should == 1
+      loc.y.should == 2
+      loc.z.should == 3
 
-      l.coordinates = [4, 5, 6]
-      l.x.should == 4
-      l.y.should == 5
-      l.z.should == 6
+      loc.coordinates = [4, 5, 6]
+      loc.x.should == 4
+      loc.y.should == 5
+      loc.z.should == 6
     end
   end
 
@@ -38,9 +93,8 @@ describe Location do
 
       context "parent is nil" do
         it "returns 0" do
-          l = Location.new
-          l.parent = nil
-          l.send(t).should == 0
+          loc.parent = nil
+          loc.send(t).should == 0
         end
       end
 
@@ -73,6 +127,35 @@ describe Location do
     end
   end
 
+  describe "#distance_from" do
+    it "returns distance between coordinates and specified point" do
+      loc.x = 10
+      loc.y = 20
+      loc.z = 30
+      loc.distance_from(-20, 60, 150).should == 130
+    end
+  end
+
+  describe "#distance_from_origin" do
+    it "returns distance from coordinates to origin" do
+      loc.x    = -99
+      loc.y    = 1032
+      loc.z    = 386324
+      expected = 386325.3910902052
+      loc.distance_from_origin.should == expected
+    end
+  end
+
+  describe "#direction_to" do
+    it "returns direction from coordinates to specified point" do
+      loc.x = 10
+      loc.y = 20
+      loc.z = 30
+      expected = [0.23076923076923078, -0.3076923076923077, -0.9230769230769231]
+      loc.direction_to(-20, 60, 150).should == expected
+    end
+  end
+
   describe "#+" do
     it "returns new location" do
       l1 = Location.new :coordinates => [0, 0, 0]
@@ -102,18 +185,34 @@ describe Location do
     end
   end
 
-  describe "#distance_from" do
-    it "returns distance between coordinates and specified point" do
-      l = Motel::Location.new :x => 10, :y => 20, :z => 30
-      l.distance_from(-20, 60, 150).should == 130
+  describe "#coordinates_json" do
+    it "returns coordinates json data hash" do
+      loc.coordinates_json.should be_an_instance_of(Hash)
+    end
+
+    it "returns coordinates in json data hash" do
+      loc.x = 42
+      loc.y = -100
+      loc.z = 2000
+      loc.coordinates_json[:x].should == 42
+      loc.coordinates_json[:y].should == -100
+      loc.coordinates_json[:z].should == 2000
     end
   end
 
-  describe "#direction_to" do
-    it "returns direction from coordinates to specified point" do
-      l = Motel::Location.new :x => 10, :y => 20, :z => 30
-      dir = l.direction_to(-20, 60, 150)
-      dir.should == [0.23076923076923078, -0.3076923076923077, -0.9230769230769231]
+  describe "#coordinates_eql?" do
+    context "at least one coordinate does not equal other" do
+      it "returns false" do
+        loc.coordinates   = 100, 200, -10
+        other.coordinates =  90, 200, -10
+        loc.coordinates_eql?(other).should be_false
+      end
+    end
+
+    it "returns true" do
+        loc.coordinates   = 90, 200, -10
+        other.coordinates = 90, 200, -10
+        loc.coordinates_eql?(other).should be_true
     end
   end
 end # describe Location

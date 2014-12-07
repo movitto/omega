@@ -49,12 +49,6 @@ module HasCoordinates
   end
   alias :coords= :coordinates=
 
-  # Return abs scalar value of location's coordinates
-  def scalar
-    Math.sqrt(@x**2 + @y**2 + @z**2)
-  end
-  alias :abs :scalar
-
   # Return the absolute 'x' value of this location,
   # eg the sum of the x value of this location and that of all its parents
   def total_x
@@ -95,20 +89,23 @@ module HasCoordinates
     dx = x - cx
     dy = y - cy
     dz = z - cz
-    Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
+    Motel.length(dx, dy, dz)
   end
 
   # Return distance from this location to origin
   def distance_from_origin
     distance_from 0, 0, 0
   end
+  alias :scalar :distance_from_origin
+  alias :abs :distance_from_origin
+
 
   # Return normalized direction vector from this location's coordinates to specified ones
   def direction_to(tx, ty, tz)
     dx = x - tx
     dy = y - ty
     dz = z - tz
-    d = Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
+    d = Motel.length(dx, dy, dz)
     [dx / d, dy / d, dz / d]
   end
 

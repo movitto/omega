@@ -33,6 +33,8 @@ module HasMovementStrategy
 
   # Initialize default movement strategy / movement strategy from arguments
   def movement_strategy_from_args(args)
+    require 'motel/movement_strategies/stopped'
+
     # default to the stopped movement strategy
     attr_from_args args,
       :movement_strategy      => MovementStrategies::Stopped.instance,
@@ -63,8 +65,8 @@ module HasMovementStrategy
   # Remaining time we have until next movement
   def time_until_movement
     delay = movement_strategy.step_delay
-    tsm = (time_since_movement || 0)
-    delay > tsm ? (delay - tsm) : 0
+    tsm   = time_since_movement
+    (!tsm.nil? && delay > tsm) ? (delay - tsm) : 0
   end
 
   # Return bool indicating if movement strategy is equal to other's
