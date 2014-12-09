@@ -13,182 +13,252 @@ require 'rjr/common'
 
 module Motel
 describe Location do
+  let(:loc)     { build(:location) }
+  let(:other)   { build(:location) }
+  let(:linear)  { Motel::MovementStrategies::Linear.new }
+  let(:stopped) { Motel::MovementStrategies::Stopped.instance }
+
   describe "#initialize" do
-    it "sets default tracked attributes" do
-      l = Location.new
-      l.distance_moved = 50
-      l.angle_rotated.should == 0
+    it "resets tracked attributes" do
+      Location.test_new { |l| l.should_receive(:reset_tracked_attributes) }
     end
 
-    it "sets default coordinates" do
-      l = Location.new
-      l.coordinates.should == [nil,nil,nil]
+    it "initializes base attributes from args" do
+      args = {:base => :attrs}
+      Location.test_new(args) { |l|
+        l.should_receive(:base_attrs_from_args).with(args)
+      }
     end
 
-    it "sets default orientation" do
-      l = Location.new
-      l.orientation.should == [nil,nil,nil]
+    it "initializes coordinates from args" do
+      args = {:coord => :inates}
+      Location.test_new(args) { |l|
+        l.should_receive(:coordinates_from_args).with(args)
+      }
     end
 
-    it "sets stopped as default movement strategy" do
-      l = Location.new
-      l.movement_strategy.should == MovementStrategies::Stopped.instance
+    it "initializes orientation from args" do
+      args = {:orient => :ation}
+      Location.test_new(args) { |l|
+        l.should_receive(:orientation_from_args).with(args)
+      }
     end
 
-    it "sets attributes" do
-      p = Location.new :id => 2
-      l = Location.new :id => 1,:parent => p,
-                       :x => 3, :y => 4, :z => 5,
-                       :orientation_x => 1,
-                       :orientation_y => 0,
-                       :orientation_z => 0
-      l.id.should == 1
-      l.parent_id.should == 2
-      l.x.should == 3
-      l.y.should == 4
-      l.z.should == 5
-      l.orientation_x.should == 1
-      l.orientation_y.should == 0
-      l.orientation_z.should == 0
-      l.parent.should == p
-      l.children.should == []
-      l.callbacks.should == {}
-      l.movement_strategy.should == Motel::MovementStrategies::Stopped.instance
+    it "initializes movement strategy from args" do
+      args = {:movement => :strategy}
+      Location.test_new(args) { |l|
+        l.should_receive(:movement_strategy_from_args).with(args)
+      }
+    end
 
-      ms = OmegaTest::MovementStrategy.new
-      l  = Location.new :movement_strategy => ms
+    it "initializes callbacks from args" do
+      args = {:call => :bacls}
+      Location.test_new(args) { |l|
+        l.should_receive(:callbacks_from_args).with(args)
+      }
+    end
+
+    it "initializes heirarchy from args" do
+      args = {:heir => :archy}
+      Location.test_new(args) { |l|
+        l.should_receive(:heirarchy_from_args).with(args)
+      }
+    end
+
+    it "initializes trackable state from args" do
+      args = {:track => :able}
+      Location.test_new(args) { |l|
+        l.should_receive(:trackable_state_from_args).with(args)
+      }
+    end
+
+    it "initializes attributes" do
+      cbs      = {:movement => []}
+      ms       = linear
+      nms      = stopped
+      parent   = Location.new
+      children = [Location.new]
+      time     = Time.now
+
+      l = Location.new :id                     =>   'loc1',
+                       :restrict_view          =>    false,
+                       :restrict_modify        =>    false,
+                       :callbacks              =>      cbs,
+                       :x                      =>        5,
+                       :y                      =>       10,
+                       :z                      =>      -20,
+                       :movement_strategy      =>       ms,
+                       :next_movement_strategy =>      nms,
+                       :orx                    =>        0,
+                       :ory                    =>        1,
+                       :orz                    =>        0,
+                       :parent                 =>   parent,
+                       :children               => children,
+                       :distance_moved         =>      502,
+                       :angle_rotated          =>     1.24,
+                       :last_moved_at          =>     time
+
+      l.id.should == 'loc1'
+      l.restrict_view.should be_false
+      l.restrict_modify.should be_false
+      l.callbacks.should == cbs
+      l.coordinates.should == [5, 10, -20]
       l.movement_strategy.should == ms
-
-      # TODO coordinates, orientation, parent_id, callbacks, restrict, other params
+      l.next_movement_strategy.should == nms
+      l.orientation.should == [0, 1, 0]
+      l.parent.should == parent
+      l.children.should == children
+      l.distance_moved.should == 502
+      l.angle_rotated.should == 1.24
+      l.last_moved_at.should == time
     end
-
-    it "converts string callback keys to symbols" do
-      l = Location.new :callbacks => { 'movement' => 42 }
-      l.callbacks.should == { :movement => 42 }
-    end
-
-    context "invalid string callback key" do
-      it "raises ArgumentError" do
-        lambda{
-          l = Location.new :callbacks => { 'invalid' => 42 }
-        }.should raise_error(ArgumentError)
-      end
-
-      it "does not create symbol" do
-        lambda{
-          begin
-            l = Location.new :callbacks => { 'new_cb_123' => 42 }
-          rescue
-          end
-        }.should_not change{Symbol.all_symbols.size}
-      end
-    end
-
-    [:x, :y, :z, :orientation_x, :orientation_y, :orientation_z].each { |p|
-       it "converts #{p} to float" do
-         l = Location.new p => "42"
-         l.send(p).should == 42
-       end
-     }
   end
 
   describe "#update" do
+    it "updates location with updatable_attributes" do
+      loc.should_receive(:update_from).with(other, *loc.updatable_attrs)
+      loc.update(other)
+    end
+
+    it "updates location with specified attributes" do
+      loc.should_receive(:update_from).with(other, :id)
+      loc.update(other, :id)
+    end
+
     it "copies attributes" do
-      p1 = Location.new
-      p2 = Location.new :id => 10
+      other.restrict_view = false
+      other.restrict_modify = false
+      other.movement_strategy = linear
+      other.next_movement_strategy = stopped
+      other.orientation = Motel.rand_vector
+      other.parent = build(:location)
+      other.distance_moved = rand
+      other.angle_rotated = rand
+      other.last_moved_at = Time.now
 
-      orig = Location.new :x => 1, :y => 2,
-                          :orientation_z => -0.5,
-                          :movement_strategy => 'foobar',
-                          :parent_id => 5, :parent => p1
-
-      nwl  = Location.new :x => 5, :orientation_y => -1,
-                          :movement_strategy => 'foomoney',
-                          :parent => p2
-
-      orig.update(nwl)
-      orig.x.should == 5
-      orig.y.should == 2
-      orig.z.should be_nil
-      orig.orientation_x.should be_nil
-      orig.orientation_y.should == -1
-      orig.orientation_z.should == -0.5
-      orig.movement_strategy.should == "foomoney"
-      orig.parent_id.should == 10
-      orig.parent.should be(p2)
+      loc.update(other)
+      loc.id.should_not == other.id
+      loc.restrict_view.should == other.restrict_view
+      loc.x.should == other.x
+      loc.y.should == other.y
+      loc.z.should == other.z
+      loc.movement_strategy.should == other.movement_strategy
+      loc.next_movement_strategy.should == other.next_movement_strategy
+      loc.orx.should == other.orx
+      loc.ory.should == other.ory
+      loc.orz.should == other.orz
+      loc.parent.should == other.parent
+      loc.parent_id.should == other.parent_id
+      loc.distance_moved.should_not == other.distance_moved
+      loc.angle_rotated.should_not == other.angle_rotated
+      loc.last_moved_at.should == other.last_moved_at
     end
 
     it "skips nil attributes" do
-      orig = Location.new :y => 6
-      nwl  = Location.new
-      nwl.y = nil
+      other.x = nil
+      orig    = loc.x
 
-      orig.update(nwl)
-      orig.y.should == 6
+      loc.update(other)
+      loc.x.should == orig
     end
   end
 
   describe "#valid" do
-    context "id is nil" do
+    before(:each) do
+      loc.id = 'loc1'
+      loc.coordinates = 1,2,3
+      loc.orientation = 1,0,0
+      loc.ms = loc.next_movement_strategy = stopped
+    end
+
+    context "id is invalid" do
       it "returns false" do
-        l = Location.new :coordinates => [0,0,0], :orientation => [0,0,1]
-        l.should_not be_valid
-
-        l.id = 1
-        l.should be_valid
-
-        l = Location.new(:id => 1, :coordinates => [0,0,0], :orientation => [0,0,1])
-        l.should be_valid
+        loc.should_receive(:id_valid?).and_return(false)
+        loc.should_not be_valid
       end
     end
 
-    [:x, :y, :z, :orientation_x, :orientation_y, :orientation_z].each { |p|
-      context "#{p} is not numeric" do
-        it "returns false" do
-          l = build(:location)
-          l.send("#{p}=".intern, "42")
-          l.should_not be_valid
-
-          l.send("#{p}=".intern, 42)
-          l.should be_valid
-        end
-      end
-    }
-
-    context "movement stategy is invalid" do
+    context "id attributes are invalid" do
       it "returns false" do
-        l = build(:location)
-        l.movement_strategy = nil
-        l.should_not be_valid
-
-        l.movement_strategy = 42
-        l.should_not be_valid
-
-        l.movement_strategy = MovementStrategies::Linear.new :speed => nil
-        l.should_not be_valid
-
-        l.movement_strategy.speed = 5
-        l.should be_valid
+        loc.id = nil
+        loc.should_not be_valid
       end
+    end
+
+    context "coordinates are invalid" do
+      it "returns false" do
+        loc.should_receive(:coordinates_valid?).and_return(false)
+        loc.should_not be_valid
+      end
+    end
+
+    context "coordinates attributes are invalid" do
+      it "returns false" do
+        loc.coordinates = ['1', '2', '3']
+        loc.should_not be_valid
+      end
+    end
+
+    context "orientation is invalid" do
+      it "returns false" do
+        loc.should_receive(:orientation_valid?).and_return(false)
+        loc.should_not be_valid
+      end
+    end
+
+    context "orientation attributes are invalid" do
+      it "returns false" do
+        loc.orientation = ['1', '0', '0']
+        loc.should_not be_valid
+      end
+    end
+
+    context "movement strategy is invalid" do
+      it "returns false" do
+        loc.should_receive(:movement_strategy_valid?).and_return(false)
+        loc.should_not be_valid
+      end
+    end
+
+    context "movement strategy attributes are invalid" do
+      it "returns false" do
+        loc.movement_strategy = :a
+        loc.should_not be_valid
+      end
+    end
+
+    it "returns true" do
+      loc.should be_valid
     end
   end
 
   describe "#to_json" do
     it "returns location in json format" do
+      linear.speed = 51
       cb = Callbacks::Movement.new :min_distance => 20
-      l = Location.new(:id => 42,
-                       :x => 10, :y => -20, :z => 0.5,
-                       :orientation => [0, 0, -1],
-                       :restrict_view => false, :restrict_modify => true,
-                       :distance_moved => 123, :angle_rotated => 0.12,
-                       :parent_id => 15,
-                       :movement_strategy =>
-                         Motel::MovementStrategies::Linear.new(:speed => 51))
+      child1 = build(:location)
+      child2 = build(:location)
+      l = Location.new(:id                     => 42,
+                       :restrict_view          => false,
+                       :restrict_modify        => true,
+                       :x                      => 10,
+                       :y                      => -20,
+                       :z                      => 0.5,
+                       :orientation            => [0, 0, -1],
+                       :distance_moved         => 123,
+                       :angle_rotated          => 0.12,
+                       :last_moved_at          => Time.now,
+                       :parent_id              => 15,
+                       :children               => [child1, child2],
+                       :movement_strategy      => linear,
+                       :next_movement_strategy => stopped)
       l.callbacks['movement'] << cb
 
       j = l.to_json
       j.should include('"json_class":"Motel::Location"')
       j.should include('"id":42')
+      j.should include('"restrict_view":false')
+      j.should include('"restrict_modify":true')
       j.should include('"x":10')
       j.should include('"y":-20')
       j.should include('"z":0.5')
@@ -197,12 +267,16 @@ describe Location do
       j.should include('"orientation_z":-1')
       j.should include('"distance_moved":123')
       j.should include('"angle_rotated":0.12')
-      j.should include('"restrict_view":false')
-      j.should include('"restrict_modify":true')
+      j.should include('"last_moved_at":"'+l.last_moved_str+'"')
       j.should include('"parent_id":15')
+      j.should include('"children":[')
+      j.should include('"id":'+child1.id.to_s)
+      j.should include('"id":'+child2.id.to_s)
       j.should include('"movement_strategy":{')
       j.should include('"json_class":"Motel::MovementStrategies::Linear"')
       j.should include('"speed":51')
+      j.should include('"next_movement_strategy":{')
+      j.should include('"json_class":"Motel::MovementStrategies::Stopped"')
       j.should include('"callbacks":{"movement":[{')
       j.should include('"json_class":"Motel::Callbacks::Movement"')
       j.should include('"min_distance":20')
@@ -260,6 +334,15 @@ describe Location do
       end
     end
 
+    context "base_attrs_eql? returns false" do
+      it "returns false" do
+        l1 = Location.new
+        l2 = Location.new
+        l1.should_receive(:base_attrs_eql?).with(l2).and_return(false)
+        l1.should_not == l2
+      end
+    end
+
     context "coordinates are different" do
       it "returns false" do
         l1 = Location.new :x => 1
@@ -272,6 +355,15 @@ describe Location do
 
         l1 = Location.new :z => 1
         l2 = Location.new :z => 2
+        l1.should_not == l2
+      end
+    end
+
+    context "#coordinates_eql? returns false" do
+      it "returns false" do
+        l1 = Location.new
+        l2 = Location.new
+        l1.should_receive(:coordinates_eql?).with(l2).and_return(false)
         l1.should_not == l2
       end
     end
@@ -292,10 +384,28 @@ describe Location do
       end
     end
 
+    context "#orientation_eql? returns false" do
+      it "returns false" do
+        l1 = Location.new
+        l2 = Location.new
+        l1.should_receive(:orientation_eql?).with(l2).and_return(false)
+        l1.should_not == l2
+      end
+    end
+
     context "movement strategy is different" do
       it "returns false" do
-        l1 = Location.new :movement_strategy => MovementStrategies::Linear.new
+        l1 = Location.new :movement_strategy => linear
         l2 = Location.new
+        l1.should_not == l2
+      end
+    end
+
+    context "#movement_strategy_eql? returns false" do
+      it "returns false" do
+        l1 = Location.new
+        l2 = Location.new
+        l1.should_receive(:movement_strategy_eql?).with(l2).and_return(false)
         l1.should_not == l2
       end
     end
@@ -308,10 +418,28 @@ describe Location do
       end
     end
 
+    context "#callbacks_eql? returns false" do
+      it "returns false" do
+        l1 = Location.new
+        l2 = Location.new
+        l1.should_receive(:callbacks_eql?).with(l2).and_return(false)
+        l1.should_not == l2
+      end
+    end
+
     context "heirarchy is different" do
       it "returns false" do
         l1 = Location.new :parent_id => 'l4'
         l2 = Location.new :parent_id => 'l5'
+        l1.should_not == l2
+      end
+    end
+
+    context "#heirarchy_eql? returns false" do
+      it "returns false" do
+        l1 = Location.new
+        l2 = Location.new
+        l1.should_receive(:heirarchy_eql?).with(l2).and_return(false)
         l1.should_not == l2
       end
     end
@@ -324,6 +452,19 @@ describe Location do
 
         l1 = Location.new :angle_rotated =>  50
         l2 = Location.new :angle_rotated => 150
+        l1.should_not == l2
+
+        l1 = Location.new :last_moved_at => Time.now
+        l2 = Location.new :last_moved_at => Time.now - 20
+        l1.should_not == l2
+      end
+    end
+
+    context "#trackable_state_eql? returns false" do
+      it "returns false" do
+        l1 = Location.new
+        l2 = Location.new
+        l1.should_receive(:trackable_state_eql?).with(l2).and_return(false)
         l1.should_not == l2
       end
     end

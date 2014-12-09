@@ -57,6 +57,5 @@ describe MovementStrategy do
       m.step_delay.should == 20
     end
   end
-
 end # describe MovementStrategy
 end # module Motel
