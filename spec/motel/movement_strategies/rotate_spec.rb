@@ -1,6 +1,6 @@
-# rotate movement strategy tests
+# Rotate Movement Strategy unit tests
 #
-# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2013-2014 Mohammed Morsi <mo@morsi.org>
 # See COPYING for the License of this software
 
 require 'spec_helper'
@@ -8,174 +8,80 @@ require 'motel/location'
 require 'motel/movement_strategies/rotate'
 
 module Motel::MovementStrategies
-describe Rotatable do
-
-  describe "#valid_rotation?" do
-    before(:each) do
-      @r = Rotate.new
-    end
-
-    context "rot_theta is invalid" do
-      it "returns false" do
-        @r.rot_theta = :foo
-        @r.should_not be_valid
-        @r.rot_theta = -10.11
-        @r.valid?.should be_false
-
-        @r.rot_theta = 9.89
-        @r.valid?.should be_false
-      end
-    end
-
-    context "rot axis is invalid" do
-      it "returns false" do
-        @r.rot_x = :foo
-        @r.valid?.should be_false
-
-        @r.rot_x = -10.11
-        @r.valid?.should be_false
-
-        @r.rot_x = 10.22
-        @r.valid?.should be_false
-
-        @r.rot_x = -0.75
-        @r.valid?.should be_false
-      end
-    end
-
-    it "returns true" do
-      @r.should be_valid
-    end
-  end
-
-  describe "#change_due_to_rotation?" do
-    before(:each) do
-      @loc = Motel::Location.new
-    end
-
-    context "stop_angle nil" do
-      it "returns false" do
-        r = Rotate.new
-        r.stop_angle = nil
-        r.change_due_to_rotation?(@loc).should be_false
-      end
-    end
-
-    context "loc.angle_rotated < stop_angle" do
-      it "returns false" do
-        r = Rotate.new
-        r.stop_angle = 1.57
-        @loc.angle_rotated = 1.1
-        r.change_due_to_rotation?(@loc).should be_false
-      end
-    end
-
-    context "loc.angle_rotated >= stop_angle" do
-      it "returns true" do
-        r = Rotate.new
-        r.stop_angle = 1.1
-        @loc.angle_rotated = 1.57
-        r.change_due_to_rotation?(@loc).should be_true
-      end
-    end
-  end
-
-  describe "#rotate" do
-    it "rotates location by rot_theta scaled with elapsed time around rot axis" do
-      rot = Rotate.new :speed => 5, :step_delay => 5
-      rt,rx,ry,rz  = rot.rot_theta, rot.rot_x, rot.rot_y, rot.rot_z
-
-      p = Motel::Location.new
-      orientation  = [1,0,0]
-      l = Motel::Location.new(:parent => p,
-                              :movement_strategy => rot,
-                              :orientation  => orientation)
-
-      # move and validate
-      rot.move l, 1
-      l.orientation.should ==
-        Motel.rotate(*orientation, rt, rx, ry, rz)
-
-      orientation  = l.orientation
-
-      rot.move l, 5
-      l.orientation.should ==
-        Motel.rotate(*orientation, 5*rt, rx, ry, rz)
-    end
-
-    it "appends angle rotated to loc.angle_rotated" do
-      rot = Rotate.new :rot_theta => 1.57, :step_delay => 5
-      l = Motel::Location.new :orientation => [1,0,0]
-      rot.move l, 1
-      l.angle_rotated.should == 1.57
-    end
-
-    context "total rotation angle will exceed stop angle" do
-      it "only rotates location up to stop angle" do
-        rot = Rotate.new :rot_theta  => 1.57, :step_delay => 5,
-                         :stop_angle => 1.23
-        l = Motel::Location.new :orientation => [1,0,0]
-        rot.move l, 1
-        l.angle_rotated.should == 1.23
-      end
-    end
-  end
-
-end # describe Rotatable
-
 describe Rotate do
+  let(:rot) { Rotate.new   }
+  let(:loc) { build(:location) }
+
   describe "#initialize" do
-    it "sets defaults" do
-      r = Rotate.new
-      r.rot_theta.should == 0
-      r.rot_x.should == 0
-      r.rot_y.should == 0
-      r.rot_z.should == 1
+    it "initializes rotation" do
+      args = {:ar => :gs}
+      Rotate.test_new(args) { |ms| ms.should_receive(:init_rotation).with(args) }
     end
 
-    it "sets arguments" do
-      rot = Rotate.new :speed => 5, :rot_theta => 0.25,
-                       :rot_x => -1, :rot_y => 0, :rot_z => 0
-      rot.rot_theta.should == 0.25
-      rot.rot_x.should == -1
-      rot.rot_y.should == 0
-      rot.rot_z.should == 0
+    it "sets step delay" do
+      Rotate.new(:step_delay => 5).step_delay.should == 5
+    end
+
+    it "sets defaults" do
+      Rotate.new.step_delay.should == 0.01
     end
   end
 
   describe "#valid?" do
-    it "dispatches to valid_rotation?" do
-      r = Rotate.new
-      r.should_receive(:valid_rotation?)
-      r.valid?
+    context "valid rotation" do
+      it "returns true" do
+        rot.should_receive(:valid_rotation?).and_return(true)
+        rot.should be_valid
+      end
+    end
+
+    context "invalid rotation" do
+      it "returns false" do
+        rot.should_receive(:valid_rotation?).and_return(false)
+        rot.should_not be_valid
+      end
     end
   end
 
   describe "#change?" do
-    it "dispatches to change_due_to_rotation?" do
-      r = Rotate.new
-      r.should_receive(:change_due_to_rotation?).and_return(:val)
-      r.change?(Motel::Location.new).should == :val
+    context "change due to rotation" do
+      it "returns true" do
+        rot.should_receive(:change_due_to_rotation?).with(loc).and_return(true)
+        rot.change?(loc).should be_true
+      end
+    end
+
+    context "no change due to rotation" do
+      it "returns false" do
+        rot.should_receive(:change_due_to_rotation?).with(loc).and_return(false)
+        rot.change?(loc).should be_false
+      end
     end
   end
 
   describe "#rotate" do
     context "rotate is not valid" do
       it "does not rotate location" do
-        rot = Rotate.new :rot_theta => -10
-        l = build(:location)
-
-        lambda {
-          rot.move l, 5
-        }.should_not change(l, :orientation)
+        rot.should_receive(:valid?).and_return(false)
+        rot.should_not_receive(:rotate)
+        lambda { rot.move loc, 5 }.should_not change(loc, :orientation)
       end
+    end
+
+    it "rotates location" do
+      rot.should_receive(:rotate).with(loc, 1)
+      rot.move loc, 1
     end
   end
 
   describe "#to_json" do
     it "returns rotate in json format" do
-      rot = Rotate.new :rot_theta => 0.1, :step_delay => 1,
-                       :rot_x => 0, :rot_y => 0, :rot_z => -1, :stop_angle => 0.33
+      rot = Rotate.new :rot_theta  => 0.1,
+                       :step_delay => 1,
+                       :rot_x      => 0,
+                       :rot_y      => 0,
+                       :rot_z      => -1,
+                       :stop_angle => 0.33
 
       j = rot.to_json
       j.should include('"json_class":"Motel::MovementStrategies::Rotate"')
@@ -201,7 +107,5 @@ describe Rotate do
       m.rot_z.should == 0
     end
   end
-
 end # describe Rotate
-
 end # Motel::MovementStrategies

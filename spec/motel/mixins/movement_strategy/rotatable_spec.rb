@@ -51,6 +51,8 @@ describe Rotatable do
       ms.init_rotation :stop_angle => Math::PI/2
       ms.stop_angle.should == Math::PI/2
     end
+
+    it "sets defaults"
   end
 
   describe "#valid_rotation?" do

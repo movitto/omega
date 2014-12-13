@@ -54,6 +54,8 @@ describe TracksLocation do
       ms.trackable_attrs_from_args :orientation_tolerance => Math::PI/64
       ms.orientation_tolerance.should == Math::PI/64
     end
+
+    it "sets defaults"
   end
 
   describe "#tracked_attrs_valid?" do

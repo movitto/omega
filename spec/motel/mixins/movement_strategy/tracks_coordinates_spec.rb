@@ -27,6 +27,8 @@ describe TracksCoordinates do
       ms.target_attrs_from_args :distance_tolerance => CLOSE_ENOUGH / 10
       ms.distance_tolerance.should == CLOSE_ENOUGH / 10
     end
+
+    it "sets defaults"
   end
 
   describe "#target_attrs_valid?" do

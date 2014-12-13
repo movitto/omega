@@ -58,10 +58,8 @@ module EllipticalMovement
     loc.x = nX
     loc.y = nY
     loc.z = nZ
+    nil
   end
-
-  private
-  ### internal helper movement methods
 
   # return the origin centered coordiates of a location
   def origin_centered_coordinates(location)

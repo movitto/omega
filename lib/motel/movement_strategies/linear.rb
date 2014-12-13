@@ -61,12 +61,15 @@ class Linear < MovementStrategy
    # Implementation of {Motel::MovementStrategy#move}
    def move(loc, elapsed_seconds)
      unless valid?
-       ::RJR::Logger.warn "linear movement strategy not valid, not proceeding with move"
+       ::RJR::Logger.warn "linear movement strategy not valid, "\
+                          "not proceeding with move"
        return
      end
 
-     ::RJR::Logger.debug \
-       "moving location #{loc.id} via linear movement strategy #{speed} #{dx}/#{dy}/#{dz}"
+     ::RJR::Logger.debug "moving location #{loc.id} "\
+                         "via linear movement strategy "\
+                         "#{speed} #{dx}/#{dy}/#{dz}"
+
 
      rotate(loc, elapsed_seconds)
 

@@ -8,33 +8,25 @@ require 'motel/movement_strategies/stopped'
 
 module Motel::MovementStrategies
 describe Stopped do
+  let(:stopped) { Stopped.instance }
+  let(:loc)     { build(:location) }
+
   describe "#valid?" do
     it "returns true" do
-      Stopped.instance.should be_valid
+      stopped.should be_valid
     end
   end
 
   describe "#move" do
     it "does nothing" do
-      stopped = Stopped.instance
-      l = build(:location)
-      x,y,z = l.coordinates
+      coords = loc.coordinates
 
       # make sure location does not move
-      stopped.move l, 10
-      l.x.should == x
-      l.y.should == y
-      l.z.should == z
-
-      stopped.move l, 50
-      l.x.should == x
-      l.y.should == y
-      l.z.should == z
-
-      stopped.move l, 0
-      l.x.should == x
-      l.y.should == y
-      l.z.should == z
+      intervals = [0, 10, 50]
+      intervals.each { |interval|
+        stopped.move loc, interval
+        loc.coordinates.should == coords
+      }
     end
   end
 
@@ -45,6 +37,5 @@ describe Stopped do
       ms.should == Motel::MovementStrategies::Stopped.instance
     end
   end
-
 end # describe Stopped
 end # module Motel::MovementStrategies

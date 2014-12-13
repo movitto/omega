@@ -31,13 +31,13 @@ class Rotate < MovementStrategy
   # Implementation of {Motel::MovementStrategy#move}
   def move(loc, elapsed_seconds)
     unless valid?
-      ::RJR::Logger.warn \
-        "rotate movement strategy (#{rot_to_s}) not valid, not proceeding with move"
+      ::RJR::Logger.warn "rotate movement strategy (#{rot_to_s}) not valid, "\
+                         "not proceeding with move"
       return
     end
 
-    ::RJR::Logger.debug \
-      "moving location #{loc.id} via rotate movement strategy #{rot_to_s}"
+    ::RJR::Logger.debug "moving location #{loc.id} "\
+                        "via rotate movement strategy #{rot_to_s}"
 
     rotate(loc, elapsed_seconds)
   end

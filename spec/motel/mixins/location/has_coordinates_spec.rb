@@ -125,6 +125,11 @@ describe Location do
       l2 = Location.new :x => -5, :y => -7, :z => 30
       (l1 - l2).should be_within(OmegaTest::CLOSE_ENOUGH).of(30.2324329156619)
     end
+
+    it "returns distance between location and coordinates" do
+      coords = 50, 10, -10
+      (loc - coords).should == Motel.length(loc.x - 50, loc.y - 10, loc.z + 10)
+    end
   end
 
   describe "#distance_from" do

@@ -108,6 +108,8 @@ describe LinearMovement do
       ms.linear_attrs_from_args :ax => adir[0], :ay => adir[1], :az => adir[2]
       ms.adir.should == ndir
     end
+
+    it "sets defaults"
   end
 
   describe "#linear_attrs_valid?" do

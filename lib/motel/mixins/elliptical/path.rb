@@ -86,19 +86,23 @@ module EllipticalPath
   # p = a(1 - e^2) = b^2 / a
   # e = sqrt(1 - (b/a)^2)
   def intercepts
+    cannot_calc = (p.nil? || e.nil?) && (@a.nil? || @b.nil?)
+    return nil, nil if cannot_calc
     @a ||= p / (1 - e**2)
     @b ||= Math.sqrt(p * @a)
     return @a,@b
   end
 
-  attr_accessor :le
-
   # return the linear eccentricity of the ellipse
   # le = sqrt(a^2 - b^2)
   def linear_eccentricity
     a,b = intercepts
+    cannot_calc = (a.nil? || b.nil?) && @le.nil?
+    return nil if cannot_calc
     @le ||= Math.sqrt(a**2 - b**2);
   end
+  alias :le :linear_eccentricity
+  attr_writer :le
 
   attr_accessor :centerX, :centerY, :centerZ
 
@@ -118,13 +122,20 @@ module EllipticalPath
   # return the coordinates of the center position
   # C = (-direction_major) * le
   def center
-    a,b = intercepts
     le  = linear_eccentricity
+    cannot_calc = (!dmaj_valid? || le.nil?) && @centerX.nil?
+    return nil, nil, nil if cannot_calc
 
     @centerX ||= -1 * dmajx * le
     @centerY ||= -1 * dmajy * le
     @centerZ ||= -1 * dmajz * le
     return @centerX, @centerY, @centerZ
+  end
+
+  # Set center coordinates
+  def center=(*coords)
+    coords = coords.flatten
+    @centerX, @centerY, @centerZ = *coords
   end
 
   # Initialize focus from args
@@ -145,8 +156,9 @@ module EllipticalPath
   # return the coordinates of a focus position
   # F = direction_major * le
   def focus
-    a,b = intercepts
     le  = linear_eccentricity
+    cannot_calc = (!dmaj_valid? || le.nil?) && @focusX.nil?
+    return nil, nil, nil if cannot_calc
 
     @focusX ||= dmajx * le
     @focusY ||= dmajy * le

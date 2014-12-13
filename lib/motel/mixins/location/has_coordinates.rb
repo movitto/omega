@@ -70,18 +70,18 @@ module HasCoordinates
     return parent.total_z + z
   end
 
-  # Return the distance between this location and specified other
-  #
-  # @param [Motel::Location] location which to calculate distance to
-  # @return [Float] distance to the specified location
+  # Return the distance between this location and specified coords
   #
   # @example
   #   loc1 = Motel::Location.new :x => 100
   #   loc2 = Motel::Location.new :x => 200
-  #   loc1 - loc2    # => 100
-  #   loc2 - loc1    # => 100
-  def -(location)
-    distance_from location.x, location.y, location.z
+  #   loc1 - loc2      # => 100
+  #   loc2 - loc1      # => 100
+  #   loc1 - 100, 0, 0 # => 0
+  def -(*coords)
+    coords = coords.flatten
+    coords = coords.first.coordinates if coords.length == 1 && coords.first.is_a?(Location)
+    distance_from *coords
   end
 
   # Return the distance between this location and the specified point

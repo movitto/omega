@@ -119,7 +119,7 @@ class Follow < MovementStrategy
      else
        nxt = Math::PI  /  6
 
-       target = coordinates_from_theta(theta(loc) + nxt)
+       self.target = coordinates_from_theta(theta(loc) + nxt)
        face_target(loc, target)
        rotate(loc, elapsed_seconds)
        update_acceleration_from(loc)
@@ -145,6 +145,5 @@ class Follow < MovementStrategy
      "follow-(#{tracked_location_id} at #{distance})"
    end
 end
-
 end # module MovementStrategies
 end # module Motel

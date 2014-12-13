@@ -87,11 +87,14 @@ module EllipticalAxis
 
   ### internal helper movement methods
 
+  def axis_plane_normal
+    Motel.cross_product(dmajx,dmajy,dmajz,dminx,dminy,dminz)
+  end
+
   # return the axis-angle representing the rotation of the
   # direction axis plane from the standard cartesian axis plane
   def axis_plane_rotation
-    vectors = Motel::CARTESIAN_NORMAL_VECTOR +
-              Motel.cross_product(dmajx,dmajy,dmajz,dminx,dminy,dminz)
+    vectors = Motel::CARTESIAN_NORMAL_VECTOR + axis_plane_normal
     Motel.axis_angle(*vectors)
   end
 
@@ -100,9 +103,8 @@ module EllipticalAxis
   # vector of the cartesian axis, rotated onto the plane
   # of the current axis (see #axis_plane_rotation above)
   def axis_rotation
-    vectors =
-      Motel.rotate(*Motel::MAJOR_CARTESIAN_AXIS, *axis_plane_rotation) + dmaj
-
+    mc_rotation = Motel.rotate(*Motel::MAJOR_CARTESIAN_AXIS, *axis_plane_rotation) 
+    vectors = mc_rotation + dmaj
     Motel.axis_angle(*vectors)
   end
 end # module EllipticalAxis

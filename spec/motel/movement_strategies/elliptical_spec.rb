@@ -1,228 +1,137 @@
-# elliptical movement strategy tests
+# Elliptical Movement Strategy Tests
 #
 # Copyright (C) 2009-2013 Mohammed Morsi <mo@morsi.org>
 # See COPYING for the License of this software
 
 require 'spec_helper'
-require 'motel/location'
-require 'motel/movement_strategies/linear'
 
 module Motel::MovementStrategies
 describe Elliptical do
-  describe "#dmaj" do
-    it "returns major axis direction vector" do
-      e = Elliptical.new :dmajx => 0, :dmajy => 0, :dmajz => -1
-      e.dmaj.should == [0,0,-1]
-    end
-  end
-
-  describe "#dmin" do
-    it "returns minor axis direction vector" do
-      e = Elliptical.new :dminx => 0, :dminy => 0, :dminz => -1
-      e.dmin.should == [0,0,-1]
-    end
-  end
-
-  describe "#direction" do
-    it "returns direction" do
-      e = Elliptical.new :dmajx => 0, :dmajy => 0, :dmajz => -1,
-                         :dminx => 0, :dminy => 1, :dminz =>  0
-      e.direction.should == [0,0,-1,0,1,0]
-    end
-  end
+  let(:elliptical) { Elliptical.new   }
+  let(:loc)        { build(:location) }
 
   describe "#initialize" do
+    it "initializes axis from args" do
+      args = {:ar => :gs}
+      Elliptical.test_new(args) { |e| e.should_receive(:axis_from_args).with(args) }
+    end
+
+    it "initializes path from args" do
+      args = {:ar => :gs}
+      Elliptical.test_new(args) { |e| e.should_receive(:path_from_args).with(args) }
+    end
+
+    it "initializes movement from args" do
+      args = {:ar => :gs}
+      Elliptical.test_new(args) { |e| e.should_receive(:movement_from_args).with(args) }
+    end
+
+    it "initializes step delay" do
+      Elliptical.new(:step_delay => 1).step_delay.should == 1
+    end
+
     it "sets defaults" do
-      e = Elliptical.new
-      e.direction.should == [1,0,0,0,1,0]
-    end
-
-    it "sets attributes" do
-      e = Elliptical.new :relative_to => Elliptical::CENTER,
-                         :speed => 5,
-                         :e => 0.5, :p => 10,
-                         :dmajx => 1, :dmajy =>  3, :dmajz => 2,
-                         :dminx => 3, :dminy => -1, :dminz => 0
-
-      # the orthogonal direction vectors get normalized
-      e.dmajx.should be_within(OmegaTest::CLOSE_ENOUGH).of(0.267261241912424)
-      e.dmajy.should be_within(OmegaTest::CLOSE_ENOUGH).of(0.801783725737273)
-      e.dmajz.should be_within(OmegaTest::CLOSE_ENOUGH).of(0.534522483824849)
-      e.dminx.should be_within(OmegaTest::CLOSE_ENOUGH).of(0.948683298050514)
-      e.dminy.should be_within(OmegaTest::CLOSE_ENOUGH).of(-0.316227766016838)
-      e.dminz.should == 0
-
-      e.speed.should == 5
-      e.relative_to.should == Elliptical::CENTER
-      e.e.should == 0.5
-      e.p.should == 10
-    end
-
-    it "accepts direction" do
-      e = Elliptical.new :direction => [[-1,0,0],[0,-1,0]]
-      e.direction.should == [-1,0,0,0,-1,0]
-
-      e = Elliptical.new :direction => [-1,0,0,0,-1,0]
-      e.direction.should == [-1,0,0,0,-1,0]
-
-      e = Elliptical.new :dmaj => [0,0,-1],
-                         :dmin => [0,-1,0]
-      e.direction.should == [0,0,-1,0,-1,0]
-
-      e = Elliptical.new :direction => [[-1,0,0],[0,-1,0]],
-                         :dmaj => [0,1,0],
-                         :dminx => 1,
-                         :dminy => 0
-      e.direction.should == [0,1,0,1,0,0]
-    end
-
-    it "normalizes directions" do
-      e = Elliptical.new :direction => [[10,0,0],[0,-5,0]]
-      e.direction.should == [1,0,0,0,-1,0]
-    end
-
-    it "sets cached elliptical properties" do
-      e = Elliptical.new :a => 10, :b => 20, :le => 1000
-      e.a.should == 10
-      e.b.should == 20
-      e.le.should == 1000
+      Elliptical.new.step_delay.should == 0.01
     end
   end
 
   describe "#valid?" do
     before(:each) do
-      # minimum valid attributes
-      @valid = Elliptical.new :relative_to => Elliptical::CENTER,
-                              :speed => 5, :p => 100, :e => 0.5
+      elliptical.e = 0.5
+      elliptical.p = 100
+      elliptical.speed = 5
     end
 
-    context "dmaj is not normalized" do
+    context "axis is not valid" do
       it "returns false" do
-        @valid.dmajx = 10
-        @valid.should_not be_valid
+        elliptical.should_receive(:axis_valid?).and_return(false)
+        elliptical.should_not be_valid
       end
     end
 
-    context "dmin is not normalized" do
+    context "path is not valid" do
       it "returns false" do
-        @valid.dminy = -20
-        @valid.should_not be_valid
+        elliptical.should_receive(:path_valid?).and_return(false)
+        elliptical.should_not be_valid
       end
     end
 
-    context"axis' are not orthogonal" do
+    context "speed is not valid" do
       it "returns false" do
-        @valid.dmajx = -1
-        @valid.dminx = -1
-        @valid.dminy =  0
-        @valid.should_not be_valid
-      end
-    end
-
-    context "eccentricity not valid" do
-      it "returns false" do
-        @valid.e = 'foobar'
-        @valid.should_not be_valid
-
-        @valid.e = 5
-        @valid.should_not be_valid
-      end
-    end
-
-    context "semi latus rectum not valid" do
-      it "returns false" do
-        @valid.p = 'foobar'
-        @valid.should_not be_valid
-
-        @valid.p = -10
-        @valid.should_not be_valid
-      end
-    end
-
-    context "speed not valid" do
-      it "returns false" do
-        @valid.speed = 'foobar'
-        @valid.should_not be_valid
-
-        @valid.speed = -10
-        @valid.should_not be_valid
-      end
-    end
-
-    context "relative to not valid" do
-      it "return false" do
-        @valid.relative_to = 'fooz'
-        @valid.should_not be_valid
+        elliptical.should_receive(:elliptical_speed_valid?).and_return(false)
+        elliptical.should_not be_valid
       end
     end
 
     it "returns true" do
-      @valid.should be_valid
+      elliptical.should be_valid
+    end
+  end
+
+  describe "#scoped_attrs" do
+    it "excludes cached elliptical properties from :create scope" do
+      m = Elliptical.new
+      m.scoped_attrs(:create).should_not include(:a)
+      m.scoped_attrs(:create).should_not include(:b)
+      m.scoped_attrs(:create).should_not include(:le)
+    end
+
+    it "excludes cached elliptical properties from :get scope" do
+      m = Elliptical.new
+      m.scoped_attrs(:get).should_not include(:a)
+      m.scoped_attrs(:get).should_not include(:b)
+      m.scoped_attrs(:get).should_not include(:le)
     end
   end
 
   describe "#move" do
+    before(:each) do
+      elliptical.e = 0.9
+      elliptical.p = 100000
+      elliptical.speed = 50
+    end
+
     context "elliptical is invalid" do
       it "does not move location" do
-        elliptical = Elliptical.new
-        l = Motel::Location.new
-
-        lambda {
-          elliptical.move l, 1
-        }.should_not change(l, :coordinates)
+        elliptical.should_receive(:valid?).and_return(false)
+        elliptical.should_not_receive(:move_elliptical)
+        elliptical.move(loc, 1)
       end
     end
 
-    it "moves location along elliptical path by speed * elapsed_time" do
-      e = Elliptical.new(:step_delay        => 5,
-                         :relative_to       => Elliptical::CENTER,
-                         :speed             => 1.57,
-                         :e => 0, # circle
-                         :p => 1,
-                         :direction => [1,0,0,0,1,0])
-
-      x,y,z = 1,0,0
-      l = Motel::Location.new(:movement_strategy => e,
-                              :x => x, :y => y, :z => z)
-
-      # move and validate
-      e.move l, 1
-      (0 - l.x).abs.round_to(2).should == 0
-      (1 - l.y).abs.round_to(2).should == 0
-      (0 - l.z).abs.round_to(2).should == 0
-
-      e.move l, 1
-      (-1 - l.x).abs.round_to(2).should == 0
-      (0  - l.y).abs.round_to(2).should == 0
-      (0  - l.z).abs.round_to(2).should == 0
-
-      e.move l, 1
-      (0  - l.x).abs.round_to(2).should == 0
-      (-1 - l.y).abs.round_to(2).should == 0
-      (0  - l.z).abs.round_to(2).should == 0
-
-      e.move l, 1
-      (1  - l.x).abs.round_to(2).should == 0
-      (0 - l.y).abs.round_to(2).should == 0
-      (0  - l.z).abs.round_to(2).should == 0
+    it "moves location along elliptical path" do
+      elliptical.should_receive(:move_elliptical).with(loc, 1)
+      elliptical.move(loc, 1)
     end
-
-    # TODO more elliptical path test cases
   end
 
   describe "#to_json" do
     it "returns elliptical in json format" do
-      m = Elliptical.new :relative_to => Elliptical::CENTER,
-                         :step_delay => 21, :speed => 42, :e => 0.5, :p => 420,
-                         :direction  => [-1,0,0,0,-1,0]
+      m = Elliptical.new :relative_to    => Elliptical::CENTER,
+                         :step_delay     => 21,
+                         :speed          => 42,
+                         :path_tolerance => 10,
+                         :e              => 0.5,
+                         :p              => 420,
+                         :a              => 100,
+                         :b              =>  50,
+                         :le             => 200,
+                         :focus          => [75, -75, 44],
+                         :direction      => [-1,0,0,0,-1,0]
 
       j = m.to_json
       j.should include('"json_class":"Motel::MovementStrategies::Elliptical"')
+      j.should include('"relative_to":"center"')
       j.should include('"step_delay":21')
       j.should include('"speed":42')
-      j.should include('"relative_to":"center"')
+      j.should include('"path_tolerance":10')
       j.should include('"e":0.5')
       j.should include('"p":420')
+      j.should include('"a":100')
+      j.should include('"b":50')
+      j.should include('"le":200')
+      j.should include('"center":[0,0,0]')
+      j.should include('"focus":[75,-75,44]')
       j.should include('"dmajx":-1')
       j.should include('"dmajy":0')
       j.should include('"dmajz":0')
@@ -251,76 +160,5 @@ describe Elliptical do
       m.dminz.should == 0
     end
   end
-
-  it "returns cached elliptical properties in json" do
-      m = Elliptical.new :a => 10, :b => 20, :le => 1000
-
-      j = m.to_json
-      j.should include('"a":10')
-      j.should include('"b":20')
-      j.should include('"le":1000')
-  end
-
-  it "excludes cached elliptical properties from :create scope" do
-    m = Elliptical.new
-    m.scoped_attrs(:create).should_not include(:a)
-    m.scoped_attrs(:create).should_not include(:b)
-    m.scoped_attrs(:create).should_not include(:le)
-  end
-
-  it "excludes cached elliptical properties from :get scope" do
-    m = Elliptical.new
-    m.scoped_attrs(:get).should_not include(:a)
-    m.scoped_attrs(:get).should_not include(:b)
-    m.scoped_attrs(:get).should_not include(:le)
-  end
-
-  describe "#random" do
-    it "returns new random elliptical strategy" do
-      m = Elliptical.random
-      m.should be_an_instance_of(Elliptical)
-      Elliptical.random.should_not eq(m)
-    end
-
-    context "dimensions specified" do
-      it "restrict axis to specified number of dimensions" do
-        m = Elliptical.random :dimensions => 2
-        m.dmajz.should == 0
-        m.dminz.should == 0
-      end
-    end
-
-    context "relative to" do
-      it "sets relative to on location" do
-        m = Elliptical.random :relative_to => Elliptical::FOCI
-        m.relative_to.should == Elliptical::FOCI
-      end
-    end
-
-    context "min_e/min_l/min_s specified" do
-      it "constrains e/l/s to minimums" do
-        m = Elliptical.random :min_e => 0.3,
-                              :min_p => 90,
-                              :min_s => 10
-        m.e.should >= 0.3
-        m.p.should >= 90
-        m.speed.should >= 10
-      end
-    end
-
-    context "max_e/max_l/max_s specified" do
-      it "constrains e/l/s to maximums" do
-        m = Elliptical.random :max_e => 0.7,
-                              :max_p => 120,
-                              :max_s => 20
-        m.e.should < 0.7
-        m.p.should < 120
-        m.speed.should < 20
-      end
-    end
-  end
-
-  # TODO test other orbital methods
-
 end # describe Elliptical
 end # module Motel::MovementStrategies

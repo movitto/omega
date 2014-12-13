@@ -13,6 +13,7 @@ $: << lib_dir
 require 'omega'
 
 # include support modules
+require 'support/core_ext'
 require 'support/attributes'
 require 'support/client'
 require 'support/cosmos_entity'
