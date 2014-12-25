@@ -7,7 +7,7 @@ require 'spec_helper'
 require 'motel/movement_strategies/figure8'
 
 module Motel::MovementStrategies
-describe Figure8 do
+describe Figure8, :integration => true do
   let(:figure8) { Figure8.new      }
   let(:loc)     { build(:location) }
   let(:tracked) { build(:location) }

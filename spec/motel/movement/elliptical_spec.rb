@@ -7,7 +7,7 @@ require 'spec_helper'
 require 'motel/movement_strategies/elliptical'
 
 module Motel::MovementStrategies
-describe Elliptical do
+describe Elliptical, :integration => true do
   it "moves location along elliptical path by speed * elapsed_time" do
     e = Elliptical.new(:step_delay        => 5,
                        :relative_to       => Elliptical::CENTER,

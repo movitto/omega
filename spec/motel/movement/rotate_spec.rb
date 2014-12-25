@@ -8,7 +8,7 @@ require 'motel/location'
 require 'motel/movement_strategies/rotate'
 
 module Motel::MovementStrategies
-describe Rotate do
+describe Rotate, :integration => true do
   let(:rot)    { Rotate.new }
   let(:loc)    { build(:location) }
   let(:parent) { build(:location) }

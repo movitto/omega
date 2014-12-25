@@ -7,7 +7,7 @@ require 'spec_helper'
 require 'motel/movement_strategies/linear'
 
 module Motel::MovementStrategies
-describe Linear do
+describe Linear, :integration => true do
   let(:linear) { Linear.new }
   let(:loc)    { build(:location) }
   let(:parent) { build(:location) }

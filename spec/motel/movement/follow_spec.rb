@@ -7,6 +7,6 @@ require 'spec_helper'
 require 'motel/movement_strategies/follow'
 
 module Motel::MovementStrategies
-describe Follow do
+describe Follow, :integration => true do
 end # describe Follow
 end # module Motel::MovementStrategies

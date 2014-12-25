@@ -7,7 +7,7 @@ require 'spec_helper'
 require 'motel/movement_strategies/towards'
 
 module Motel::MovementStrategies
-describe Towards do
+describe Towards, :integration => true do
   let(:towards) { build(:ms_towards)           }
   let(:loc)     { build(:location)             }
   let(:target)  { build(:location).coordinates }
