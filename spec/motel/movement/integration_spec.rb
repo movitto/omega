@@ -5,14 +5,13 @@
 
 require 'spec_helper'
 
-describe Motel do
+describe Motel, :integration => true do
   describe "face and move" do
     let(:ms) { Object.new.extend(Motel::MovementStrategies::LinearMovement)
                          .extend(Motel::MovementStrategies::Rotatable)
                          .extend(Motel::MovementStrategies::TracksCoordinates) }
-
     let(:tests) { 10      }
-    let(:steps) { 500000  }
+    let(:steps) { 1000000 }
     let(:delay) { 0.01    }
 
     let(:fixed)   { { :distance_tolerance    => 1,
@@ -28,7 +27,7 @@ describe Motel do
       loc = init_test(lparams, mparams)
 
       0.upto(steps) do |i|
-        puts "Step #{i}:  #{state_str(loc)}"
+        #puts "Step #{i}:  #{state_str(loc)}"
         expect {
           move(loc, delay)
         }.to_not raise_error, error_out(lparams, mparams)
@@ -107,23 +106,36 @@ describe Motel do
     end
 
     def state_str(loc)
-      "#{dist_str(loc)} / #{proj_str(loc)} / #{proj_diff_str(loc)} / #{rot_str(loc)} / #{coords_str(loc)}"
+      "#{dist_str(loc)} / #{lin_str}"
     end
 
     def error_out(lparams, mparams)
       lparams.inspect + '/' + mparams.inspect
     end
 
+    def stop_dist
+      ms.speed ** 2 / (2 * ms.acceleration)
+    end
+
+    def near_target?(loc)
+      loc.distance_from(*ms.target) < stop_dist
+    end
+
     def move(loc, elapsed)
+      ms.face_target(loc)
+      ms.rotate(loc, elapsed)
+      if !near_target?(loc)
+        ms.update_acceleration_from(loc)
+      else
+        ms.update_acceleration_from(loc.orientation.collect { |c| c * -1 })
+      end
+
+      ms.update_dir_from(loc) if ms.facing_movement?(loc, ms.orientation_tolerance)
+
       oa = ms.acceleration
       ms.acceleration = nil unless ms.rotation_stopped?(loc)
       ms.move_linear(loc, elapsed)
       ms.acceleration = oa
-
-      ms.face_target(loc)
-      ms.rotate(loc, elapsed)
-      ms.update_acceleration_from(loc)
-      ms.update_dir_from(loc) if ms.facing_movement?(loc, ms.orientation_tolerance)
     end
 
     def verify!(loc, lparams, mparams)
@@ -206,6 +218,20 @@ describe Motel do
                    :target                => [17354930.91527178, 83823920.60166006, 41382565.87571455],
                    :dir                   => [-0.9363291775690445, 0.0, -0.3511234415883917],
                    :speed                 => 1}
+
+        run_test lparams, mparams
+
+        lparams = {:x                     => 80565944.3837156,
+                   :y                     => 21724759.041291717,
+                   :z                     => 65333384.5999879,
+                   :orientation           => [-0.5547001962252291, -0.8320502943378437, 0.0]}
+        mparams = {:distance_tolerance    => 1,
+                   :orientation_tolerance => 0.02454369260617026,
+                   :max_speed             => 10585.850310457223,
+                   :acceleration          => 431251.5250149849,
+                   :rot_theta             => 4.116813458534446,
+                   :target                => [70697521.46023387, 82623319.95628865, 79814786.18140315], :dir=>[0.5773502691896258, 0.5773502691896258, -0.5773502691896258],
+                   :speed                 =>1 } 
 
         run_test lparams, mparams
       end
