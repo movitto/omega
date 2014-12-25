@@ -14,6 +14,7 @@ module Motel
   def self.rand_vector
     nx,ny,nz = (rand(2) == 0 ? 1 : -1), (rand(2) == 0 ? 1 : -1), (rand(2) == 0 ? 1 : -1)
     x1,y1,z1 = nx * rand(10), ny * rand(10), nz * rand(10)
+    z1 = nz * rand(10) until z1 != 0 if x1 == 0 && y1 == 0 && z1 == 0
     x1,y1,z1 = *Motel::normalize(x1, y1, z1)
     [x1,y1,z1]
   end
