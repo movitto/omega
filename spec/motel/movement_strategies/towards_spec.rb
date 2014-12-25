@@ -12,6 +12,22 @@ describe Towards do
   let(:loc)     { build(:location) }
   let(:target)  { Motel::Location.random.coordinates } 
 
+  describe "#distance_tolerance" do
+    it "is proportional to max_speed" do
+      speed = 500
+      expected = 10 ** (speed.zeros-1)
+      Towards.new(:max_speed => speed).distance_tolerance.should == expected
+    end
+  end
+
+  describe "#stop_near" do
+    it "stops near specified target" do
+      target   = [   100, 200, -100]
+      expected = [0, 100, 200, -100]
+      Towards.new(:target => target).stop_near.should == expected
+    end
+  end
+
   describe "#initialize" do
     it "initializes arriving state" do
       Towards.new(:arriving => true).arriving.should be_true
@@ -39,18 +55,6 @@ describe Towards do
     it "sets defaults" do
       towards.arriving.should be_false
       towards.step_delay.should == 0.01
-    end
-
-    it "sets distance tolerance" do
-      speed = 500
-      expected = 10 ** (speed.zeros-1)
-      Towards.new(:max_speed => speed).distance_tolerance.should == expected
-    end
-
-    it "sets stop_near target" do
-      target   = [   100, 200, -100]
-      expected = [0, 100, 200, -100]
-      Towards.new(:target => target).stop_near.should == expected
     end
   end
 
@@ -87,17 +91,19 @@ describe Towards do
   end
 
   describe "#rotational_time" do
-    it "returns times to rotate 180 degrees" do
+    it "returns times to rotate by specified angle" do
+      angle = Math::PI
       towards.rot_theta = -Math::PI / 9
-      towards.rotational_time.should == 9
+      towards.rotational_time(angle).should == 9
     end
   end
 
   describe "#rotational_distance" do
     it "returns linear distance location covers moving at speed for rotational time" do
+      angle = Math::PI
       towards.speed = 50
       towards.rot_theta = 2*Math::PI
-      towards.rotational_distance.should == 25
+      towards.rotational_distance(angle).should == 25
     end
   end
 

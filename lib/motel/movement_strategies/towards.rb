@@ -19,6 +19,20 @@ class Towards < MovementStrategy
   # Indicates if entity is arriving, used internally
   attr_accessor :arriving
 
+  # Override TracksCoordinates#target= to set stop_near
+  def target=(val)
+    @target = val
+    @stop_near = Array.new(val).unshift 0 unless val.nil?
+    @target
+  end
+
+  # Override LinearMovement#max_speed= to set distance_tolerance
+  def max_speed=(val)
+    @max_speed = val
+    @distance_tolerance = 10 ** (val.digits-1) unless val.nil?
+    @max_speed
+  end
+
   # Motel::MovementStrategies::Towards initializer
   #
   # @param [Hash] args hash of options to initialize the towards
@@ -31,9 +45,6 @@ class Towards < MovementStrategy
     init_rotation(args)
     target_attrs_from_args args
     super(args)
-
-    @distance_tolerance = 10 ** (max_speed.zeros-1)
-    @stop_near          = Array.new(target).unshift 0
   end
 
   # Implementation of {Motel::MovementStrategy#valid?}
@@ -46,12 +57,16 @@ class Towards < MovementStrategy
     arrived?(loc)
   end
 
-  def rotational_time
-    Math::PI / rot_theta.abs
+  def moving?
+    speed > 0
   end
 
-  def rotational_distance
-    rotational_time * speed
+  def rotational_time(angle)
+    angle / rot_theta.abs
+  end
+
+  def rotational_distance(angle)
+    rotational_time(angle) * speed
   end
 
   def linear_time
@@ -59,11 +74,20 @@ class Towards < MovementStrategy
   end
 
   def linear_distance
-    speed * linear_time - acceleration / 2 * (linear_time ** 2)
+    #speed * linear_time - acceleration / 2 * (linear_time ** 2)
+    speed ** 2 / (2 * acceleration)
+  end
+
+  def near_distance
+    linear_distance + rotational_distance(Math::PI)
   end
 
   def near_target?(loc)
-    distance_from_target(loc) <= linear_distance + rotational_distance
+    distance_from_target(loc) <= near_distance
+  end
+
+  def state(loc)
+    arriving || near_target?(loc) ? "near" : "far"
   end
 
   # Implementation of {Motel::MovementStrategy#move}
@@ -75,6 +99,9 @@ class Towards < MovementStrategy
 
     # slow down as we approach target
     if @arriving || near_target?(loc)
+      # XXX over time, for long distances trajectory will offset loc
+      # from arriving at target, when far from target we continuously
+      # face, but cannot here
       face loc, [-dx, -dy, -dz] unless @arriving
       rotate(loc, elapsed_seconds)
       @arriving = true
@@ -85,15 +112,16 @@ class Towards < MovementStrategy
       @arriving = false
 
       # if dir is within orient_tolerance of orient, set velocity directly
+      # XXX else velocity will approach but never be fully aligned w/ accel
       update_dir_from(loc) if facing_movement?(loc, orientation_tolerance)
     end
 
     orig_acceleration = @acceleration
-    @acceleration = 0 unless rotation_stopped?(loc)
+    @acceleration = nil unless rotation_stopped?(loc)
 
     update_acceleration_from(loc)
     move_linear loc, elapsed_seconds
-    loc.coordinates = target if arrived?(loc)
+    #loc.coordinates = target if arrived?(loc)
 
     @acceleration = orig_acceleration
   end
@@ -110,7 +138,7 @@ class Towards < MovementStrategy
 
   # Convert movement strategy to human readable string and return it
   def to_s
-    "towards-#{target}"
+    "towards-#{target.collect { |t| t.round_to(4)}}"
   end
 end # class Towards
 end # module MovementStrategies
