@@ -102,9 +102,9 @@ module HasCoordinates
 
   # Return normalized direction vector from this location's coordinates to specified ones
   def direction_to(tx, ty, tz)
-    dx = x - tx
-    dy = y - ty
-    dz = z - tz
+    dx = tx - x
+    dy = ty - y
+    dz = tz - z
     d = Motel.length(dx, dy, dz)
     [dx / d, dy / d, dz / d]
   end
