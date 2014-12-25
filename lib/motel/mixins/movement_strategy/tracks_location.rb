@@ -55,6 +55,7 @@ module MovementStrategies
 
     # Return boolean indicating if specified location is in same system
     # as tracked location
+    # TODO rename to same_parent?
     def same_system?(loc)
       tracked_location.parent_id == loc.parent_id
     end

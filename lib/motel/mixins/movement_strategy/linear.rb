@@ -90,6 +90,12 @@ module MovementStrategies
       Motel::normalized?(@ax, @ay, @az)
     end
 
+    # Return bool indicating if specified location is
+    # moving towards specified coordinate
+    def moving_towards?(loc, coords, tolerance=CLOSE_ENOUGH)
+      Motel.axis_angle(*dir, *loc.direction_to(*coords)).first <= tolerance
+    end
+
     # Return bool indicating if stop distance has been exceeded
     def stop_distance_exceeded?(loc)
       !stop_distance.nil? && loc.distance_moved >= stop_distance
@@ -125,6 +131,12 @@ module MovementStrategies
     # Return bool indicating if location is facing movement direction
     def facing_movement?(loc, tolerance)
       loc.orientation_difference(*dir).first <= tolerance
+    end
+
+    # Return bool indicating if direction was changed
+    def dir_changed?(old_dirx, old_diry, old_dirz, angle)
+      diff = Motel.angle_between(old_dirx, old_diry, old_dirz, *dir)
+      diff >= angle && (diff - angle) < CLOSE_ENOUGH
     end
 
     # Return linear attributes in json format

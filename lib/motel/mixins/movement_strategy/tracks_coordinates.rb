@@ -65,6 +65,10 @@ module MovementStrategies
       loc.orientation_difference(*orientation)
     end
 
+    def moving_towards_target?(loc)
+      moving_towards?(loc, target, orientation_tolerance)
+    end
+
     # Return bool indicating if specified location is facing specified target
     def facing?(loc, coords)
       rotation_to(loc, coords).first.abs <= orientation_tolerance

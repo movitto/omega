@@ -52,6 +52,10 @@ module MovementStrategies
 
     alias :rotation_stopped? :change_due_to_rotation?
 
+    def rotating?(loc)
+      rot_theta != 0 && (stop_angle.nil? || loc.angle_rotated < stop_angle)
+    end
+
     def will_rotate_past_stop?(loc, angle)
       !stop_angle.nil? && (loc.angle_rotated + angle.abs) > stop_angle
     end
