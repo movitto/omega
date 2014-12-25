@@ -66,6 +66,7 @@ module HasOrientation
   def rotation_to(x, y, z)
     dx = x - @x ; dy = y - @y ; dz = z - @z
     raise ArgumentError if dx == 0 && dy == 0 && dz == 0
+    dx, dy, dz = Motel.normalize(dx, dy, dz)
     orientation_difference dx, dy, dz
   end
 
