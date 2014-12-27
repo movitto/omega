@@ -16,13 +16,10 @@ class Towards < MovementStrategy
   include Rotatable
   include TracksCoordinates
 
-  # Indicates if entity is arriving, used internally
-  attr_accessor :arriving
-
   # Override TracksCoordinates#target= to set stop_near
   def target=(val)
     @target = val
-    @stop_near = Array.new(val).unshift 0 unless val.nil?
+    @stop_near = Array.new(val).unshift 1 unless val.nil?
     @target
   end
 
@@ -39,8 +36,6 @@ class Towards < MovementStrategy
   #   movement strategy with, accepts key/value pairs corresponding
   #   to all mutable attributes
   def initialize(args = {})
-    attr_from_args args, :arriving => false
-
     linear_attrs_from_args args
     init_rotation(args)
     target_attrs_from_args args
@@ -57,29 +52,8 @@ class Towards < MovementStrategy
     arrived?(loc)
   end
 
-  def moving?
-    speed > 0
-  end
-
-  def rotational_time(angle)
-    angle / rot_theta.abs
-  end
-
-  def rotational_distance(angle)
-    rotational_time(angle) * speed
-  end
-
-  def linear_time
-    speed/acceleration
-  end
-
-  def linear_distance
-    #speed * linear_time - acceleration / 2 * (linear_time ** 2)
-    speed ** 2 / (2 * acceleration)
-  end
-
   def near_distance
-    linear_distance + rotational_distance(Math::PI)
+    speed.to_f ** 2 / (2 * acceleration)
   end
 
   def near_target?(loc)
@@ -87,7 +61,7 @@ class Towards < MovementStrategy
   end
 
   def state(loc)
-    arriving || near_target?(loc) ? "near" : "far"
+    near_target?(loc) ? "near" : "far"
   end
 
   # Implementation of {Motel::MovementStrategy#move}
@@ -97,42 +71,35 @@ class Towards < MovementStrategy
       return
     end
 
-    # slow down as we approach target
-    if @arriving || near_target?(loc)
-      # XXX over time, for long distances trajectory will offset loc
-      # from arriving at target, when far from target we continuously
-      # face, but cannot here
-      face loc, [-dx, -dy, -dz] unless @arriving
-      rotate(loc, elapsed_seconds)
-      @arriving = true
+    # always face target
+    face_target(loc)
+    rotate(loc, elapsed_seconds)
 
-    else
-      face_target loc
-      rotate(loc, elapsed_seconds)
-      @arriving = false
+    # if near, deaccelerate, else accelerate
+    near_target?(loc) ?
+      update_acceleration_from(loc.inverse_orientation) :
+      update_acceleration_from(loc.orientation)
 
-      # if dir is within orient_tolerance of orient, set velocity directly
-      # XXX else velocity will approach but never be fully aligned w/ accel
-      update_dir_from(loc) if facing_movement?(loc, orientation_tolerance)
-    end
+    # XXX align movement if within tolerance (else will never be 100% aligned)
+    update_dir_from(loc) if facing_movement?(loc, orientation_tolerance)
 
-    orig_acceleration = @acceleration
+    # disable acceleration if rotating
+    oa = acceleration
     @acceleration = nil unless rotation_stopped?(loc)
 
-    update_acceleration_from(loc)
-    move_linear loc, elapsed_seconds
-    #loc.coordinates = target if arrived?(loc)
+    # move towards target
+    move_linear(loc, elapsed_seconds)
 
-    @acceleration = orig_acceleration
+    # restore acceleration
+    @acceleration = oa
   end
 
   # Convert movement strategy to json representation and return it
   def to_json(*a)
     { 'json_class' => self.class.name,
-      'data'       => { :step_delay => step_delay,
-                        :arriving   => arriving   }.merge(target_json)
-                                                   .merge(rotation_json)
-                                                   .merge(linear_json)
+      'data'       => { :step_delay => step_delay}.merge(target_json)
+                                                  .merge(rotation_json)
+                                                  .merge(linear_json)
     }.to_json(*a)
   end
 

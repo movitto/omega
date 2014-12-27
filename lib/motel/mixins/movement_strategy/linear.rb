@@ -79,6 +79,11 @@ module MovementStrategies
       (@acceleration.nil? || acceleration_valid?)
     end
 
+    # Return bool indicating if location is moving
+    def moving?
+      speed > 0
+    end
+
     # Return boolean indicating if speed is valid
     def speed_valid?
       @speed.numeric? && @speed > 0

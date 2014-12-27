@@ -64,7 +64,6 @@ describe Towards, :integration => true do
   def run_movement(params)
     # reset
     loc.angle_rotated = loc.distance_moved = 0
-    towards.arriving  = false
     towards.speed = 1
 
     # location and target

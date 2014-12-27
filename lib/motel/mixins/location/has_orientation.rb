@@ -51,6 +51,11 @@ module HasOrientation
     [@orientation_x, @orientation_y, @orientation_z]
   end
 
+  # Return inverse orientation array
+  def inverse_orientation
+    orientation.collect { |o| o * -1 }
+  end
+
   # Set this location's orientation
   def orientation=(*o)
     o.flatten! if o.first.is_a?(Array)
@@ -85,9 +90,9 @@ module HasOrientation
 
   # Return orientation in string format
   def orientation_str
-    (orx.numeric? ? orx.round_to(2).to_s : "") + "," +
-    (ory.numeric? ? ory.round_to(2).to_s : "") + "," +
-    (orz.numeric? ? orz.round_to(2).to_s : "")
+    (orx.numeric? ? "%+2.2f" % orx.round_to(2).to_s : "") + "," +
+    (ory.numeric? ? "%+2.2f" % ory.round_to(2).to_s : "") + "," +
+    (orz.numeric? ? "%+2.2f" % orz.round_to(2).to_s : "")
   end
 
   # Return bool indicating if orientation is equal to other's

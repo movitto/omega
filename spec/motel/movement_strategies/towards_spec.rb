@@ -15,24 +15,22 @@ describe Towards do
   describe "#distance_tolerance" do
     it "is proportional to max_speed" do
       speed = 500
-      expected = 10 ** (speed.zeros-1)
+      expected = 10 ** (speed.digits-1)
       Towards.new(:max_speed => speed).distance_tolerance.should == expected
     end
   end
 
-  describe "#stop_near" do
-    it "stops near specified target" do
+  describe "#target=" do
+    it "sets stop near coordinate" do
       target   = [   100, 200, -100]
-      expected = [0, 100, 200, -100]
-      Towards.new(:target => target).stop_near.should == expected
+      expected = [1, 100, 200, -100]
+      t = Towards.new
+      t.target = target
+      t.stop_near.should == expected
     end
   end
 
   describe "#initialize" do
-    it "initializes arriving state" do
-      Towards.new(:arriving => true).arriving.should be_true
-    end
-
     it "initializes linear attrs from args" do
       args = {:ar => :gs }
       Towards.test_new(args) { |ms| ms.should_receive(:linear_attrs_from_args).with(args) }
@@ -53,7 +51,6 @@ describe Towards do
     end
 
     it "sets defaults" do
-      towards.arriving.should be_false
       towards.step_delay.should == 0.01
     end
   end
@@ -90,36 +87,11 @@ describe Towards do
     end
   end
 
-  describe "#rotational_time" do
-    it "returns times to rotate by specified angle" do
-      angle = Math::PI
-      towards.rot_theta = -Math::PI / 9
-      towards.rotational_time(angle).should == 9
-    end
-  end
-
-  describe "#rotational_distance" do
-    it "returns linear distance location covers moving at speed for rotational time" do
-      angle = Math::PI
-      towards.speed = 50
-      towards.rot_theta = 2*Math::PI
-      towards.rotational_distance(angle).should == 25
-    end
-  end
-
-  describe "#linear_time" do
-    it "returns time it will take to deaccelerate from current speed" do
-      towards.speed = 100
-      towards.acceleration = 25
-      towards.linear_time.should == 4
-    end
-  end
-
-  describe "#linear_distance" do
+  describe "#near_distance" do
     it "returns distance location covers while deaccelerating to a stop" do
       towards.speed = 10
       towards.acceleration = 15
-      towards.linear_distance.should == 0
+      towards.near_distance.should == 10.0/3
     end
   end
 
@@ -131,14 +103,14 @@ describe Towards do
       towards.target = target
     end
 
-    context "distance loc from target <= rotational distance + linear distance" do
+    context "distance loc from target <= near distance" do
       it "returns true" do
         loc.coordinates = target
         towards.near_target?(loc).should be_true
       end
     end
 
-    context "distance loc from target > rotational distance + linear distance" do
+    context "distance loc from target > near distance" do
       it "returns false" do
         loc.coordinates = target.collect { |c| c * 10000 }
         towards.near_target?(loc).should be_false
@@ -162,69 +134,49 @@ describe Towards do
       end
     end
 
-    context "arriving mode" do
-      it "rotates location" do
-        towards.arriving = true
-        towards.should_receive(:rotate).with(loc, 0.3)
-        towards.move(loc, 0.3)
-      end
+    it "faces target" do
+      towards.should_receive(:face_target).with(loc)
+      towards.move(loc, 1)
+    end
+
+    it "rotates location" do
+      towards.should_receive(:rotate).with(loc, 0.3)
+      towards.move(loc, 0.3)
     end
 
     context "near target" do
       before(:each) do
-        towards.arriving = false
         towards.should_receive(:near_target?)
                .with(loc).and_return(true)
       end
 
-      context "not arriving" do
-        it "faces inverse of movement direction" do
-          towards.should_receive(:face).with(loc, towards.dir.collect { |d| d * -1 })
-          towards.move(loc, 0.3)
-        end
-      end
-
-      it "rotates location" do
-        towards.should_receive(:rotate).with(loc, 0.3)
+      it "updates acceleration from inverse loc orientation" do
+        towards.should_receive(:update_acceleration_from)
+               .with(loc.inverse_orientation)
         towards.move(loc, 0.3)
-      end
-
-      it "sets arriving true" do
-        towards.move(loc, 1)
-        towards.arriving.should be_true
       end
     end
 
-    context "not arriving and not near target" do
+    context "not near target" do
       before(:each) do
-        towards.arriving = false
         towards.should_receive(:near_target?)
                .with(loc).and_return(false)
       end
 
-      it "faces target" do
-        towards.should_receive(:face_target).with(loc)
+      it "updates acceleration from loc orientation" do
+        towards.should_receive(:update_acceleration_from)
+               .with(loc.orientation)
+        towards.move(loc, 0.3)
+      end
+    end
+
+    context "facing direction of movement" do
+      it "sets velocity directly from location orientation" do
+        towards.should_receive(:facing_movement?)
+               .with(loc, towards.orientation_tolerance)
+               .and_return(true)
+        towards.should_receive(:update_dir_from).with(loc)
         towards.move(loc, 1)
-      end
-
-      it "rotates location" do
-        towards.should_receive(:rotate).with(loc, 0.4)
-        towards.move(loc, 0.4)
-      end
-
-      it "sets arriving false" do
-        towards.move(loc, 0.4)
-        towards.arriving.should be_false
-      end
-
-      context "facing direction of movement" do
-        it "sets velocity directly from location orientation" do
-          towards.should_receive(:facing_movement?)
-                 .with(loc, towards.orientation_tolerance)
-                 .and_return(true)
-          towards.should_receive(:update_dir_from).with(loc)
-          towards.move(loc, 1)
-        end
       end
     end
 
@@ -238,29 +190,15 @@ describe Towards do
       end
     end
 
-    it "updates acceleration direction from location orientation" do
-      towards.should_receive(:update_acceleration_from).with(loc)
-      towards.move(loc, 1)
-    end
-
     it "moves location linearily" do
       towards.should_receive(:move_linear).with(loc, 1)
       towards.move(loc, 1)
-    end
-    
-    context "location arrived at target" do
-      it "sets location's coordinates to target" do
-        towards.should_receive(:arrived?).with(loc).and_return(true)
-        towards.move(loc, 1)
-        loc.coordinates.should == target
-      end
     end
   end
 
   describe "#to_json" do
     it "returns towards strategy in json format" do
       towards = Towards.new :step_delay            => 1,
-                            :arriving              => true,
                             :target                => target,
                             :orientation_tolerance => Math::PI/8,
                             :rot_theta             => Math::PI/3,
@@ -281,7 +219,6 @@ describe Towards do
       j = towards.to_json
       j.should include('"json_class":"Motel::MovementStrategies::Towards"')
       j.should include('"step_delay":1')
-      j.should include('"arriving":true')
       j.should include('"target":'+target.to_json)
       j.should include('"orientation_tolerance":' + (Math::PI/8).to_s)
       j.should include('"rot_theta":' + (Math::PI/3).to_s)
@@ -304,12 +241,11 @@ describe Towards do
 
   describe "#json_create" do
     it "returns towards from json format" do
-      j = '{"json_class":"Motel::MovementStrategies::Towards","data":{"step_delay":1,"arriving":true,"target":[0.22396658352754284,-0.44032707899348655,-0.3119409189817083],"orientation_tolerance":0.39269908169872414,"distance_tolerance":1,"rot_theta":1.0471975511965976,"rot_x":0,"rot_y":0,"rot_z":1,"stop_angle":3.141592653589793,"speed":57,"dx":-1.0,"dy":0.0,"dz":0.0,"ax":0.0,"ay":0.0,"az":-1.0,"acceleration":12,"stop_distance":25,"stop_near":[0,0.22396658352754284,-0.44032707899348655,-0.3119409189817083],"max_speed":90}}'
+      j = '{"json_class":"Motel::MovementStrategies::Towards","data":{"step_delay":1,"target":[0.22396658352754284,-0.44032707899348655,-0.3119409189817083],"orientation_tolerance":0.39269908169872414,"distance_tolerance":1,"rot_theta":1.0471975511965976,"rot_x":0,"rot_y":0,"rot_z":1,"stop_angle":3.141592653589793,"speed":57,"dx":-1.0,"dy":0.0,"dz":0.0,"ax":0.0,"ay":0.0,"az":-1.0,"acceleration":12,"stop_distance":25,"stop_near":[0,0.22396658352754284,-0.44032707899348655,-0.3119409189817083],"max_speed":90}}'
       m = RJR::JSONParser.parse(j)
 
       m.class.should == Motel::MovementStrategies::Towards
       m.step_delay.should == 1
-      m.arriving.should be_true
       m.target.should == [0.22396658352754284,-0.44032707899348655,-0.3119409189817083]
       m.orientation_tolerance.should == 0.39269908169872414
       m.rot_theta.should == 1.0471975511965976
