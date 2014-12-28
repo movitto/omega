@@ -67,7 +67,15 @@ Omega.LocationMovementStrategy = {
   },
 
   /// Update movement strategy acceleration from location orientation
-  update_ms_acceleration : function(dir){
+  update_ms_acceleration : function(dir, opts){
+    if(!opts){
+      if(typeof(dir) === "object"){
+        opts = dir;
+        dir = null;
+      }else
+        opts = {};
+    }
+
     if(!dir) dir = [this.orientation_x,
                     this.orientation_y,
                     this.orientation_z];
@@ -75,6 +83,12 @@ Omega.LocationMovementStrategy = {
     this.movement_strategy.ax = dir[0];
     this.movement_strategy.ay = dir[1];
     this.movement_strategy.az = dir[2];
+
+    if(opts['invert']){
+      this.movement_strategy.ax *= -1;
+      this.movement_strategy.ay *= -1;
+      this.movement_strategy.az *= -1;
+    }
   },
 
   facing_movement : function(tolerance){
