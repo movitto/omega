@@ -19,20 +19,55 @@ class Rotation < Omega::Server::Callback
 
   protected
 
+  # Return the axis as an array
+  def axis
+    [axis_x, axis_y, axis_z]
+  end
+
+  # Return orig orientation array
+  def orig_orientation
+    [@orig_ox, @orig_oy, @orig_oz]
+  end
+
+  # Return bool indicating if axis is valid
+  def axis_valid?
+    !(@axis_x.nil? || @axis_y.nil? || @axis_z.nil?)
+  end
+
+  # Return bool indiciating if strategy has rotation
+  def strategy_has_rotation?(loc)
+    loc.ms.class.ancestors.include?(Motel::MovementStrategies::Rotatable)
+  end
+
+  # Return rotation along specified axis
+  def axis_rotation(loc)
+    Motel.rotated_angle(*loc.orientation, *orig_orientation, *axis)
+  end
+
+  # Return rotation along axis specified by strategy
+  def strategy_rotation(loc)
+    Motel.rotated_angle(*loc.orientation, *orig_orientation, *loc.ms.rot_dir)
+  end
+
+  # Return angle between orientation and original
+  def angular_rotation(loc)
+    Motel.angle_between(*loc.orientation, *orig_orientation)
+  end
+
   # Helper get rotation
   def get_rotation(loc)
-    if !(@axis_x.nil? || @axis_y.nil? || @axis_z.nil?)
-      Motel.rotated_angle(*loc.orientation, @orig_ox, @orig_oy, @orig_oz,
-                          @axis_x, @axis_y, @axis_z)
+    if axis_valid?
+      axis_rotation(loc)
 
-    # if axis angle is nil/invalid and location movement strategy includes
-    # rotate movement strategy mixin, use axis of rotation
-    elsif loc.ms.class.ancestors.include?(Motel::MovementStrategies::Rotatable)
-      Motel.rotated_angle(*loc.orientation, @orig_ox, @orig_oy, @orig_oz,
-                          loc.ms.rot_x, loc.ms.rot_y, loc.ms.rot_z)
+    elsif strategy_has_rotation?(loc)
+      begin
+        strategy_rotation(loc)
+      rescue
+        angular_rotation(loc)
+      end
 
     else
-      0 # throw err or other?
+      angular_rotation(loc)
     end
   end
 
