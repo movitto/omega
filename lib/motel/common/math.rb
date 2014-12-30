@@ -106,8 +106,8 @@ module Motel
   
     ax = if (a.abs <= CLOSE_ENOUGH || (a.abs - Math::PI).abs <= CLOSE_ENOUGH)
            # Special case, parallel vectors, pick arbitrary vector to generate axis
-           na  = angle_between(x1, y1, z1, *CARTESIAN_NORMAL_VECTOR)
-           vec = (na <= CLOSE_ENOUGH) || ((na.abs - Math::PI).abs <= CLOSE_ENOUGH) ?
+           na  = angle_between(x1, y1, z1, *CARTESIAN_NORMAL_VECTOR).abs
+           vec = (na <= CLOSE_ENOUGH) || ((na - Math::PI).abs <= CLOSE_ENOUGH) ?
                   MAJOR_CARTESIAN_AXIS : CARTESIAN_NORMAL_VECTOR
            normal_vector(x1, y1, z1, *vec)
   

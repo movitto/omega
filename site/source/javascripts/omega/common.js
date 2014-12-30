@@ -158,17 +158,31 @@ Omega.Math = {
     x2 = n2[0]; y2 = n2[1]; z2 = n2[2];
 
     var projection = dp(x1, y1, z1, x2, y2, z2);
+    if(projection > 1)       projection = 1;
+    else if(projection < -1) projection = -1;
+
     return Math.acos(projection);
   },
 
   /// Axis-angle between vectors.
   axis_angle : function(x1, y1, z1, x2, y2, z2){
-    var nrml = Omega.Math.nrml;
-    var cp   = Omega.Math.cp;
-    var abwn = Omega.Math.angle_between;
+    var nrml  = Omega.Math.nrml;
+    var cp    = Omega.Math.cp;
+    var abwn  = Omega.Math.angle_between;
+    var close = Omega.Math.CLOSE_ENOUGH;
 
-    var angle = abwn(x1, y1, z1, x2, y2, z2);
-    var axis  = cp(x1, y1, z1, x2, y2, z2);
+    var angle     = abwn(x1, y1, z1, x2, y2, z2);
+    var abs_angle = Math.abs(angle);
+    var axis      = cp(x1, y1, z1, x2, y2, z2);
+
+    if(abs_angle <= close || Math.abs(abs_angle - Math.PI) <= close){
+      var normal = Omega.Math.CARTESIAN_NORMAL;
+      var nangle = Math.abs(abwn(x1, y1, z1, normal[0], normal[1], normal[2]));
+      if(nangle <= close || Math.abs(nangle - Math.PI) <= close)
+        normal = Omega.Math.CARTESIAN_MAJOR;
+      axis   = cp(x1, y1, z1, normal[0], normal[1], normal[2]);
+    }
+
     var naxis = nrml(axis[0], axis[1], axis[2]);
 
     return [angle].concat(naxis);
