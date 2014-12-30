@@ -9,9 +9,11 @@ Omega.LocationMovement = {
   /// direction of orientation
   //
   /// TODO stop at stop_distance if set
-  move_linear : function(distance){
+  move_linear : function(elapsed){
     if(this.movement_strategy.acceleration)
-      this.accelerate();
+      this.accelerate(elapsed);
+
+    var distance = this.movement_strategy.speed * elapsed / 1000;
 
     var dir = this.ms_dir();
     var dx = dir[0];
@@ -24,7 +26,7 @@ Omega.LocationMovement = {
     this.distance_moved += distance;
   },
 
-  accelerate : function(){
+  accelerate : function(elapsed){
     var vdir = this.ms_dir();
     var dx = vdir[0];
     var dy = vdir[1];
@@ -37,10 +39,11 @@ Omega.LocationMovement = {
 
     var speed        = this.movement_strategy.speed;
     var acceleration = this.movement_strategy.acceleration;
+    var acomponent   = acceleration * elapsed / 1000;
 
-    var ndx = dx * speed + ax * acceleration;
-    var ndy = dy * speed + ay * acceleration;
-    var ndz = dz * speed + az * acceleration;
+    var ndx = dx * speed + ax * acomponent;
+    var ndy = dy * speed + ay * acomponent;
+    var ndz = dz * speed + az * acomponent;
 
     var nspeed = Math.sqrt(Math.pow(ndx, 2) + Math.pow(ndy, 2) + Math.pow(ndz, 2));
     var max_speed = this.movement_strategy.max_speed;

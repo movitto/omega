@@ -64,8 +64,7 @@ Omega.ShipProjectile = {
   },
 
   _move_linear : function(delta){
-    var distance = this.location.movement_strategy.speed * delta / 1000;
-    this.location.move_linear(distance);
+    this.location.move_linear(delta);
   },
 
   _update_component : function(){

@@ -6,8 +6,7 @@
 
 Omega.ShipLinearMovement = {
   _move_linear : function(elapsed){
-    var dist = this.location.movement_strategy.speed * elapsed / 1000;
-    this.location.move_linear(dist);
+    this.location.move_linear(elapsed);
   },
 
   _run_linear_movement : function(page){
