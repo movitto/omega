@@ -18,7 +18,7 @@ Omega.ShipTowardsMovement = {
     var ms  = loc.movement_strategy;
 
     /// always face target
-    loc.face_target();
+    if(!loc.facing_target(ms.orientation_tolerance)) loc.face_target();
     this._rotate(elapsed);
 
     /// if near deaccelerate, else accelerate

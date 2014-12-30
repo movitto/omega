@@ -84,8 +84,11 @@ Omega.LocationCoordinates = {
     }
 
     var d    = this.distance_from(x, y, z);
-    var diff = this.sub(x, y, z);
-    return [-diff[0] / d, -diff[1] / d, -diff[2] / d];
+    var dx   = x - this.x;
+    var dy   = y - this.y;
+    var dz   = z - this.z;
+
+    return [dx / d, dy / d, dz / d];
   },
 
   /* Return distance location is from the specified x,y,z

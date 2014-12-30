@@ -47,7 +47,7 @@ Omega.Config = {
   entity_scales   : {system : {far :     0.5, max :  0.00001, min :    1}}, /// size scale is multiplied
 
   // event tracking
-  ship_movement     :   10000000000,
+  ship_movement     :      10000000,
   ship_rotation     :          1.57,
   station_movement  :            50,
 

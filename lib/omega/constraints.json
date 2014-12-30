@@ -101,10 +101,10 @@
     "shield_refresh_rate" :        1,
     "mining_rate"         :     0.10,
     "mining_quantity"     :       20,
-    "mining_distance"     : 400000000,
+    "mining_distance"     :  4000000,
     "cargo_capacity"      :      100,
-    "transfer_distance"   : 200000000,
-    "collection_distance" : 30000000,
+    "transfer_distance"   :  2000000,
+    "collection_distance" :  3000000,
     "construction_cost"   :      100,
     "construction_time"   :        5
   },

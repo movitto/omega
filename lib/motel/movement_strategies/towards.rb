@@ -72,7 +72,7 @@ class Towards < MovementStrategy
     end
 
     # always face target
-    face_target(loc)
+    face_target(loc) unless facing_target?(loc)
     rotate(loc, elapsed_seconds)
 
     # if near, deaccelerate, else accelerate
