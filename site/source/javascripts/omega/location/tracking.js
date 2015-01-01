@@ -10,6 +10,11 @@ Omega.LocationTracking = {
     this.tracking = location;
   },
 
+  /// Boolean indicating if location arrived at target
+  arrived : function(dist){
+    return this.distance_from_target() <= dist;
+  },
+
   /// Boolean indicating if location is near target
   near_target : function(dist){
     var target = this.tracking || this.movement_strategy.target;
@@ -18,7 +23,7 @@ Omega.LocationTracking = {
     return this.distance_from(target) <= dist;
   },
 
-  // Return distance from target
+  /// Return distance from target
   distance_from_target : function(){
     var target = this.tracking || this.movement_strategy.target;
     return this.distance_from(target);
