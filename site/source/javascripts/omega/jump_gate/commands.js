@@ -37,27 +37,36 @@ Omega.JumpGateCommands = {
                   return _this._should_trigger_ship(e, page);
                 });
 
-    for(var s = 0; s < ships.length; s++){
-      var ship = ships[s];
-      (function(ship){ /// XXX need new scope to preserve ship
-        /// XXX make sure endpoint is set! (won't come in w/ server jg)
-        ship.location.parent_id = _this.endpoint.location.id;
-        page.node.http_invoke('manufactured::move_entity', ship.id, ship.location,
-          function(response){
-            if(response.error){
-              _this.dialog().title = 'Jump Gate Trigger Error';
-              _this.dialog().show_error_dialog();
-              _this.dialog().append_error(response.error.message);
+    for(var s = 0; s < ships.length; s++)
+      this._trigger_ship(ships[s], page);
+  },
 
-            }else{
-              ship.system_id = _this.endpoint_id;
-              page.canvas.remove(ship);
-              page.audio_controls.play(_this.trigger_audio);
-              /// TODO reset ship gfx (eg reset visited route)
-            }
-          });
-       })(ship);
-    }
+  _trigger_ship : function(ship, page){
+    var _this = this;
+
+    /// FIXME make sure endpoint is set! (won't come in w/ server jg)
+    ship.location.parent_id = _this.endpoint.location.id;
+    page.node.http_invoke('manufactured::move_entity', ship.id, ship.location,
+      function(response){
+        if(response.error)
+          _this._trigger_ship_failed(response);
+        else
+          _this._trigger_ship_success(ship, page);
+      });
+  },
+
+  _trigger_ship_failed : function(response){
+    this.dialog().title = 'Jump Gate Trigger Error';
+    this.dialog().show_error_dialog();
+    this.dialog().append_error(response.error.message);
+  },
+
+  _trigger_ship_success : function(ship, page){
+    /// FIXME need to set system itself
+    ship.system_id = this.endpoint_id;
+    page.canvas.remove(ship);
+    page.audio_controls.play(this.trigger_audio);
+    ship.update_jump_gfx();
   },
 
   _should_trigger_ship : function(entity, page){
