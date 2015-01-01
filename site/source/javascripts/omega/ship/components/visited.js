@@ -34,6 +34,14 @@ Omega.ShipVisitedRoute.prototype = {
                                this._material());
   },
 
+  reset : function(){
+    var loc = this.omega_entity.location;
+    for(var n = 0; n < this.num; n++)
+      this._geometry().vertices[n].set(loc.x, loc.y, loc.z);
+    this._geometry().verticesNeedUpdate = true;
+    this.last_pos = loc.coordinates();
+  },
+
   mark_visited : function(){
     var loc = this.omega_entity.location;
     if(this.last_pos){
