@@ -253,6 +253,7 @@ def print_manufactured_entity(mu, i=0)
     if mu.is_a?(Manufactured::Ship)
       puts indent(i+1) + "hp: #{mu.hp}"
       puts indent(i+1) + "attacking: #{mu.attacking_id}"
+      puts indent(i+1) + "mining: #{mu.mining? ? mu.mining.id : ''}"
     end
 
     puts indent(i+1) + "resources: " if mu.resources.size > 0
