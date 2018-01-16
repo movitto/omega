@@ -93,4 +93,4 @@ Free Software Foundation
 
 ## Authors
 * Mo Morsi <mo@morsi.org>
-* Nicolas Satragno <nsatragno@gmail.com>
+* Nina Satragno <nsatragno@gmail.com>
